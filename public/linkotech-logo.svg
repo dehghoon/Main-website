@@ -1,12 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-labelledby="title desc">
-  <title id="title">LinkoTech</title><desc id="desc">Abstract structural grid and connected model mark</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6ee7d8"/><stop offset="1" stop-color="#4f8cff"/></linearGradient></defs>
-  <g transform="translate(8 8)">
-    <rect width="80" height="80" rx="22" fill="#071525"/>
-    <path d="M22 58V24l18-10 18 10v34L40 68 22 58Z" fill="none" stroke="url(#g)" stroke-width="4"/>
-    <path d="M22 24l18 11 18-11M40 35v33M22 58l18-10 18 10" fill="none" stroke="url(#g)" stroke-width="4"/>
-    <circle cx="40" cy="35" r="4" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 104" role="img" aria-labelledby="title desc">
+  <title id="title">LinkoTech</title>
+  <desc id="desc">LinkoTech engineering technology logo</desc>
+  <defs>
+    <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6EE7D8"/>
+      <stop offset="1" stop-color="#4F8CFF"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(4 8)">
+    <rect x="0" y="0" width="88" height="88" rx="24" fill="#071525"/>
+    <g fill="none" stroke="url(#brandGradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 61V28l22-12 22 12v33L44 73 22 61Z"/>
+      <path d="M22 28l22 13 22-13M44 41v32M22 61l22-12 22 12"/>
+    </g>
+    <circle cx="44" cy="41" r="4.5" fill="#ffffff"/>
   </g>
-  <text x="108" y="53" font-family="Inter,Arial,sans-serif" font-size="38" font-weight="700" fill="#071525">LinkoTech</text>
-  <text x="110" y="75" font-family="Inter,Arial,sans-serif" font-size="12" letter-spacing="3" fill="#4f6478">ENGINEERING INTELLIGENCE</text>
+  <text x="112" y="55" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="750" letter-spacing="-1.2" fill="#071525">LinkoTech</text>
+  <text x="114" y="80" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" letter-spacing="3.5" fill="#4F6478">ENGINEERING TECHNOLOGY</text>
 </svg>
