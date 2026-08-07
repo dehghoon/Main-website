@@ -1,0 +1,1 @@
+export default function ContactPage(){return <main style={{minHeight:'100vh',padding:'96px 6vw',background:'#f5f8fb',color:'#071525'}}><h1>Contact LinkoTech</h1><p>For company, product, and engineering inquiries, use the available LinkoTech contact channels.</p><p><a href="mailto:hello@linkoteq.com">hello@linkoteq.com</a></p><p><a href="/">Back to Home</a></p></main>}
