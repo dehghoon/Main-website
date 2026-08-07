@@ -1,0 +1,1 @@
+export default function AboutPage(){return <main style={{minHeight:'100vh',padding:'96px 6vw',background:'#f5f8fb',color:'#071525'}}><h1>About LinkoTech</h1><p>LinkoTech is building connected engineering software, AI-enabled workflows, and reusable digital engineering tools.</p><p><a href="/">Back to Home</a></p></main>}
