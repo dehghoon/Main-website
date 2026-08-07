@@ -1,0 +1,1 @@
+export default function SupportPage(){return <main style={{minHeight:'100vh',padding:'96px 6vw',background:'#f5f8fb',color:'#071525'}}><h1>Support</h1><p>The LinkoTech support center is being prepared.</p><p><a href="/contact">Back to Contact</a></p></main>}
