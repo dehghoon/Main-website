@@ -1,8 +1,9 @@
 import Image from "next/image";
-import { ArrowRight, BrainCircuit, Building2, ClipboardCheck, Clock3, Database, FileSearch, Layers3, Sparkles, Wrench } from "lucide-react";
+import { ArrowRight, BrainCircuit, Building2, ChevronDown, Clock3, Database, FileSearch, Layers3, LifeBuoy, Sparkles, UsersRound, Wrench } from "lucide-react";
 
-const STEEL_COLUMN_URL = "https://engineering-frontend-git-agent-react-three-fib-10c6f4-structara.vercel.app/";
-const CUSTOMER_DISCOVERY_URL = "https://customer-discovery-platform-sigma.vercel.app/";
+const STEEL_COLUMN_URL = "https://steel.linkoteq.com/";
+const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
+const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
 
 const products = [
   {
@@ -26,8 +27,8 @@ const products = [
 ];
 
 const tools = [
-  { title: "Customer Discovery", description: "Structured interviews, evidence capture, and insight tracking for product discovery.", icon: ClipboardCheck, href: CUSTOMER_DISCOVERY_URL, action: "Open platform" },
-  { title: "Team Timesheet", description: "A lightweight operational workspace for time capture and project visibility.", icon: Clock3, href: "#contact", action: "Open workspace" },
+  { title: "Customer Discovery", description: "Structured interviews, evidence capture, and insight tracking for product discovery.", icon: UsersRound, href: CUSTOMER_DISCOVERY_URL, action: "Open platform" },
+  { title: "Team Timesheet", description: "A lightweight operational workspace for time capture and project visibility.", icon: Clock3, href: TIMESHEET_URL, action: "Open workspace" },
   { title: "Steel Column", description: "Interactive steel column verification with section data, utilization ratios, and report-ready outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open tool" },
 ];
 
@@ -38,20 +39,48 @@ export default function Home() {
         <a className="brand" href="#top" aria-label="LinkoTech home">
           <Image src="/linkotech-logo.svg" alt="LinkoTech" width={300} height={75} priority />
         </a>
+
         <nav className="mainNav" aria-label="Primary navigation">
-          <a href="#platform">Platform</a>
-          <div className="navDropdown">
-            <button type="button" className="navDropdownButton">Engineering Tools <span aria-hidden="true">⌄</span></button>
-            <div className="navDropdownMenu">
-              <a href={STEEL_COLUMN_URL} target="_blank" rel="noreferrer"><strong>Steel Column</strong><span>CSA steel column verification</span></a>
+          <a href="#top">Home</a>
+          <a href="#platform">AI Platform</a>
+          <a href="#vision">Roadmap</a>
+          <a href="/knowledge/documentation">Knowledge Center</a>
+          <a href="/blog">Blog</a>
+
+          <div className="navMenu">
+            <button className="navMenuButton" type="button">Calculators <ChevronDown size={15} /></button>
+            <div className="navDropdown">
+              <a href={STEEL_COLUMN_URL}><Building2 size={16} /> Steel Verification</a>
             </div>
           </div>
-          <a href={CUSTOMER_DISCOVERY_URL} target="_blank" rel="noreferrer">Customer Discovery</a>
-          <a href="/blog">Blog</a>
-          <a href="#vision">Vision</a>
-          <a href="#contact">Contact</a>
+
+          <div className="navMenu">
+            <button className="navMenuButton" type="button">About <ChevronDown size={15} /></button>
+            <div className="navDropdown">
+              <a href="/about">About Linko</a>
+              <a href={TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
+            </div>
+          </div>
+
+          <div className="navMenu">
+            <button className="navMenuButton" type="button">Contact <ChevronDown size={15} /></button>
+            <div className="navDropdown">
+              <a href="/contact">Contact Us</a>
+              <a href={CUSTOMER_DISCOVERY_URL}><UsersRound size={16} /> Customer Discovery</a>
+              <a href="/contact/support"><LifeBuoy size={16} /> Support</a>
+            </div>
+          </div>
+
+          <a href="/pricing">Pricing</a>
         </nav>
-        <a className="navCta" href="/blog/login">Author log in</a>
+
+        <div className="navMenu signInMenu">
+          <button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={15} /></button>
+          <div className="navDropdown signInDropdown">
+            <a href={TIMESHEET_URL}>Employee Login</a>
+            <a href="/customer-login">Customer Login</a>
+          </div>
+        </div>
       </header>
 
       <section className="hero" id="top">
@@ -112,7 +141,7 @@ export default function Home() {
         </div>
         <div className="toolGrid">
           {tools.map(({ title, description, icon: Icon, href, action }) => (
-            <a className="toolCard" key={title} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>
+            <a className="toolCard" key={title} href={href}>
               <Icon size={24} />
               <div><h3>{title}</h3><p>{description}</p></div>
               <span>{action}</span>
@@ -137,7 +166,7 @@ export default function Home() {
           <span className="eyebrow">Build with us</span>
           <h2>Engineering software should be intelligent, transparent, and reusable.</h2>
         </div>
-        <a className="primaryButton" href="mailto:hello@linkotech.com">Start a conversation <ArrowRight size={18} /></a>
+        <a className="primaryButton" href="/contact">Start a conversation <ArrowRight size={18} /></a>
       </section>
 
       <footer>
