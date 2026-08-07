@@ -1,6 +1,9 @@
 import Image from "next/image";
 import { ArrowRight, BrainCircuit, Building2, ClipboardCheck, Clock3, Database, FileSearch, Layers3, Sparkles, Wrench } from "lucide-react";
 
+const STEEL_COLUMN_URL = "https://engineering-frontend-git-agent-react-three-fib-10c6f4-structara.vercel.app/";
+const CUSTOMER_DISCOVERY_URL = "https://customer-discovery-platform-sigma.vercel.app/";
+
 const products = [
   {
     title: "Engineering Tools",
@@ -23,9 +26,9 @@ const products = [
 ];
 
 const tools = [
-  { title: "Customer Discovery", description: "Structured interviews, evidence capture, and insight tracking for product discovery.", icon: ClipboardCheck },
-  { title: "Team Timesheet", description: "A lightweight operational workspace for time capture and project visibility.", icon: Clock3 },
-  { title: "Steel Member Verification", description: "Interactive member checks with section data, utilization ratios, and report-ready outputs.", icon: Building2 },
+  { title: "Customer Discovery", description: "Structured interviews, evidence capture, and insight tracking for product discovery.", icon: ClipboardCheck, href: CUSTOMER_DISCOVERY_URL, action: "Open platform" },
+  { title: "Team Timesheet", description: "A lightweight operational workspace for time capture and project visibility.", icon: Clock3, href: "#contact", action: "Open workspace" },
+  { title: "Steel Column", description: "Interactive steel column verification with section data, utilization ratios, and report-ready outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open tool" },
 ];
 
 export default function Home() {
@@ -33,15 +36,22 @@ export default function Home() {
     <main>
       <header className="siteHeader">
         <a className="brand" href="#top" aria-label="LinkoTech home">
-          <Image src="/linkotech-logo.svg" alt="LinkoTech" width={250} height={75} priority />
+          <Image src="/linkotech-logo.svg" alt="LinkoTech" width={300} height={75} priority />
         </a>
-        <nav>
+        <nav className="mainNav" aria-label="Primary navigation">
           <a href="#platform">Platform</a>
-          <a href="#tools">Tools</a>
+          <div className="navDropdown">
+            <button type="button" className="navDropdownButton">Engineering Tools <span aria-hidden="true">⌄</span></button>
+            <div className="navDropdownMenu">
+              <a href={STEEL_COLUMN_URL} target="_blank" rel="noreferrer"><strong>Steel Column</strong><span>CSA steel column verification</span></a>
+            </div>
+          </div>
+          <a href={CUSTOMER_DISCOVERY_URL} target="_blank" rel="noreferrer">Customer Discovery</a>
+          <a href="/blog">Blog</a>
           <a href="#vision">Vision</a>
           <a href="#contact">Contact</a>
         </nav>
-        <a className="navCta" href="#tools">Explore tools</a>
+        <a className="navCta" href="/blog/login">Author log in</a>
       </header>
 
       <section className="hero" id="top">
@@ -101,12 +111,12 @@ export default function Home() {
           <p>Early applications are being developed as building blocks for the broader LinkoTech engineering platform.</p>
         </div>
         <div className="toolGrid">
-          {tools.map(({ title, description, icon: Icon }) => (
-            <article className="toolCard" key={title}>
+          {tools.map(({ title, description, icon: Icon, href, action }) => (
+            <a className="toolCard" key={title} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>
               <Icon size={24} />
               <div><h3>{title}</h3><p>{description}</p></div>
-              <span>Preview</span>
-            </article>
+              <span>{action}</span>
+            </a>
           ))}
         </div>
       </section>
@@ -131,7 +141,7 @@ export default function Home() {
       </section>
 
       <footer>
-        <Image src="/linkotech-logo.svg" alt="LinkoTech" width={190} height={58} />
+        <Image src="/linkotech-logo.svg" alt="LinkoTech" width={220} height={58} />
         <p>Engineering Intelligence for connected digital workflows.</p>
         <span>© 2026 LinkoTech. All rights reserved.</span>
       </footer>
