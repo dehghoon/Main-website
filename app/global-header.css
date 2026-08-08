@@ -1,0 +1,16 @@
+.siteHeader{display:none!important}
+.globalHeader{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.97);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);box-shadow:0 8px 24px rgba(7,21,37,.04)}
+.utilityBar{min-height:72px;display:grid;grid-template-columns:minmax(180px,.9fr) minmax(0,2fr) auto;align-items:center;gap:18px;padding:0 3vw}
+.utilityBrand{display:inline-flex;align-items:center}.utilityBrand img{width:210px;height:auto}
+.utilityNav{display:flex;align-items:center;justify-content:flex-end;gap:clamp(12px,1.3vw,22px);font-size:14px;color:var(--ink-soft);white-space:nowrap}
+.utilityNav>a,.utilityNav .navMenuButton{font-weight:650}.utilityNav>a:hover,.utilityNav .navMenuButton:hover{color:var(--blue)}
+.primaryBar{min-height:46px;display:flex;align-items:center;justify-content:center;gap:clamp(20px,3vw,42px);padding:0 3vw;border-top:1px solid rgba(7,21,37,.07);font-size:14px;color:var(--ink-soft);background:rgba(248,251,253,.96)}
+.primaryBar a{font-weight:650}.primaryBar a:hover{color:var(--blue)}
+.globalHeader .navMenu{position:relative}.globalHeader .navMenuButton{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:inherit;cursor:pointer;padding:10px 0}
+.globalHeader .navDropdown{position:absolute;top:calc(100% - 2px);left:50%;min-width:220px;padding:10px;border:1px solid var(--line);border-radius:16px;background:white;box-shadow:0 24px 60px rgba(7,21,37,.14);opacity:0;visibility:hidden;transform:translate(-50%,8px);transition:.18s ease}
+.globalHeader .navMenu:hover .navDropdown,.globalHeader .navMenu:focus-within .navDropdown{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.globalHeader .navDropdown a{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px}.globalHeader .navDropdown a:hover{background:#eff6ff;color:#1d4ed8}
+.globalHeader .signInMenu{justify-self:end}.globalHeader .navCta{padding:10px 16px!important;border:1px solid var(--ink)!important;border-radius:999px!important;background:var(--ink)!important;color:white!important;font-size:14px!important;font-weight:750!important}
+.globalHeader .signInDropdown{right:0;left:auto;transform:translateY(8px)}.globalHeader .signInMenu:hover .signInDropdown,.globalHeader .signInMenu:focus-within .signInDropdown{transform:translateY(0)}
+@media(max-width:900px){.utilityBar{grid-template-columns:1fr auto;padding:8px 16px}.utilityBrand img{width:170px}.utilityNav{grid-column:1/-1;order:3;overflow-x:auto;justify-content:flex-start;padding:2px 0 8px;gap:18px}.primaryBar{overflow-x:auto;justify-content:flex-start;gap:24px;padding:0 16px}.globalHeader .navDropdown{position:fixed;top:118px;left:50%}}
+@media(max-width:560px){.utilityBrand img{width:155px}.globalHeader .navCta{padding:9px 13px!important}.utilityNav{font-size:13px}.primaryBar{font-size:13px;min-height:44px}.hero{padding-top:56px!important}}
