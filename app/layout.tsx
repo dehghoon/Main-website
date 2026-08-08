@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./brand-extra.css";
+import "./mobile-nav.css";
 
 export const metadata: Metadata = {
   title: "LinkoTech | Engineering Intelligence",
