@@ -1,11 +1,32 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Building2, ChevronDown, Clock3, LifeBuoy, UsersRound } from "lucide-react";
+import { getSupabase } from "@/lib/supabase-browser";
 
 const W_SECTION_URL = "https://wsection.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const EMPLOYEE_TIMESHEET_URL = "/blog/login?next=timesheet";
 
 export default function SiteHeader() {
+  const [employeeSignedIn, setEmployeeSignedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => setEmployeeSignedIn(Boolean(data.session)));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setEmployeeSignedIn(Boolean(session)));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    const supabase = getSupabase();
+    if (supabase) await supabase.auth.signOut();
+    setEmployeeSignedIn(false);
+    window.location.href = "/";
+  }
+
   return (
     <header className="globalHeader">
       <div className="utilityBar">
@@ -15,7 +36,6 @@ export default function SiteHeader() {
 
         <nav className="utilityNav" aria-label="Utility navigation">
           <a href="/">Home</a>
-
           <div className="navMenu">
             <button className="navMenuButton" type="button">Contact <ChevronDown size={14} /></button>
             <div className="navDropdown">
@@ -24,7 +44,6 @@ export default function SiteHeader() {
               <a href="/contact/support"><LifeBuoy size={16} /> Support</a>
             </div>
           </div>
-
           <div className="navMenu">
             <button className="navMenuButton" type="button">About <ChevronDown size={14} /></button>
             <div className="navDropdown">
@@ -32,9 +51,7 @@ export default function SiteHeader() {
               <a href={EMPLOYEE_TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
             </div>
           </div>
-
           <a href="/pricing">Pricing</a>
-
           <div className="navMenu">
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
@@ -43,13 +60,17 @@ export default function SiteHeader() {
           </div>
         </nav>
 
-        <div className="navMenu signInMenu">
-          <button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={14} /></button>
-          <div className="navDropdown signInDropdown">
-            <a href="/blog/login">Employee Workspace</a>
-            <a href="/customer-login">Client Workspace</a>
+        {employeeSignedIn ? (
+          <button className="navCta" type="button" onClick={signOut}>Sign Out</button>
+        ) : (
+          <div className="navMenu signInMenu">
+            <button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={14} /></button>
+            <div className="navDropdown signInDropdown">
+              <a href="/blog/login">Employee Workspace</a>
+              <a href="/customer-login">Client Workspace</a>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <nav className="primaryBar" aria-label="Primary navigation">
