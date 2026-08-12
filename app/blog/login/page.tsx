@@ -19,12 +19,20 @@ export default function EmployeeWorkspacePage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setForTimesheet(params.get("next") === "timesheet");
-  }, []);
-
-  async function continueToDestination() {
+    const wantsTimesheet = params.get("next") === "timesheet";
+    setForTimesheet(wantsTimesheet);
     const supabase = getSupabase();
-    if (forTimesheet && supabase) {
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+      if (wantsTimesheet) void continueToDestination(true);
+      else router.replace("/blog/dashboard");
+    });
+  }, [router]);
+
+  async function continueToDestination(forceTimesheet = forTimesheet) {
+    const supabase = getSupabase();
+    if (forceTimesheet && supabase) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const hash = new URLSearchParams({
