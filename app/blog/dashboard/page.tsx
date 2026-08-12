@@ -49,7 +49,7 @@ export default function BlogDashboard() {
   return <main className="dashboard">
     <div className="dashboardTop"><a href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={250} height={64} priority /></a><div><a href="/blog" style={{marginRight:16}}>View Blog</a><button onClick={logout} className="navCta">Log out</button></div></div>
     <div className="dashboardGrid">
-      <section className="dashboardPanel"><span className="eyebrow">Author workspace</span><h2>Create a post</h2><form className="authForm" onSubmit={(e) => save(e, true)}>
+      <section className="dashboardPanel"><span className="eyebrow">Employee Workspace</span><h2>Create a post</h2><form className="authForm" onSubmit={(e) => save(e, true)}>
         <label>Title<input value={title} onChange={(e)=>setTitle(e.target.value)} required /></label>
         <label>Excerpt<input value={excerpt} onChange={(e)=>setExcerpt(e.target.value)} /></label>
         <label>Article body<textarea value={body} onChange={(e)=>setBody(e.target.value)} required /></label>
