@@ -14,7 +14,13 @@ type BlogPostInsert = {
   linkedin_copy?: string | null; scheduled_at?: string | null;
 };
 
-type Database = { public: { Tables: { blog_posts: { Row: BlogPostRow; Insert: BlogPostInsert; Update: Partial<BlogPostRow>; Relationships: [] } }; Views: Record<string, never>; Functions: Record<string, never>; Enums: Record<string, never>; CompositeTypes: Record<string, never> } };
+type BlogAiSettingsRow = { id:string; brand_prompt:string; provider:string; model:string; updated_at:string; updated_by:string|null };
+type BlogAiSettingsInsert = { id?:string; brand_prompt:string; provider?:string; model?:string; updated_at?:string; updated_by?:string|null };
+
+type Database = { public: { Tables: {
+  blog_posts: { Row: BlogPostRow; Insert: BlogPostInsert; Update: Partial<BlogPostRow>; Relationships: [] };
+  blog_ai_settings: { Row: BlogAiSettingsRow; Insert: BlogAiSettingsInsert; Update: Partial<BlogAiSettingsRow>; Relationships: [] };
+}; Views: Record<string, never>; Functions: Record<string, never>; Enums: Record<string, never>; CompositeTypes: Record<string, never> } };
 
 let client: SupabaseClient<Database> | null = null;
 export function getSupabase() {
