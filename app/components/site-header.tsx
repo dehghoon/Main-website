@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Building2, ChevronDown, Clock3, LifeBuoy, UsersRound } from "lucide-react";
 
-const W_SECTION_URL = "https://steel.linkoteq.com/";
+const W_SECTION_URL = "http://wsetion.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
 
