@@ -3,7 +3,7 @@ import { Building2, ChevronDown, Clock3, LifeBuoy, UsersRound } from "lucide-rea
 
 const W_SECTION_URL = "https://wsection.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
-const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
+const EMPLOYEE_TIMESHEET_URL = "/blog/login?next=timesheet";
 
 export default function SiteHeader() {
   return (
@@ -29,7 +29,7 @@ export default function SiteHeader() {
             <button className="navMenuButton" type="button">About <ChevronDown size={14} /></button>
             <div className="navDropdown">
               <a href="/about">About Linko</a>
-              <a href={TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
+              <a href={EMPLOYEE_TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
             </div>
           </div>
 
