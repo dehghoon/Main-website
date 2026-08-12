@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -25,6 +25,7 @@ export default function RichEditor({value,onChange,onStatus}:Props){
     editorProps:{attributes:{class:"tiptapEditorContent"}},
     onUpdate:({editor})=>onChange(editor.getHTML())
   });
+  useEffect(()=>{if(editor&&value!==editor.getHTML())editor.commands.setContent(value||"<p></p>",{emitUpdate:false});},[editor,value]);
   if(!editor)return null;
   async function upload(file:File){
     const s=getSupabase(); if(!s)return onStatus("Supabase is not configured.");
