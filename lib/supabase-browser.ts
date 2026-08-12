@@ -1,46 +1,22 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type BlogPostRow = {
-  id: string;
-  title: string;
-  excerpt: string | null;
-  body: string;
-  author_id: string;
-  author_name: string;
-  status: string;
-  published_at: string | null;
-  created_at: string;
+  id: string; title: string; excerpt: string | null; body: string; author_id: string; author_name: string; status: string;
+  published_at: string | null; created_at: string; slug: string | null; cover_image_url: string | null; video_url: string | null;
+  tags: string[]; seo_title: string | null; seo_description: string | null; calculator_name: string | null; calculator_url: string | null;
+  linkedin_copy: string | null; scheduled_at: string | null;
 };
 
-type Database = {
-  public: {
-    Tables: {
-      blog_posts: {
-        Row: BlogPostRow;
-        Insert: {
-          id?: string;
-          title: string;
-          excerpt?: string | null;
-          body: string;
-          author_id: string;
-          author_name: string;
-          status: string;
-          published_at?: string | null;
-          created_at?: string;
-        };
-        Update: Partial<BlogPostRow>;
-        Relationships: [];
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
-  };
+type BlogPostInsert = {
+  id?: string; title: string; excerpt?: string | null; body: string; author_id: string; author_name: string; status: string;
+  published_at?: string | null; created_at?: string; slug?: string | null; cover_image_url?: string | null; video_url?: string | null;
+  tags?: string[]; seo_title?: string | null; seo_description?: string | null; calculator_name?: string | null; calculator_url?: string | null;
+  linkedin_copy?: string | null; scheduled_at?: string | null;
 };
+
+type Database = { public: { Tables: { blog_posts: { Row: BlogPostRow; Insert: BlogPostInsert; Update: Partial<BlogPostRow>; Relationships: [] } }; Views: Record<string, never>; Functions: Record<string, never>; Enums: Record<string, never>; CompositeTypes: Record<string, never> } };
 
 let client: SupabaseClient<Database> | null = null;
-
 export function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
