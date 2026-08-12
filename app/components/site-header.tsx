@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Building2, ChevronDown, Clock3, LifeBuoy, UsersRound } from "lucide-react";
 
-const STEEL_COLUMN_URL = "https://steel.linkoteq.com/";
+const W_SECTION_URL = "https://steel.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
 
@@ -38,7 +38,7 @@ export default function SiteHeader() {
           <div className="navMenu">
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
-              <a href={STEEL_COLUMN_URL}><Building2 size={16} /> Steel Verification</a>
+              <a href={W_SECTION_URL}><Building2 size={16} /> W-Section</a>
             </div>
           </div>
         </nav>
