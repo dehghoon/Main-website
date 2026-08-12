@@ -3,6 +3,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 type BlogPostRow = {
   id: string; title: string; excerpt: string | null; body: string; author_id: string; author_name: string; status: string;
   published_at: string | null; created_at: string; slug: string | null; cover_image_url: string | null; video_url: string | null;
+  cover_image_alt:string|null; cover_image_title:string|null; cover_image_caption:string|null; cover_image_meta:string|null; cover_image_position:string|null; cover_image_size:string|null;
+  video_title:string|null; video_caption:string|null; video_thumbnail_url:string|null; video_meta:string|null;
   tags: string[]; seo_title: string | null; seo_description: string | null; calculator_name: string | null; calculator_url: string | null;
   linkedin_copy: string | null; scheduled_at: string | null;
 };
@@ -10,6 +12,8 @@ type BlogPostRow = {
 type BlogPostInsert = {
   id?: string; title: string; excerpt?: string | null; body: string; author_id: string; author_name: string; status: string;
   published_at?: string | null; created_at?: string; slug?: string | null; cover_image_url?: string | null; video_url?: string | null;
+  cover_image_alt?:string|null; cover_image_title?:string|null; cover_image_caption?:string|null; cover_image_meta?:string|null; cover_image_position?:string|null; cover_image_size?:string|null;
+  video_title?:string|null; video_caption?:string|null; video_thumbnail_url?:string|null; video_meta?:string|null;
   tags?: string[]; seo_title?: string | null; seo_description?: string | null; calculator_name?: string | null; calculator_url?: string | null;
   linkedin_copy?: string | null; scheduled_at?: string | null;
 };
