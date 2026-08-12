@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase-browser";
 
 const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
 
 export default function EmployeeWorkspacePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [forTimesheet, setForTimesheet] = useState(false);
   const [mode, setMode] = useState<"login"|"signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,9 +17,14 @@ export default function EmployeeWorkspacePage() {
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setForTimesheet(params.get("next") === "timesheet");
+  }, []);
+
   async function continueToDestination() {
     const supabase = getSupabase();
-    if (searchParams.get("next") === "timesheet" && supabase) {
+    if (forTimesheet && supabase) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const hash = new URLSearchParams({
@@ -52,8 +57,6 @@ export default function EmployeeWorkspacePage() {
     }
     await continueToDestination();
   }
-
-  const forTimesheet = searchParams.get("next") === "timesheet";
 
   return <main className="authShell"><section className="authCard">
     <a href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={260} height={64} priority /></a>
