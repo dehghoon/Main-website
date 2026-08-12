@@ -26,7 +26,7 @@ export default function BlogPage() {
     <main className="blogPage">
       <header className="blogHeader">
         <a href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={260} height={64} priority /></a>
-        <nav><a href="/">Company</a><a href="/#tools">Tools</a><a href="/blog">Blog</a><a className="authorLink" href="/blog/login">Author log in</a></nav>
+        <nav><a href="/">Company</a><a href="/#tools">Tools</a><a href="/blog">Blog</a><a className="authorLink" href="/blog/login">Employee Workspace</a></nav>
       </header>
       <section className="blogHero">
         <span className="eyebrow">LinkoTech Journal</span>
@@ -42,7 +42,7 @@ export default function BlogPage() {
             <span className="readLink">Company insight</span>
           </article>
         ))}
-        {!posts.length && <article className="blogCard"><div className="meta">LinkoTech Journal</div><h2>Publishing workspace ready</h2><p>{status}</p><a className="readLink" href="/blog/login">Author log in →</a></article>}
+        {!posts.length && <article className="blogCard"><div className="meta">LinkoTech Journal</div><h2>Publishing workspace ready</h2><p>{status}</p><a className="readLink" href="/blog/login">Employee Workspace →</a></article>}
       </section>
     </main>
   );
