@@ -1,54 +1,53 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import Highlight from "@tiptap/extension-highlight";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import TextAlign from "@tiptap/extension-text-align";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
 import { getSupabase } from "@/lib/supabase-browser";
 
 type Props={value:string;onChange:(html:string)=>void;onStatus:(msg:string)=>void};
 
 export default function RichEditor({value,onChange,onStatus}:Props){
+  const editorRef=useRef<HTMLDivElement>(null);
   const fileRef=useRef<HTMLInputElement>(null);
-  const editor=useEditor({
-    immediatelyRender:false,
-    extensions:[StarterKit,Underline,Highlight,Link.configure({openOnClick:false}),Image,TextAlign.configure({types:["heading","paragraph"]}),Table.configure({resizable:true}),TableRow,TableHeader,TableCell],
-    content:value||"<p></p>",
-    editorProps:{attributes:{class:"tiptapEditorContent"}},
-    onUpdate:({editor})=>onChange(editor.getHTML())
-  });
-  useEffect(()=>{if(editor&&value!==editor.getHTML())editor.commands.setContent(value||"<p></p>",{emitUpdate:false});},[editor,value]);
-  if(!editor)return null;
+  const syncing=useRef(false);
+
+  useEffect(()=>{
+    const el=editorRef.current;
+    if(!el||syncing.current)return;
+    if(el.innerHTML!==value)el.innerHTML=value||"<p><br></p>";
+  },[value]);
+
+  function emit(){const el=editorRef.current;if(!el)return;syncing.current=true;onChange(el.innerHTML);queueMicrotask(()=>{syncing.current=false;});}
+  function cmd(command:string,arg?:string){editorRef.current?.focus();document.execCommand(command,false,arg);emit();}
+  function block(tag:string){cmd("formatBlock",tag);}
+  function insertHtml(html:string){editorRef.current?.focus();document.execCommand("insertHTML",false,html);emit();}
+  function askLink(){const url=window.prompt("Paste URL");if(url)cmd("createLink",url);}
+  function insertFormula(){const f=window.prompt("Enter formula (example: M_r = φ F_y Z_x)");if(f)insertHtml(`<div class="formulaBlock">${f.replace(/[<>]/g,"")}</div><p><br></p>`);}
+  function insertTable(){insertHtml('<table><thead><tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr></thead><tbody><tr><td>Value</td><td>Value</td><td>Value</td></tr><tr><td>Value</td><td>Value</td><td>Value</td></tr></tbody></table><p><br></p>');}
+  function insertVideo(){const url=window.prompt("Paste YouTube/Vimeo/video URL");if(!url)return;insertHtml(`<p><a href="${url}" target="_blank" rel="noreferrer">Watch video</a></p>`);}
+
   async function upload(file:File){
-    const s=getSupabase(); if(!s)return onStatus("Supabase is not configured.");
-    const ext=file.name.split(".").pop()||"jpg"; const path=`${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const s=getSupabase();if(!s)return onStatus("Supabase is not configured.");
+    const ext=(file.name.split(".").pop()||"jpg").replace(/[^a-zA-Z0-9]/g,"");
+    const path=`${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     onStatus("Uploading image…");
     const {error}=await s.storage.from("blog-media").upload(path,file,{upsert:false,contentType:file.type});
     if(error)return onStatus(error.message);
     const {data}=s.storage.from("blog-media").getPublicUrl(path);
-    editor.chain().focus().setImage({src:data.publicUrl,alt:file.name}).run(); onStatus("Image added.");
+    insertHtml(`<img src="${data.publicUrl}" alt="${file.name.replace(/[<>\"]/g,"")}" /><p><br></p>`);
+    onStatus("Image added.");
   }
-  function askLink(){const url=window.prompt("Paste URL");if(url)editor.chain().focus().extendMarkRange("link").setLink({href:url}).run();}
-  function insertFormula(){const formula=window.prompt("Enter formula (for example: M_r = φ F_y Z_x)");if(formula)editor.chain().focus().insertContent(`<p class="formulaBlock">${formula}</p>`).run();}
+
   return <div className="wordEditorShell">
-    <div className="wordToolbar">
-      <button type="button" onClick={()=>editor.chain().focus().undo().run()}>↶</button><button type="button" onClick={()=>editor.chain().focus().redo().run()}>↷</button>
-      <select value={editor.isActive("heading",{level:1})?"h1":editor.isActive("heading",{level:2})?"h2":editor.isActive("heading",{level:3})?"h3":"p"} onChange={e=>{const v=e.target.value;if(v==="p")editor.chain().focus().setParagraph().run();else editor.chain().focus().toggleHeading({level:Number(v.slice(1)) as 1|2|3}).run();}}><option value="p">Normal</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option></select>
-      <button type="button" className={editor.isActive("bold")?"active":""} onClick={()=>editor.chain().focus().toggleBold().run()}><b>B</b></button><button type="button" className={editor.isActive("italic")?"active":""} onClick={()=>editor.chain().focus().toggleItalic().run()}><i>I</i></button><button type="button" className={editor.isActive("underline")?"active":""} onClick={()=>editor.chain().focus().toggleUnderline().run()}><u>U</u></button><button type="button" onClick={()=>editor.chain().focus().toggleStrike().run()}><s>S</s></button><button type="button" onClick={()=>editor.chain().focus().toggleHighlight().run()}>Highlight</button>
-      <button type="button" onClick={()=>editor.chain().focus().toggleBulletList().run()}>• List</button><button type="button" onClick={()=>editor.chain().focus().toggleOrderedList().run()}>1. List</button><button type="button" onClick={()=>editor.chain().focus().toggleBlockquote().run()}>❝ Quote</button><button type="button" onClick={()=>editor.chain().focus().toggleCodeBlock().run()}>{"</>"}</button>
-      <button type="button" onClick={()=>editor.chain().focus().setTextAlign("left").run()}>Left</button><button type="button" onClick={()=>editor.chain().focus().setTextAlign("center").run()}>Center</button><button type="button" onClick={()=>editor.chain().focus().setTextAlign("right").run()}>Right</button>
-      <button type="button" onClick={askLink}>🔗 Link</button><button type="button" onClick={()=>fileRef.current?.click()}>🖼 Upload Image</button><button type="button" onClick={()=>{const url=window.prompt("Image URL");if(url)editor.chain().focus().setImage({src:url}).run();}}>Image URL</button>
-      <button type="button" onClick={()=>editor.chain().focus().insertTable({rows:3,cols:3,withHeaderRow:true}).run()}>▦ Table</button><button type="button" onClick={()=>editor.chain().focus().addColumnAfter().run()}>+ Column</button><button type="button" onClick={()=>editor.chain().focus().addRowAfter().run()}>+ Row</button><button type="button" onClick={()=>editor.chain().focus().deleteTable().run()}>Delete Table</button><button type="button" onClick={insertFormula}>∑ Formula</button><button type="button" onClick={()=>editor.chain().focus().setHorizontalRule().run()}>— Divider</button>
+    <div className="wordToolbar" role="toolbar" aria-label="Article formatting">
+      <button type="button" onClick={()=>cmd("undo")}>↶</button><button type="button" onClick={()=>cmd("redo")}>↷</button>
+      <select defaultValue="p" onChange={e=>block(e.target.value)}><option value="p">Normal</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option></select>
+      <button type="button" onClick={()=>cmd("bold")}><b>B</b></button><button type="button" onClick={()=>cmd("italic")}><i>I</i></button><button type="button" onClick={()=>cmd("underline")}><u>U</u></button><button type="button" onClick={()=>cmd("strikeThrough")}><s>S</s></button>
+      <button type="button" onClick={()=>cmd("insertUnorderedList")}>• List</button><button type="button" onClick={()=>cmd("insertOrderedList")}>1. List</button><button type="button" onClick={()=>block("blockquote")}>❝ Quote</button>
+      <button type="button" onClick={()=>cmd("justifyLeft")}>Left</button><button type="button" onClick={()=>cmd("justifyCenter")}>Center</button><button type="button" onClick={()=>cmd("justifyRight")}>Right</button>
+      <button type="button" onClick={askLink}>🔗 Link</button><button type="button" onClick={()=>fileRef.current?.click()}>🖼 Upload Image</button><button type="button" onClick={()=>{const url=window.prompt("Image URL");if(url)insertHtml(`<img src="${url}" alt="Article image" /><p><br></p>`);}}>Image URL</button>
+      <button type="button" onClick={insertVideo}>▶ Video</button><button type="button" onClick={insertTable}>▦ Table</button><button type="button" onClick={insertFormula}>∑ Formula</button><button type="button" onClick={()=>insertHtml("<hr><p><br></p>")}>— Divider</button><button type="button" onClick={()=>insertHtml("<pre><code>code</code></pre><p><br></p>")}>{"</>"}</button>
     </div>
     <input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void upload(f);e.currentTarget.value="";}} />
-    <EditorContent editor={editor} />
+    <div ref={editorRef} className="tiptapEditorContent" contentEditable suppressContentEditableWarning onInput={emit} onBlur={emit} data-placeholder="Start writing your article…" />
   </div>;
 }
