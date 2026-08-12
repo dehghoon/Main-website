@@ -46,8 +46,8 @@ export default function SiteHeader() {
         <div className="navMenu signInMenu">
           <button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={14} /></button>
           <div className="navDropdown signInDropdown">
-            <a href={TIMESHEET_URL}>Employee Login</a>
-            <a href="/customer-login">Customer Login</a>
+            <a href="/blog/login">Employee Workspace</a>
+            <a href="/customer-login">Client Workspace</a>
           </div>
         </div>
       </div>
