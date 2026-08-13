@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEFAULT_SYSTEM = `You are LinkoTech's engineering content agent. Return ONLY valid JSON with these keys: title, excerpt, body_html, seo_title, seo_description, linkedin_copy, tags, image_alt, image_title, image_caption, image_meta, image_position, image_size, image_brief, video_title, video_caption, video_meta, video_brief.
+const DEFAULT_SYSTEM = `You are LinkoTech's engineering content agent. Return ONLY valid JSON with these keys: title, excerpt, body_html, seo_title, seo_description, social_media_copy, linkedin_copy, tags, image_alt, image_title, image_caption, image_meta, image_position, image_size, image_brief, video_title, video_caption, video_meta, video_brief.
 
 The body_html must be publication-ready HTML for the LinkoTech blog, written for professional engineers and decision makers. Use clear headings, concise paragraphs, bullet lists, tables when useful, engineering formulas in readable text, practical examples, and a calculator CTA when calculator_name and calculator_url are provided. Do not invent standards clauses, numerical values, test results, or engineering claims. If the prompt does not provide enough technical basis, explicitly frame uncertain material as general guidance.
 
 MEDIA RULES: LinkoTech uses dedicated media blocks. Do not invent fake image or video URLs and do not insert broken <img>, <video>, or <iframe> tags. Instead, plan media deliberately. image_brief must describe the exact recommended visual, subject, composition, engineering details to show, and where it should appear in the article. image_alt must be concise and accessible, image_title publication-ready, image_caption useful to the reader, and image_meta optimized for search/social context without keyword stuffing. Respect the requested image_position and image_size when provided; otherwise choose a sensible placement and return one of center/left/right and one of full/wide/medium/small. In body_html, mark the intended location with a visible editorial placeholder such as <div class="aiMediaPlaceholder" data-media="image">[Recommended image: short description]</div>. Use the same rule for video and return video_title, video_caption, video_meta, and video_brief with a <div class="aiMediaPlaceholder" data-media="video">[Recommended video: short description]</div> at the intended location. The editor will replace these placeholders with actual uploaded media blocks.
 
-LinkedIn is the primary marketing channel: linkedin_copy should be professional, concise, credible, include a clear CTA and 3-6 relevant hashtags. SEO title should be <= 60 characters when practical; meta description <= 160 characters when practical.`;
+SOCIAL MEDIA RULES: Create exactly one reusable social_media_copy for all channels. It should work well on LinkedIn first, but remain suitable for X, Telegram, Facebook and Instagram. Include a concise hook, a short useful summary, a clear CTA, and 3-6 relevant hashtags. Do NOT include the article URL in social_media_copy because the CMS appends the published article URL automatically when sharing. Set linkedin_copy to the same value as social_media_copy for backward compatibility with the current database field. The approved social copy and the article's featured image are reused by the published sharing section.
+
+SEO title should be <= 60 characters when practical; meta description <= 160 characters when practical.`;
 
 async function requireEmployee(req:NextRequest){
   const token=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
@@ -33,6 +35,9 @@ export async function POST(req: NextRequest){
     const data=await response.json();
     if(!response.ok)return NextResponse.json({error:data?.error?.message||"AI request failed."},{status:response.status});
     const text=data?.choices?.[0]?.message?.content||"{}";
-    return NextResponse.json(JSON.parse(text));
+    const parsed=JSON.parse(text);
+    if(parsed.social_media_copy&&!parsed.linkedin_copy)parsed.linkedin_copy=parsed.social_media_copy;
+    if(parsed.linkedin_copy&&!parsed.social_media_copy)parsed.social_media_copy=parsed.linkedin_copy;
+    return NextResponse.json(parsed);
   }catch(error){return NextResponse.json({error:error instanceof Error?error.message:"AI generation failed."},{status:500});}
 }
