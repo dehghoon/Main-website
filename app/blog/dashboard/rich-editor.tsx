@@ -1,22 +1,30 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
 
 type Props={value:string;onChange:(html:string)=>void;onStatus:(msg:string)=>void};
+
+function readAuthor(html:string){const m=html.match(/<span data-blog-author="([^"]*)"[^>]*><\/span>/i);return m?.[1]?.replace(/&quot;/g,'"').replace(/&amp;/g,"&")||"";}
+function cleanAuthor(html:string){return html.replace(/<span data-blog-author="[^"]*"[^>]*><\/span>/gi,"");}
+function esc(v:string){return v.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
 export default function RichEditor({value,onChange,onStatus}:Props){
   const editorRef=useRef<HTMLDivElement>(null);
   const fileRef=useRef<HTMLInputElement>(null);
   const syncing=useRef(false);
+  const [showAuthor,setShowAuthor]=useState(()=>!!readAuthor(value));
+  const [authorName,setAuthorName]=useState(()=>readAuthor(value));
 
   useEffect(()=>{
     const el=editorRef.current;
     if(!el||syncing.current)return;
     if(el.innerHTML!==value)el.innerHTML=value||"<p><br></p>";
+    const existing=readAuthor(value);setShowAuthor(!!existing);setAuthorName(existing);
   },[value]);
 
   function emit(){const el=editorRef.current;if(!el)return;syncing.current=true;onChange(el.innerHTML);queueMicrotask(()=>{syncing.current=false;});}
+  function updateAuthor(enabled:boolean,name:string){const el=editorRef.current;if(!el)return;const base=cleanAuthor(el.innerHTML);el.innerHTML=enabled&&name.trim()?`${base}<span data-blog-author="${esc(name.trim())}" style="display:none"></span>`:base;emit();}
   function cmd(command:string,arg?:string){editorRef.current?.focus();document.execCommand(command,false,arg);emit();}
   function block(tag:string){cmd("formatBlock",tag);}
   function insertHtml(html:string){editorRef.current?.focus();document.execCommand("insertHTML",false,html);emit();}
@@ -38,6 +46,10 @@ export default function RichEditor({value,onChange,onStatus}:Props){
   }
 
   return <div className="wordEditorShell">
+    <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",padding:"12px 14px",borderBottom:"1px solid #dbe4ec",background:"#f8fafc"}}>
+      <label style={{display:"flex",gap:8,alignItems:"center",fontWeight:700}}><input type="checkbox" checked={showAuthor} onChange={e=>{const enabled=e.target.checked;setShowAuthor(enabled);updateAuthor(enabled,authorName);}} /> Show author name on published article</label>
+      {showAuthor&&<input aria-label="Author name" value={authorName} onChange={e=>{setAuthorName(e.target.value);updateAuthor(true,e.target.value);}} placeholder="Author name" style={{minWidth:220,padding:"8px 10px",border:"1px solid #cfd9e2",borderRadius:8}} />}
+    </div>
     <div className="wordToolbar" role="toolbar" aria-label="Article formatting">
       <button type="button" onClick={()=>cmd("undo")}>↶</button><button type="button" onClick={()=>cmd("redo")}>↷</button>
       <select defaultValue="p" onChange={e=>block(e.target.value)}><option value="p">Normal</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option></select>
