@@ -11,13 +11,15 @@ export default function ArticleClient(){
  const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(null); const [status,setStatus]=useState("Loading article…"); const [copied,setCopied]=useState("");
  useEffect(()=>{const s=getSupabase();if(!s)return setStatus("Article service is unavailable.");void s.from("blog_posts").select("title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy").eq("slug",params.slug).eq("status","published").single().then(({data,error})=>{if(error||!data)setStatus("Article not found.");else{setArticle(data as Article);setStatus("");}});},[params.slug]);
  if(!article)return <main className="publicArticle"><p>{status}</p></main>;
- const url=typeof window!=="undefined"?window.location.href:"https://www.linkoteq.com/blog";
+ const canonicalUrl=`https://www.linkoteq.com/blog/${params.slug}`;
+ const shareVersion=encodeURIComponent(article.published_at||article.created_at);
+ const shareUrl=`${canonicalUrl}?share=${shareVersion}`;
  const socialCopy=(article.linkedin_copy||`${article.title}\n\n${article.excerpt||""}\n\n#LinkoTech #Engineering #StructuralEngineering`).trim();
- const encoded=encodeURIComponent(url); const socialText=encodeURIComponent(`${socialCopy}\n\n${url}`); const titleText=encodeURIComponent(article.title);
- async function copyLink(){await navigator.clipboard.writeText(url);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
- async function copySocial(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Social media post copied");setTimeout(()=>setCopied(""),1800);}
- async function shareLinkedIn(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Post copied — paste it into LinkedIn");window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`,"_blank","noopener,noreferrer");setTimeout(()=>setCopied(""),2200);}
- async function shareInstagram(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
+ const encodedShareUrl=encodeURIComponent(shareUrl); const socialText=encodeURIComponent(`${socialCopy}\n\n${shareUrl}`); const titleText=encodeURIComponent(article.title);
+ async function copyLink(){await navigator.clipboard.writeText(canonicalUrl);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
+ async function copySocial(){await navigator.clipboard.writeText(`${socialCopy}\n\n${canonicalUrl}`);setCopied("Social media post copied");setTimeout(()=>setCopied(""),1800);}
+ async function shareLinkedIn(){await navigator.clipboard.writeText(`${socialCopy}\n\n${canonicalUrl}`);setCopied("Post copied — paste it into LinkedIn");window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,"_blank","noopener,noreferrer");setTimeout(()=>setCopied(""),2200);}
+ async function shareInstagram(){await navigator.clipboard.writeText(`${socialCopy}\n\n${canonicalUrl}`);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
  return <main className="publicArticle">
   <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={230} height={58} priority /></a>
   <article className="articleShell">
@@ -33,9 +35,9 @@ export default function ArticleClient(){
       {article.cover_image_url?<div className="socialShareMedia"><img src={article.cover_image_url} alt={article.cover_image_alt||article.title}/></div>:<div className="socialShareMedia socialShareMediaEmpty">LinkoTech</div>}
       <div className="socialShareCopy"><span className="socialShareDomain">linkoteq.com</span><h3>{article.title}</h3><p>{socialCopy}</p></div>
     </div>
-    <div className="socialCopyBar"><div><strong>{article.title}</strong><p>{socialCopy}</p><span>{url}</span></div><button type="button" onClick={copySocial}>Copy</button></div>
-    <div className="shareButtons shareButtonsPrimary"><button type="button" className="linkedinShare" onClick={shareLinkedIn}>LinkedIn</button><a href={`https://twitter.com/intent/tweet?text=${socialText}`} target="_blank" rel="noreferrer">X</a><a href={`https://www.facebook.com/sharer/sharer.php?u=${encoded}`} target="_blank" rel="noreferrer">Facebook</a><a href={`https://t.me/share/url?url=${encoded}&text=${encodeURIComponent(socialCopy)}`} target="_blank" rel="noreferrer">Telegram</a></div>
-    <div className="shareButtons shareButtonsSecondary"><a href={`https://www.reddit.com/submit?url=${encoded}&title=${titleText}`} target="_blank" rel="noreferrer">Reddit</a><a href={`mailto:?subject=${titleText}&body=${socialText}`}>Email</a><button type="button" onClick={shareInstagram}>Instagram Caption</button><button type="button" onClick={copyLink}>Copy Link</button></div>
+    <div className="socialCopyBar"><div><strong>{article.title}</strong><p>{socialCopy}</p><span>{canonicalUrl}</span></div><button type="button" onClick={copySocial}>Copy</button></div>
+    <div className="shareButtons shareButtonsPrimary"><button type="button" className="linkedinShare" onClick={shareLinkedIn}>LinkedIn</button><a href={`https://twitter.com/intent/tweet?text=${socialText}`} target="_blank" rel="noreferrer">X</a><a href={`https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`} target="_blank" rel="noreferrer">Facebook</a><a href={`https://t.me/share/url?url=${encodedShareUrl}&text=${encodeURIComponent(socialCopy)}`} target="_blank" rel="noreferrer">Telegram</a></div>
+    <div className="shareButtons shareButtonsSecondary"><a href={`https://www.reddit.com/submit?url=${encodedShareUrl}&title=${titleText}`} target="_blank" rel="noreferrer">Reddit</a><a href={`mailto:?subject=${titleText}&body=${socialText}`}>Email</a><button type="button" onClick={shareInstagram}>Instagram Caption</button><button type="button" onClick={copyLink}>Copy Link</button></div>
     {copied&&<div className="shareFeedback">{copied}</div>}
    </section>
   </article>
