@@ -1,43 +1,41 @@
-"use client";
+import type { Metadata } from "next";
+import ArticleClient from "./article-client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { getSupabase } from "@/lib/supabase-browser";
+type Props={params:Promise<{slug:string}>};
+type MetaArticle={title:string;excerpt:string|null;seo_title:string|null;seo_description:string|null;cover_image_url:string|null};
 
-type Article={title:string;excerpt:string|null;body:string;author_name:string|null;show_author_name:boolean;published_at:string|null;created_at:string;cover_image_url:string|null;video_url:string|null;cover_image_alt:string|null;cover_image_title:string|null;cover_image_caption:string|null;cover_image_meta:string|null;cover_image_position:string|null;cover_image_size:string|null;video_title:string|null;video_caption:string|null;video_thumbnail_url:string|null;video_meta:string|null;tags:string[];calculator_name:string|null;calculator_url:string|null;seo_title:string|null;seo_description:string|null;linkedin_copy:string|null};
+async function getArticle(slug:string):Promise<MetaArticle|null>{
+ const base=process.env.NEXT_PUBLIC_SUPABASE_URL;
+ const anon=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+ if(!base||!anon)return null;
+ const query=new URLSearchParams({slug:`eq.${slug}`,status:"eq.published",select:"title,excerpt,seo_title,seo_description,cover_image_url",limit:"1"});
+ try{
+  const r=await fetch(`${base}/rest/v1/blog_posts?${query.toString()}`,{headers:{apikey:anon,Authorization:`Bearer ${anon}`},next:{revalidate:300}});
+  if(!r.ok)return null;
+  const rows=await r.json();
+  return rows?.[0]||null;
+ }catch{return null;}
+}
 
-export default function ArticlePage(){
- const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(null); const [status,setStatus]=useState("Loading article…"); const [copied,setCopied]=useState("");
- useEffect(()=>{const s=getSupabase();if(!s)return setStatus("Article service is unavailable.");void s.from("blog_posts").select("title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy").eq("slug",params.slug).eq("status","published").single().then(({data,error})=>{if(error||!data)setStatus("Article not found.");else{setArticle(data as Article);setStatus("");document.title=(data.seo_title||data.title)+" | LinkoTech";const meta=document.querySelector('meta[name="description"]');if(meta)meta.setAttribute("content",data.seo_description||data.excerpt||"");}});},[params.slug]);
- if(!article)return <main className="publicArticle"><p>{status}</p></main>;
- const url=typeof window!=="undefined"?window.location.href:"https://linkoteq.com/blog";
- const socialCopy=(article.linkedin_copy||`${article.title}\n\n${article.excerpt||""}\n\n#LinkoTech #Engineering #StructuralEngineering`).trim();
- const encoded=encodeURIComponent(url); const socialText=encodeURIComponent(`${socialCopy}\n\n${url}`); const titleText=encodeURIComponent(article.title);
- async function copyLink(){await navigator.clipboard.writeText(url);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
- async function copySocial(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Social media post copied");setTimeout(()=>setCopied(""),1800);}
- async function shareLinkedIn(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Post copied — paste it into LinkedIn");window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`,"_blank","noopener,noreferrer");setTimeout(()=>setCopied(""),2200);}
- async function shareInstagram(){await navigator.clipboard.writeText(`${socialCopy}\n\n${url}`);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
- return <main className="publicArticle">
-  <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={230} height={58} priority /></a>
-  <article className="articleShell">
-   {article.cover_image_url&&<figure className={`mediaFigure media-${article.cover_image_size||"wide"} media-${article.cover_image_position||"center"}`}><img src={article.cover_image_url} alt={article.cover_image_alt||article.title} title={article.cover_image_title||undefined}/>{article.cover_image_caption&&<figcaption>{article.cover_image_caption}</figcaption>}{article.cover_image_meta&&<div className="articleMediaMeta">{article.cover_image_meta}</div>}</figure>}
-   <div className="articleMeta">{article.show_author_name&&article.author_name?<>{article.author_name} · </>:null}{new Date(article.published_at||article.created_at).toLocaleDateString()}</div><h1>{article.title}</h1>{article.excerpt&&<p className="articleLead">{article.excerpt}</p>}
-   <div className="articleRichBody" dangerouslySetInnerHTML={{__html:article.body}} />
-   {article.video_url&&<figure className="mediaBlock videoBlock">{article.video_thumbnail_url&&<img src={article.video_thumbnail_url} alt={article.video_title||"Video thumbnail"}/>}<div className="videoLinkCard"><strong>{article.video_title||"Related video"}</strong>{article.video_caption&&<p>{article.video_caption}</p>}<a href={article.video_url} target="_blank" rel="noreferrer">Watch video →</a>{article.video_meta&&<span className="articleMediaMeta">{article.video_meta}</span>}</div></figure>}
-   {article.calculator_url&&<section className="articleToolCta"><div><span>Related engineering tool</span><h2>{article.calculator_name||"LinkoTech Calculator"}</h2><p>Continue from the article into the interactive engineering workflow.</p></div><a href={article.calculator_url} target="_blank" rel="noreferrer">Try the Calculator →</a></section>}
-   {!!article.tags?.length&&<div className="articleTags">{article.tags.map(t=><span key={t}>#{t}</span>)}</div>}
-   <section className="sharePanel">
-    <div className="sharePanelTitle"><div><strong>Share this article</strong><span>Uses the approved Social Media Marketing copy</span></div></div>
-    <div className="socialSharePreview">
-      {article.cover_image_url?<div className="socialShareMedia"><img src={article.cover_image_url} alt={article.cover_image_alt||article.title}/></div>:<div className="socialShareMedia socialShareMediaEmpty">LinkoTech</div>}
-      <div className="socialShareCopy"><span className="socialShareDomain">linkoteq.com</span><h3>{article.title}</h3><p>{socialCopy}</p></div>
-    </div>
-    <div className="socialCopyBar"><div><strong>{article.title}</strong><p>{socialCopy}</p><span>{url}</span></div><button type="button" onClick={copySocial}>Copy</button></div>
-    <div className="shareButtons shareButtonsPrimary"><button type="button" className="linkedinShare" onClick={shareLinkedIn}>LinkedIn</button><a href={`https://twitter.com/intent/tweet?text=${socialText}`} target="_blank" rel="noreferrer">X</a><a href={`https://www.facebook.com/sharer/sharer.php?u=${encoded}`} target="_blank" rel="noreferrer">Facebook</a><a href={`https://t.me/share/url?url=${encoded}&text=${encodeURIComponent(socialCopy)}`} target="_blank" rel="noreferrer">Telegram</a></div>
-    <div className="shareButtons shareButtonsSecondary"><a href={`https://www.reddit.com/submit?url=${encoded}&title=${titleText}`} target="_blank" rel="noreferrer">Reddit</a><a href={`mailto:?subject=${titleText}&body=${socialText}`}>Email</a><button type="button" onClick={shareInstagram}>Instagram Caption</button><button type="button" onClick={copyLink}>Copy Link</button></div>
-    {copied&&<div className="shareFeedback">{copied}</div>}
-   </section>
-  </article>
- </main>;
+export async function generateMetadata({params}:Props):Promise<Metadata>{
+ const {slug}=await params;
+ const article=await getArticle(slug);
+ const canonical=`https://www.linkoteq.com/blog/${slug}`;
+ if(!article)return {title:"LinkoTech Blog",alternates:{canonical}};
+ const title=article.seo_title||article.title;
+ const description=article.seo_description||article.excerpt||"Engineering insight from LinkoTech.";
+ const image=article.cover_image_url||undefined;
+ return {
+  metadataBase:new URL("https://www.linkoteq.com"),
+  title:`${title} | LinkoTech`,
+  description,
+  alternates:{canonical},
+  openGraph:{type:"article",url:canonical,siteName:"LinkoTech",title,description,images:image?[{url:image,alt:article.title}]:undefined},
+  twitter:{card:image?"summary_large_image":"summary",title,description,images:image?[image]:undefined}
+ };
+}
+
+export default async function ArticlePage({params}:Props){
+ await params;
+ return <ArticleClient/>;
 }
