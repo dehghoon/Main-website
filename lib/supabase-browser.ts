@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type BlogPostRow = {
-  id: string; title: string; excerpt: string | null; body: string; author_id: string; author_name: string | null; show_author_name: boolean; status: string;
+  id: string; title: string; excerpt: string | null; body: string; author_id: string; author_name: string; show_author_name: boolean; status: string;
   published_at: string | null; created_at: string; slug: string | null; cover_image_url: string | null; video_url: string | null;
   cover_image_alt:string|null; cover_image_title:string|null; cover_image_caption:string|null; cover_image_meta:string|null; cover_image_position:string|null; cover_image_size:string|null;
   video_title:string|null; video_caption:string|null; video_thumbnail_url:string|null; video_meta:string|null;
@@ -10,7 +10,7 @@ type BlogPostRow = {
 };
 
 type BlogPostInsert = {
-  id?: string; title: string; excerpt?: string | null; body: string; author_id: string; author_name?: string | null; show_author_name?: boolean; status: string;
+  id?: string; title: string; excerpt?: string | null; body: string; author_id: string; author_name: string; show_author_name?: boolean; status: string;
   published_at?: string | null; created_at?: string; slug?: string | null; cover_image_url?: string | null; video_url?: string | null;
   cover_image_alt?:string|null; cover_image_title?:string|null; cover_image_caption?:string|null; cover_image_meta?:string|null; cover_image_position?:string|null; cover_image_size?:string|null;
   video_title?:string|null; video_caption?:string|null; video_thumbnail_url?:string|null; video_meta?:string|null;
