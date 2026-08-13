@@ -13,7 +13,7 @@ export default function ArticlePage(){
  if(!article)return <main className="publicArticle"><p>{status}</p></main>;
  const url=typeof window!=="undefined"?window.location.href:"https://linkoteq.com/blog"; const encoded=encodeURIComponent(url); const text=encodeURIComponent(article.title);
  async function copyLink(){await navigator.clipboard.writeText(url);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
- async function copyInstagram(){const caption=`${article.title}\n\n${article.excerpt||""}\n\nRead more: ${url}\n\n#LinkoTech #Engineering #StructuralEngineering`;await navigator.clipboard.writeText(caption);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
+ async function copyInstagram(){const current=article;if(!current)return;const caption=`${current.title}\n\n${current.excerpt||""}\n\nRead more: ${url}\n\n#LinkoTech #Engineering #StructuralEngineering`;await navigator.clipboard.writeText(caption);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
  return <main className="publicArticle">
   <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={230} height={58} priority /></a>
   <article className="articleShell">
