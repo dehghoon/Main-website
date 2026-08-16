@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Building2, ChevronDown, Clock3, LifeBuoy, UsersRound } from "lucide-react";
+import { Building2, ChevronDown, Clock3, LifeBuoy, Snowflake, UsersRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase-browser";
 
 const W_SECTION_URL = "https://wsection.linkoteq.com/";
+const SNOW_LOAD_URL = "https://snow.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const EMPLOYEE_TIMESHEET_URL = "/blog/login?next=timesheet";
 
@@ -56,6 +57,7 @@ export default function SiteHeader() {
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
               <a href={W_SECTION_URL}><Building2 size={16} /> W-Section</a>
+              <a href={SNOW_LOAD_URL}><Snowflake size={16} /> Snow Load</a>
             </div>
           </div>
         </nav>
