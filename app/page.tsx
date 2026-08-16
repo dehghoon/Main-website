@@ -12,13 +12,15 @@ import {
   HelpCircle,
   Layers3,
   LifeBuoy,
+  Snowflake,
   Sparkles,
   UsersRound,
   Wrench,
   BookOpen,
 } from "lucide-react";
 
-const STEEL_COLUMN_URL = "https://steel.linkoteq.com/";
+const STEEL_COLUMN_URL = "https://wsection.linkoteq.com/";
+const SNOW_LOAD_URL = "https://snow.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
 
@@ -59,7 +61,8 @@ const products = [
 const tools = [
   { title: "Customer Discovery", description: "Structured Interviews, Evidence Capture, And Insight Tracking For Product Discovery.", icon: UsersRound, href: CUSTOMER_DISCOVERY_URL, action: "Open Platform" },
   { title: "Team Timesheet", description: "A Lightweight Operational Workspace For Time Capture And Project Visibility.", icon: Clock3, href: TIMESHEET_URL, action: "Open Workspace" },
-  { title: "Steel Verification", description: "Interactive Steel Column Verification With Section Data, Utilization Ratios, And Report-Ready Outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open Tool" },
+  { title: "W-Section", description: "Interactive W-section verification with section data, utilization ratios, and report-ready engineering outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open Calculator" },
+  { title: "Snow Load", description: "NBCC 2020 roof snow calculations for uniform, lower-roof drift, and projection / parapet loading with ULS, SLS, and report-ready outputs.", icon: Snowflake, href: SNOW_LOAD_URL, action: "Open Calculator" },
 ];
 
 export default function Home() {
@@ -89,7 +92,8 @@ export default function Home() {
           <div className="navMenu">
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={15} /></button>
             <div className="navDropdown">
-              <a href={STEEL_COLUMN_URL}><Building2 size={16} /> Steel Verification</a>
+              <a href={STEEL_COLUMN_URL}><Building2 size={16} /> W-Section</a>
+              <a href={SNOW_LOAD_URL}><Snowflake size={16} /> Snow Load</a>
             </div>
           </div>
 
