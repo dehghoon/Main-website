@@ -4,6 +4,7 @@ import "./brand-extra.css";
 import "./blog-cms.css";
 import "./mobile-nav.css";
 import "./global-header.css";
+import "./3d-model-showcase.css";
 import SiteHeader from "./components/site-header";
 
 export const metadata: Metadata = {
