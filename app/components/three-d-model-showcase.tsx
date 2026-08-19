@@ -4,9 +4,10 @@ import { ArrowRight, FileImage, FileText, Layers3, PenTool } from "lucide-react"
 const MODEL_URL = "https://3dmodel.linkoteq.com/";
 
 const launchOptions = [
-  { label: "Upload PDF", icon: FileText, href: `${MODEL_URL}?start=pdf` },
-  { label: "Upload Image", icon: FileImage, href: `${MODEL_URL}?start=image` },
-  { label: "Upload IFC", icon: Layers3, href: `${MODEL_URL}?start=ifc` },
+  { label: "Upload 2D Plan PDF", icon: FileText, href: `${MODEL_URL}?start=pdf` },
+  { label: "Upload 2D Plan Image", icon: FileImage, href: `${MODEL_URL}?start=image` },
+  { label: "Upload 2D Plan DXF", icon: FileText, href: `${MODEL_URL}?start=dxf` },
+  { label: "Upload IFC File", icon: Layers3, href: `${MODEL_URL}?start=ifc` },
   { label: "Create Manually", icon: PenTool, href: `${MODEL_URL}?start=manual` },
 ];
 
