@@ -17,7 +17,7 @@ export default function ThreeDModelShowcase() {
         <span className="eyebrow">Core Structural Modeling Engine</span>
         <h2>Create, Load, and Prepare a 3D Structural Model for Analysis</h2>
         <p>
-          Quickly create early-stage structural models from 2D drawings, sketches, or manually with the support of the LinkoTech AI platform. Built to simplify early design for structural engineers while remaining user-friendly for owners, architects, project managers, and other stakeholders. Models can be progressively developed for detailed structural design.
+          Quickly create early-stage structural models from 2D drawings, sketches, or manually with the support of the LinkoTech <strong className="aiPlatformHighlight">AI Platform</strong>. Built to simplify early design for structural engineers while remaining user-friendly for owners, architects, project managers, and other stakeholders. Models can be progressively developed for detailed structural design.
         </p>
         <div className="modelLaunchGrid">
           {launchOptions.map(({ label, icon: Icon, href }) => (
