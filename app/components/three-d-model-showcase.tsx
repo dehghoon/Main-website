@@ -20,6 +20,7 @@ export default function ThreeDModelShowcase() {
         <p>
           Quickly create early-stage structural models from 2D drawings, sketches, or manually with the support of the LinkoTech <strong className="aiPlatformHighlight">AI Platform</strong>. Built to simplify early design for structural engineers while remaining user-friendly for owners, architects, project managers, and other stakeholders. Models can be progressively developed for detailed structural design.
         </p>
+        <p className="modelCreationHint"><strong>Choose a starting point below to create an editable 3D structural model.</strong> LinkoTech converts the available project information into model geometry such as grids, columns, beams, slabs, walls, and nodes for review and development.</p>
         <div className="modelLaunchGrid">
           {launchOptions.map(({ label, icon: Icon, href }) => (
             <a key={label} href={href} className="modelLaunchButton">
