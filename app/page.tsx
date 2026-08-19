@@ -18,7 +18,9 @@ import {
   Wrench,
   BookOpen,
 } from "lucide-react";
+import ThreeDModelShowcase from "./components/three-d-model-showcase";
 
+const MODEL_3D_URL = "https://3dmodel.linkoteq.com/";
 const STEEL_COLUMN_URL = "https://wsection.linkoteq.com/";
 const SNOW_LOAD_URL = "https://snow.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
@@ -61,6 +63,7 @@ const products = [
 const tools = [
   { title: "Customer Discovery", description: "Structured Interviews, Evidence Capture, And Insight Tracking For Product Discovery.", icon: UsersRound, href: CUSTOMER_DISCOVERY_URL, action: "Open Platform" },
   { title: "Team Timesheet", description: "A Lightweight Operational Workspace For Time Capture And Project Visibility.", icon: Clock3, href: TIMESHEET_URL, action: "Open Workspace" },
+  { title: "3D Structural Model", description: "Create structural geometry, assign loads, inspect properties, and prepare a calculation-ready model for connected analysis workflows.", icon: Layers3, href: MODEL_3D_URL, action: "Open 3D Model" },
   { title: "W-Section", description: "Interactive W-section verification with section data, utilization ratios, and report-ready engineering outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open Calculator" },
   { title: "Snow Load", description: "NBCC 2020 roof snow calculations for uniform, lower-roof drift, and projection / parapet loading with ULS, SLS, and report-ready outputs.", icon: Snowflake, href: SNOW_LOAD_URL, action: "Open Calculator" },
 ];
@@ -92,6 +95,7 @@ export default function Home() {
           <div className="navMenu">
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={15} /></button>
             <div className="navDropdown">
+              <a href={MODEL_3D_URL}><Layers3 size={16} /> 3D Structural Model</a>
               <a href={STEEL_COLUMN_URL}><Building2 size={16} /> W-Section</a>
               <a href={SNOW_LOAD_URL}><Snowflake size={16} /> Snow Load</a>
             </div>
@@ -132,7 +136,7 @@ export default function Home() {
           <h1>Turn Engineering Information Into Decisions, Models, And Reusable Digital Workflows.</h1>
           <p>LinkoTech Is Building An AI-Enabled Engineering Platform That Connects Drawing Intelligence, Validated Calculation Engines, Interactive Applications, And Professional Reporting.</p>
           <div className="heroActions">
-            <a className="primaryButton" href="#platform">Discover The AI Platform <ArrowRight size={18} /></a>
+            <a className="primaryButton" href="#3d-model">Create A 3D Structural Model <ArrowRight size={18} /></a>
             <a className="secondaryButton" href="#tools">View Engineering Tools</a>
           </div>
           <div className="heroMetrics">
@@ -175,6 +179,8 @@ export default function Home() {
           <Image src="/engineering-capabilities.svg" alt="Linko Engineering Capabilities Including AI, Modeling, Applications, Reporting, Standards, And Security" width={1200} height={820} />
         </div>
       </section>
+
+      <ThreeDModelShowcase />
 
       <section className="section toolsSection" id="tools">
         <div className="sectionIntro">
