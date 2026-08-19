@@ -15,9 +15,9 @@ export default function ThreeDModelShowcase() {
     <section className="modelEngineShowcase" id="3d-model">
       <div className="modelEngineCopy">
         <span className="eyebrow">Core Structural Modeling Engine</span>
-        <h2>Create, Load, And Prepare A 3D Structural Model For Analysis.</h2>
+        <h2>Create, Load, and Prepare a 3D Structural Model for Analysis</h2>
         <p>
-          Build the structural model manually or start from engineering documents. The LinkoTech 3D Model is the central workspace that connects geometry, assigned loads, calculation modules, and the analysis workflow.
+          Quickly create early-stage structural models from 2D drawings, sketches, or manually with the support of the LinkoTech AI platform. Built to simplify early design for structural engineers while remaining user-friendly for owners, architects, project managers, and other stakeholders. Models can be progressively developed for detailed structural design.
         </p>
         <div className="modelLaunchGrid">
           {launchOptions.map(({ label, icon: Icon, href }) => (
