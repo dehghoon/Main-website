@@ -1,0 +1,57 @@
+name: Structural Labeling Historical Discovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/discover-structural-labeling-candidates.mjs"
+      - ".github/workflows/structural-labeling-historical-discovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - name: Run read-only historical discovery
+        env:
+          DETECTION_RUNS_REF: qa-review-artifacts
+          DETECTION_RUNS_PATH: runs
+          DETECTION_ZIP_REF: main
+          DETECTION_ZIP_PATH: remaing-15-existing-images.zip
+        run: node scripts/discover-structural-labeling-candidates.mjs > historical-discovery.json
+      - name: Emit discovery evidence
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const x = JSON.parse(fs.readFileSync("historical-discovery.json","utf8"));
+          const y = {
+            runIdsInspected: x.runIdsInspected,
+            imageContainingRunIds: x.imageContainingRunIds,
+            jsonOnlyRunId: x.jsonOnlyRunId,
+            recursiveImageCountPerRun: x.recursiveImageCountPerRun,
+            sourceCandidateImageCountPerRun: x.sourceCandidateImageCountPerRun,
+            zipImageCount: x.zipImageCount,
+            totalRawCandidateCount: x.totalRawCandidateCount,
+            exactSha256DuplicateCount: x.exactSha256DuplicateCount,
+            uniqueSha256CandidateCount: x.uniqueSha256CandidateCount,
+            nearDuplicateStatus: x.nearDuplicateStatus,
+            databaseWrites: x.databaseWrites,
+            assignsDatasetSplits: x.assignsDatasetSplits,
+            enablesTraining: x.enablesTraining
+          };
+          console.log("::notice title=Historical discovery::" + JSON.stringify(y));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "```json\n" + JSON.stringify(y,null,2) + "\n```\n");
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: historical-discovery
+          path: historical-discovery.json
+          retention-days: 7
