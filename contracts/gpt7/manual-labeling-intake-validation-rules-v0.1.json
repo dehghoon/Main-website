@@ -1,0 +1,106 @@
+{
+  "contract": "manual-labeling-intake-v0.1",
+  "status": "active",
+  "active_classes": [
+    "column",
+    "beam",
+    "wall"
+  ],
+  "annotation_spec_version": "v0.2",
+  "coordinate": {
+    "space": "source-page",
+    "unit": "pdf-point",
+    "origin": "effective-source-page-top-left",
+    "x": "right",
+    "y": "down",
+    "positive_area": true,
+    "in_page": true
+  },
+  "required_ids": [
+    "candidate_id",
+    "source_id",
+    "page_id",
+    "project_group_id"
+  ],
+  "sha256_pattern": "^[0-9a-f]{64}$",
+  "lifecycle": {
+    "candidate": [
+      "suitable-for-labeling"
+    ],
+    "suitable-for-labeling": [
+      "labeling-in-progress"
+    ],
+    "labeling-in-progress": [
+      "submitted-for-owner-qa"
+    ],
+    "submitted-for-owner-qa": [
+      "owner-approved",
+      "owner-rejected",
+      "revision-required"
+    ],
+    "revision-required": [
+      "labeling-in-progress"
+    ],
+    "owner-approved": [
+      "gpt7-dataset-admission"
+    ],
+    "owner-rejected": [],
+    "gpt7-dataset-admission": []
+  },
+  "owner_only": [
+    "owner-approved",
+    "owner-rejected",
+    "revision-required"
+  ],
+  "gpt7_only": [
+    "gpt7-dataset-admission"
+  ],
+  "transform": {
+    "required_for_raster": true,
+    "rotation": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "fields": [
+      "effective_page_width_pt",
+      "effective_page_height_pt",
+      "effective_crop_box_pdf",
+      "page_rotation_deg",
+      "raster_width_px",
+      "raster_height_px",
+      "raster_to_source_page_affine",
+      "source_page_to_raster_affine",
+      "render_version",
+      "transform_validation_state"
+    ],
+    "affine_length": 6,
+    "validated_state": "validated",
+    "round_trip_tolerance": 0.01,
+    "pixel_only_admissible": false
+  },
+  "history_append_only": true,
+  "employee_may_owner_approve": false,
+  "owner_approval_implies_admission": false,
+  "admission_implies_training_ready": false,
+  "duplicate_candidates_preserved": true,
+  "project_group_preserved": true,
+  "gpt6_proposal_observed_gt": false,
+  "synthetic_overlay_observed_gt": false,
+  "no_safe_box_negative": false,
+  "legacy_v0_1": {
+    "accepted": [
+      "column",
+      "beam"
+    ],
+    "rejected": [
+      "wall"
+    ]
+  },
+  "boundary": {
+    "emitsCanonicalEngineeringGeometry": false,
+    "enablesTraining": false
+  },
+  "immutable_versioned_dataset_required_before_yolo": true
+}
