@@ -42,39 +42,57 @@ begin
 
   if v_source_id is null then
     insert into public.structural_labeling_sources(
-      source_sha256,original_filename,smime_type,byte_size,storage_path,origin_kind,origin_ref,provenance,created_by
+      source_sha256, original_filename, mime_type, byte_size, storage_path,
+      origin_kind, origin_ref, provenance, created_by
     ) values(
-      p_hash,p_filename,p_mime,p_bytes,p_storage,p_origin_kind,p_origin_ref,coalesce(p_provenance,{}'::jsonb),auth.uid()
+      p_hash, p_filename, p_mime, p_bytes, p_storage,
+      p_origin_kind, p_origin_ref, coalesce(p_provenance,'{}'::jsonb), auth.uid()
     ) returning source_id into v_source_id;
   end if;
 
   for v_page in select value from jsonb_array_elements(p_pages) loop
     v_page_index := (v_page->>'pageIndex')::int;
     v_page_id := v_page->>'pageId';
-    if v_page_index < 0 or nullif(trim(v_page_id),'') is null then raise exception 'invalid_page_identity'; end if;
+    if v_page_index < 0 or nullif(trim(v_page_id),'') is null then
+      raise exception 'invalid_page_identity';
+    end if;
 
     select c.id into v_duplicate_id
     from public.structural_labeling_candidates c
     where c.source_sha256 = p_hash and c.page_index = v_page_index
-    order by c.created_at limit 1;
+    order by c.created_at
+    limit 1;
 
     insert into public.structural_labeling_candidates(
-      project_group_id,source_kind,source_ref,source_sha256,duplicate_of,workflow_state,created_by,
-      source_id,page_id,page_index,original_filename,transform_metadata,provenance,historical_metadata
+      project_group_id, source_kind, source_ref, source_sha256, duplicate_of,
+      workflow_state, created_by, source_id, page_id, page_index,
+      original_filename, transform_metadata, provenance, historical_metadata
     ) values(
       p_project_group,
-      case p_origin_kind when 'qa-run' then 'qa-run' when 'legacy-zip' then 'legacy-zip' else 'website-upload' end,
-      p_origin_ref,p_hash,v_duplicate_id,'candidate',auth.uid(),v_source_id,t_page_id,v_page_index,p_filename,v_page->'transform',
-      coalesce(p_provenance,'{}'::jsonb),coalesce(p_historical,'{}'::jsonb)
+      case p_origin_kind
+        when 'qa-run' then 'qa-run'
+        when 'legacy-zip' then 'legacy-zip'
+        else 'website-upload'
+      end,
+      p_origin_ref, p_hash, v_duplicate_id, 'candidate', auth.uid(),
+      v_source_id, v_page_id, v_page_index, p_filename, v_page->'transform',
+      coalesce(p_provenance,'{}'::jsonb), coalesce(p_historical,'{}'::jsonb)
     ) returning id into v_candidate_id;
 
-    perform public.labeling_audit(v_candidate_id,'employee',null,'candidate',null,'Source preserved; renewed suitability review required; no dataset admission implied.');
-    v_candidate_ids := array_append(v_candidate_ids,v_candidate_id);
+    perform public.labeling_audit(
+      v_candidate_id, 'employee', null, 'candidate', null,
+      'Source preserved; renewed suitability review required; no dataset admission implied.'
+    );
+    v_candidate_ids := array_append(v_candidate_ids, v_candidate_id);
   end loop;
 
   return v_candidate_ids;
 end;
 $$;
 
-revoke all on function public.labeling_create_source_candidates(text,text,text,bigint,text,text,text,text,jsonb,jsonb,jsonb) from public;
-grant execute on function public.labeling_create_source_candidates(text,text,text,bigint,text,text,text,text,jsonb,jsonb,jsonb) to authenticated;
+revoke all on function public.labeling_create_source_candidates(
+  text,text,text,bigint,text,text,text,text,jsonb,jsonb,jsonb
+) from public;
+grant execute on function public.labeling_create_source_candidates(
+  text,text,text,bigint,text,text,text,text,jsonb,jsonb,jsonb
+) to authenticated;
