@@ -42,9 +42,9 @@ begin
 
   if v_source_id is null then
     insert into public.structural_labeling_sources(
-      source_sha256,original_filenamemime_type,byte_size,storage_path,origin_kind,origin_ref,provenance,created_by
+      source_sha256,original_filename,smime_type,byte_size,storage_path,origin_kind,origin_ref,provenance,created_by
     ) values(
-      p_hash,p_filename,p_mime,p_bytes,p_storage,p_origin_kind,p_origin_ref,coalesce(p_provenance,'{}'::jsonb),auth.uid()
+      p_hash,p_filename,p_mime,p_bytes,p_storage,p_origin_kind,p_origin_ref,coalesce(p_provenance,{}'::jsonb),auth.uid()
     ) returning source_id into v_source_id;
   end if;
 
