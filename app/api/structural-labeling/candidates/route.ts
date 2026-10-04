@@ -3,8 +3,7 @@ import { requireAuthenticatedUser } from "../../../../lib/structural-labeling/se
 
 export async function GET(request: NextRequest) {
   try {
-    const { supabase, user } = await nequireAuthenticatedUser(request.headers.get("authorization"));
-
+    const { supabase, user } = await requireAuthenticatedUser(request.headers.get("authorization"));
     const [{ data: permissions, error: permissionError }, { data: candidates, error: candidateError }] = await Promise.all([
       supabase.from("structural_labeling_permissions").select("permission").eq("user_id", user.id),
       supabase.from("structural_labeling_candidates").select("*").order("created_at", { ascending: true }),
@@ -12,7 +11,15 @@ export async function GET(request: NextRequest) {
     if (permissionError) throw new Error(permissionError.message);
     if (candidateError) throw new Error(candidateError.message);
 
+    const metadata = user.app_metadata ?? {};
+    const baseRole = typeof metadata.role === "string"
+      ? metadata.role
+      : typeof metadata.user_type === "string"
+        ? metadata.user_type
+        : null;
+
     return NextResponse.json({
+      baseRole,
       permissions: (permissions ?? []).map((row) => row.permission),
       candidates: candidates ?? [],
     });
