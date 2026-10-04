@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:labeling": "node --experimental-strip-types --test tests/structural-labeling.test.ts tests/structural-labeling-milestone2.test.ts"
+    "test:labeling": "node --experimental-strip-types --test tests/structural-labeling.test.ts tests/structural-labeling-milestone2.test.ts",
+    "import:labeling": "node scripts/import-structural-labeling-candidates.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "fflate": "0.8.3",
     "lucide-react": "^0.468.0",
     "next": "15.5.7",
     "pdfjs-dist": "6.3.289",
