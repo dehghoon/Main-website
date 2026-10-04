@@ -5,18 +5,25 @@ on:
     branches: [main]
     paths:
       - "app/structural-labeling/**"
+      - "app/api/structural-labeling/**"
       - "lib/structural-labeling/**"
-      - "tests/structural-labeling.test.ts"
-      - "supabase/migrations/20261004_structural_labeling_foundation.sql"
+      - "contracts/gpt7/**"
+      - "tests/structural-labeling*.test.ts"
+      - "supabase/migrations/*structural_labeling*.sql"
+      - "scripts/import-structural-labeling-candidates.mjs"
       - "package.json"
       - ".github/workflows/structural-labeling-ci.yml"
   pull_request:
     paths:
       - "app/structural-labeling/**"
+      - "app/api/structural-labeling/**"
       - "lib/structural-labeling/**"
-      - "tests/structural-labeling.test.ts"
-      - "supabase/migrations/20261004_structural_labeling_foundation.sql"
+      - "contracts/gpt7/**"
+      - "tests/structural-labeling*.test.ts"
+      - "supabase/migrations/*structural_labeling*.sql"
+      - "scripts/import-structural-labeling-candidates.mjs"
       - "package.json"
+      - ".github/workflows/structural-labeling-ci.yml"
 
 permissions:
   contents: read
@@ -29,7 +36,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Structural labeling tests
