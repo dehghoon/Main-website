@@ -78,13 +78,17 @@ begin
   perform public.labeling_require('labeling.upload','employee');
   if p_hash !~ '^[0-9a-f]{64}$' then raise exception 'invalid_source_hash'; end if;
   if nullif(trim(p_origin_ref),'') is null or nullif(trim(p_project_group),'') is null
-     or nullif(trim(p_page_id),'') is null or nullif(trim(p_filename),'') is null then
+    or nullif(trim(p_page_id),'') is null or nullif(trim(p_filename),'') is null then
     raise exception 'malformed_provenance';
   end if;
-  insert into public.structural_labeling_sources(
-    source_sha256,original_filename,mime_type,byte_size,storage_path,origin_kind,origin_ref,provenance,created_by
-  ) values(p_hash,p_filename,p_mime,p_bytes,p_storage,p_origin_kind,p_origin_ref,coalesce(p_provenance,'{}'),auth.uid())
-  returning source_id into v_source;
+  select source_id into v_source from public.structural_labeling_sources
+    where source_sha256=p_hash and storage_path=p_storage limit 1;
+  if v_source is null then
+    insert into public.structural_labeling_sources(
+      source_sha256,original_filename,mime_type,byte_size,storage_path,origin_kind,origin_ref,provenance,created_by
+    ) values(p_hash,p_filename,p_mime,p_bytes,p_storage,p_origin_kind,p_origin_ref,coalesce(p_provenance,'{}'),auth.uid())
+    returning source_id into v_source;
+  end if;
   select id into v_duplicate from public.structural_labeling_candidates
     where source_sha256=p_hash and page_index=p_page_index order by created_at limit 1;
   insert into public.structural_labeling_candidates(
@@ -104,7 +108,7 @@ create or replace function public.labeling_employee_transition(p_id uuid,p_actio
 returns text language plpgsql security definer set search_path=public as $$
 declare v_prior text; v_next text; v_permission text;
 begin
-  if p_action in ('mark-suitable','mark-unsuitable','start-labeling') then v_permission:='labeling.annotate';
+  if p_action in ('mark-suitable','mark-unsuitable','start-labeling')) then v_permission:='labeling.annotate';
   elsif p_action='submit-owner-qa' then v_permission:='labeling.submit';
   else raise exception 'unsupported_employee_action'; end if;
   perform public.labeling_require(v_permission,'employee');
@@ -149,7 +153,7 @@ begin
   ) values(p_id,v_no,auth.uid(),p_annotations,p_transform,v_kind,v_prev,case when v_kind='owner-adjudication' then v_employee end,p_notes)
   returning id into v_revision;
   perform public.labeling_audit(p_id,case when v_kind='owner-adjudication' then 'owner-reviewer' else 'employee' end,
-    v_state,v_state,null,'Annotation revision created: '||v_no);
+    v_state,t_state,null,'Annotation revision created: '||v_no);
   return v_revision;
 end;
 $$;
@@ -160,11 +164,11 @@ declare v_prior text; v_next text;
 begin
   perform public.labeling_require('labeling.owner_review','owner');
   select workflow_state into v_prior from public.structural_labeling_candidates where id=p_id for update;
-  if v_prior<>'submitted-for-owner-qa' then raise exception 'invalid_workflow_transition:%',coalesce(v_prior,'null'); end if;
+  if v_prior<>'submitted-for-owner-qa' then raise exception 'invalid_workflow_transition:%',coalesce(v_prior,null); end if;
   if p_action='approve' then v_next:='owner-approved';
   elsif p_action='reject' then v_next:='owner-rejected';
   elsif p_action='request-revision' then v_next:='revision-required';
-  else raise exception 'unsupported_owner_operation'; end if;
+  else raise exception 'unsupported_owner_action'; end if;
   if v_next in ('owner-rejected','revision-required') and nullif(trim(p_reason),'') is null then raise exception 'reason_required'; end if;
   update public.structural_labeling_candidates set workflow_state=v_next,
     owner_disposition_reason=case when v_next in ('owner-rejected','revision-required') then p_reason end where id=p_id;
@@ -202,7 +206,18 @@ revoke insert,update,delete on public.structural_labeling_sources from anon,auth
 grant select on public.structural_labeling_candidates,public.structural_labeling_annotation_revisions,
   public.structural_labeling_audit_events,public.structural_labeling_sources to authenticated;
 
-insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+revoke all on function public.labeling_create_candidate(text,text,text,bigint,text,text,text,text,text,integer,jsonb,jsonb,jsonb) from public;
+revoke all on function public.labeling_employee_transition(uuid,text,text) from public;
+revoke all on function public.labeling_save_revision(uuid,jsonb,jsonb,text) from public;
+revoke all on function public.labeling_owner_transition(uuid,text,text) from public;
+revoke all on function public.labeling_assert_exportable(uuid) from public;
+grant execute on function public.labeling_create_candidate(text,text,text,bigint,text,text,text,text,text,integer,jsonb,jsonb,jsonb) to authenticated;
+grant execute on function public.labeling_employee_transition(uuid,text,text) to authenticated;
+grant execute on function public.labeling_save_revision(uuid,jsonb,jsonb,text) to authenticated;
+grant execute on function public.labeling_owner_transition(uuid,text,text) to authenticated;
+grant execute on function public.labeling_assert_exportable(uuid) to authenticated;
+
+insert into storage.buckets(,name,public,file_size_limit ,allowed_mime_types)
 values('structural-labeling-sources','structural-labeling-sources',false,52428800,
  array['application/pdf','image/png','image/jpeg','image/webp'])
 on conflict(id) do update set public=false;
