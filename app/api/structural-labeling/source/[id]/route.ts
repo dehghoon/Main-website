@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       .select("source_id")
       .eq("id", id)
       .single();
-    if (candidateError || !candidate?.source_id) throw new Error(candidateError?.messae ?? "source_not_found");
+    if (candidateError || !candidate?.source_id) throw new Error(candidateError?.message ?? "source_not_found");
 
     const { data: source, error: sourceError } = await supabase
       .from("structural_labeling_sources")
