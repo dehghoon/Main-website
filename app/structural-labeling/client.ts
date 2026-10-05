@@ -10,13 +10,25 @@ export async function labelingAccessToken() {
   return data.session.access_token;
 }
 
-export async function labelingApi(path: string, init: RequestInit = {}) {
+export async function labelingApi<T = Record<string, unknown>>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const accessToken = await labelingAccessToken();
   const response = await fetch(path, {
     ...init,
     headers: { ...init.headers, Authorization: `Bearer ${accessToken}` },
   });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || `Request failed: ${response.status}`);
-  return body;
+  const body: unknown = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message =
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `Request failed: ${response.status}`;
+    throw new Error(message);
+  }
+  return body as T;
 }
