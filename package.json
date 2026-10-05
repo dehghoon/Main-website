@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:labeling": "node --experimental-strip-types --test tests/structural-labeling.test.ts tests/structural-labeling-milestone2.test.ts",
+    "typecheck": "tsc --noEmit",
     "import:labeling": "node scripts/import-structural-labeling-candidates.mjs"
   },
   "dependencies": {
