@@ -1,4 +1,4 @@
-import type { Affine6, PdfPointBBox, TransformMetadata } from "./contract";
+import type { Affine6, PdfPointBBox, TransformMetadata } from "./contract.ts";
 
 export type Point = { x: number; y: number };
 
