@@ -12,17 +12,19 @@ on:
       - "supabase/migrations/*structural_labeling*.sql"
       - "scripts/discover-structural-labeling-candidates.mjs"
       - "package.json"
+      - "tsconfig.json"
       - ".github/workflows/structural-labeling-ci.yml"
   pull_request:
     paths:
       - "app/structural-labeling/**"
       - "app/api/structural-labeling/**"
-      - "lib/structural-labeling/**"
+      - "lib/structural-labling/**"
       - "contracts/gpt7/**"
       - "tests/structural-labeling*.test.ts"
       - "supabase/migrations/*structural_labeling*.sql"
       - "scripts/discover-structural-labeling-candidates.mjs"
       - "package.json"
+      - "tsconfig.json"
       - ".github/workflows/structural-labeling-ci.yml"
 
 permissions:
@@ -54,7 +56,7 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if [ "$code" -eq 0 ]; then
-            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalOriginRecordCount:x.totalOriginRecordCount,uniqueSha256ContentIdentityCount:x.uniqueSha256ContentIdentityCount,exactSha256DuplicateOriginCount:x.exactSha256DuplicateOriginCount,exactSha256DuplicateGroupCount:x.exactSha256DuplicateGroupCount,nearDuplicateStatus:x.nearDuplicateStatus,databaseWrites:x.databaseWrites,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(y))')
+            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalOriginRecordCount:x.totalOriginRecordCount,uniqueSha256ContentIdentityCount:x.uniqueSha256ContentIdentityCount,exactSha256DuplicateOriginCount:x.exactSha256DuplicateOriginCount,exactSha256DuplicateGroupCount:x.exactSha256DuplicateGroupCount,nearDuplicateStatus:x.nearDuplicateStatus,databaseWrites:x.databaseWrites,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(q))') 
             echo "::notice title=Historical discovery dry run::$summary"
           else
             echo "::error title=Historical discovery dry run::exit_code=$code"
@@ -67,10 +69,18 @@ jobs:
         shell: bash
         run: |
           set +e
-          npm run test:labeling
-          code=$?
+          npm run test:labeling 2>&1 | tee test-labeling.log
+          code=${PIPESTATUS[0]}
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "::notice title=Structural labeling tests::exit_code=$code"
+          if [ "$code" -ne 0 ]; then
+            tail -n 40 test-labeling.log | while IFS= read -r line; do
+              line="${line//'%'/'%25'}"
+              line="${line//$'\r'/'%0D'}"
+              line="${line//$'\n'/'%0A'}"
+              echo "::error title=Structural labeling test output::$line"
+            done
+          fi
           exit 0
 
       - name: Type check
