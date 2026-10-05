@@ -10,7 +10,7 @@ on:
       - "contracts/gpt7/**"
       - "tests/structural-labeling*.test.ts"
       - "supabase/migrations/*structural_labeling*.sql"
-      - "scripts/import-structural-labeling-candidates.mjs"
+      - "scripts/discover-structural-labeling-candidates.mjs"
       - "package.json"
       - ".github/workflows/structural-labeling-ci.yml"
   pull_request:
@@ -21,7 +21,7 @@ on:
       - "contracts/gpt7/**"
       - "tests/structural-labeling*.test.ts"
       - "supabase/migrations/*structural_labeling*.sql"
-      - "scripts/import-structural-labeling-candidates.mjs"
+      - "scripts/discover-structural-labeling-candidates.mjs"
       - "package.json"
       - ".github/workflows/structural-labeling-ci.yml"
 
@@ -39,19 +39,25 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Historical import dry run
+      - name: Historical discovery dry run
         id: historical
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DETECTION_RUNS_REF: qa-review-artifacts
+          DETECTION_RUNS_PATH: runs
+          DETECTION_ZIP_REF: main
+          DETECTION_ZIP_PATH: remaing-15-existing-images.zip
         run: |
           set +e
-          DETECTION_RUNS_REF=qa-review-artifacts           DETECTION_RUNS_PATH=runs           DETECTION_ZIP_REF=main           DETECTION_ZIP_PATH=remaing-15-existing-images.zip           npm run import:labeling > historical-dry-run.json
+          node scripts/discover-structural-labeling-candidates.mjs > historical-dry-run.json
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if [ "$code" -eq 0 ]; then
-            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,recursiveImageCountPerRun:x.recursiveImageCountPerRun,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalRawCandidateCount:x.totalRawCandidateCount,exactSha256DuplicateCount:x.exactSha256DuplicateCount,uniqueSha256CandidateCount:x.uniqueSha256CandidateCount,nearDuplicateStatus:x.nearDuplicateStatus,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(y))')
-            echo "::notice title=Historical import dry run::$summary"
+            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalOriginRecordCount:x.totalOriginRecordCount,uniqueSha256ContentIdentityCount:x.uniqueSha256ContentIdentityCount,exactSha256DuplicateOriginCount:x.exactSha256DuplicateOriginCount,exactSha256DuplicateGroupCount:x.exactSha256DuplicateGroupCount,nearDuplicateStatus:x.nearDuplicateStatus,databaseWrites:x.databaseWrites,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(y))')
+            echo "::notice title=Historical discovery dry run::$summary"
           else
-            echo "::error title=Historical import dry run::exit_code=$code"
+            echo "::error title=Historical discovery dry run::exit_code=$code"
             cat historical-dry-run.json || true
           fi
           exit 0
