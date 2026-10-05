@@ -18,7 +18,7 @@ on:
     paths:
       - "app/structural-labeling/**"
       - "app/api/structural-labeling/**"
-      - "lib/structural-labling/**"
+      - "lib/structural-labeling/**"
       - "contracts/gpt7/**"
       - "tests/structural-labeling*.test.ts"
       - "supabase/migrations/*structural_labeling*.sql"
@@ -56,7 +56,7 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if [ "$code" -eq 0 ]; then
-            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalOriginRecordCount:x.totalOriginRecordCount,uniqueSha256ContentIdentityCount:x.uniqueSha256ContentIdentityCount,exactSha256DuplicateOriginCount:x.exactSha256DuplicateOriginCount,exactSha256DuplicateGroupCount:x.exactSha256DuplicateGroupCount,nearDuplicateStatus:x.nearDuplicateStatus,databaseWrites:x.databaseWrites,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(q))') 
+            summary=$(node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("historical-dry-run.json","utf8")); const y={runIdsInspected:x.runIdsInspected,imageContainingRunIds:x.imageContainingRunIds,jsonOnlyRunId:x.jsonOnlyRunId,sourceCandidateImageCountPerRun:x.sourceCandidateImageCountPerRun,zipImageCount:x.zipImageCount,totalOriginRecordCount:x.totalOriginRecordCount,uniqueSha256ContentIdentityCount:x.uniqueSha256ContentIdentityCount,exactSha256DuplicateOriginCount:x.exactSha256DuplicateOriginCount,exactSha256DuplicateGroupCount:x.exactSha256DuplicateGroupCount,nearDuplicateStatus:x.nearDuplicateStatus,databaseWrites:x.databaseWrites,enablesTraining:x.enablesTraining}; process.stdout.write(JSON.stringify(y))')
             echo "::notice title=Historical discovery dry run::$summary"
           else
             echo "::error title=Historical discovery dry run::exit_code=$code"
