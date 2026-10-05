@@ -1,5 +1,5 @@
-import { isLabelClass, type Annotation, type TransformMetadata, validateBBox } from "./contract";
-import { validateRoundTrip } from "./coordinates";
+import { isLabelClass, type Annotation, type TransformMetadata, validateBBox } from "./contract.ts";
+import { validateRoundTrip } from "./coordinates.ts";
 
 export function validateTransformMetadata(transform: TransformMetadata): string[] {
   const errors: string[] = [];
