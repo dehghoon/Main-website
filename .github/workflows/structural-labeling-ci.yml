@@ -74,11 +74,11 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "::notice title=Structural labeling tests::exit_code=$code"
           if [ "$code" -ne 0 ]; then
-            tail -n 40 test-labeling.log | while IFS= read -r line; do
+            grep -E "not ok|AssertionError|failureType|error:|code:|expected:|actual:|ERR_|location:" test-labeling.log | tail -n 60 | while IFS= read -r line; do
               line="${line//'%'/'%25'}"
               line="${line//$'\r'/'%0D'}"
               line="${line//$'\n'/'%0A'}"
-              echo "::error title=Structural labeling test output::$line"
+              echo "::error title=Structural labeling test failure::$line"
             done
           fi
           exit 0
