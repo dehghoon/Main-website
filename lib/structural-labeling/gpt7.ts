@@ -1,14 +1,13 @@
-import pinnedRules from "../../contracts/gpt7/manual-labeling-intake-validation-rules-v0.1.json";
+import pinnedRules from "../../contracts/gpt7/manual-labeling-intake-validation-rules-v0.1.json" with { type: "json" };
 import {
   GPT7_BOUNDARY,
   MANUAL_LABELING_CONTRACT,
   type Annotation,
   type TransformMetadata,
-} from "./contract";
-import { assertAnnotationsValid, validateTransformMetadata } from "./validation";
+} from "./contract.ts";
+import { assertAnnotationsValid, validateTransformMetadata } from "./validation.ts";
 
 type PinnedRules = typeof pinnedRules;
-
 export type Gpt7IntakePackage = {
   schema_version: "manual-labeling-intake-v0.1";
   candidate_id: string;
@@ -40,7 +39,6 @@ export type Gpt7IntakePackage = {
   dataset_split_assigned: false;
   boundary: typeof GPT7_BOUNDARY;
 };
-
 export const PINNED_GPT7_RULES: PinnedRules = pinnedRules;
 
 export function buildGpt7IntakePackage(input: {
@@ -96,7 +94,6 @@ export function buildGpt7IntakePackage(input: {
     dataset_split_assigned: false,
     boundary: GPT7_BOUNDARY,
   };
-
   const errors = validateGpt7IntakePackage(pkg);
   if (errors.length) throw new Error(`pinned_contract_validation_failed:${errors.join(",")}`);
   return pkg;
@@ -105,7 +102,6 @@ export function buildGpt7IntakePackage(input: {
 export function validateGpt7IntakePackage(value: Gpt7IntakePackage): string[] {
   const errors: string[] = [];
   const rules = pinnedRules;
-
   if (rules.contract !== value.schema_version || rules.status !== "active") errors.push("contract");
   for (const field of rules.required_ids) if (!value[field as keyof Gpt7IntakePackage]) errors.push(`required_id:${field}`);
   if (!new RegExp(rules.sha256_pattern).test(value.source_sha256)) errors.push("source_sha256");
