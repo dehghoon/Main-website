@@ -71,11 +71,14 @@ end; $$;
 
 create or replace function public.labeling_employee_transition(p_id uuid,p_action text,p_reason text default null)
 returns text language plpgsql security definer set search_path=public as $$
-declare a text; n text; perm text;
+declare a text; n text;
 begin
- perm:=case when p_action='submit-owner-qa' then 'labeling.submit' else 'labeling.annotate' end;
  if p_action not in ('mark-suitable','mark-unsuitable','start-labeling','submit-owner-qa') then raise exception 'unsupported_employee_action'; end if;
- perform public.labeling_require(perm,'employee');
+ If p_action='submit-owner-qa' then
+ perform public.labeling_require('labeling.submit','employee');
+ else
+ perform public.labeling_require('labeling.annotate','employee');
+ end if;
  select workflow_state into a from public.structural_labeling_candidates where id=p_id for update;
  if p_action='mark-suitable' and a='candidate' then n:='suitable-for-labeling';
  elsif p_action='mark-unsuitable' and a='candidate' then if nullif(trim(p_reason),'') is null then raise exception 'reason_required'; end if; n:='unsuitable-for-labeling';
@@ -87,6 +90,6 @@ begin
    n:='submitted-for-owner-qa';
  else raise exception 'invalid_workflow_transition:%',coalesce(a,'null'); end if;
  update public.structural_labeling_candidates set workflow_state=n,
-  unsuitable_reason=case when n='unsuitable-for-labeling' then p_reason else unsuitable_reason end where id=p_id;
+ unsuitable_reason=case when n='unsuitable-for-labeling' then p_reason else unsuitable_reason end where id=p_id;
  perform public.labeling_audit(p_id,'employee',a,n,p_reason,null); return n;
 end; $$;
