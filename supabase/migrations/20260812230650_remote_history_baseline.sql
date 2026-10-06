@@ -1,0 +1,5 @@
+-- Remote migration history baseline marker.
+-- This version is already recorded as applied in the deployed Supabase migration history.
+-- The original SQL is not present in the Main-website repository history available to this gate.
+-- This file is intentionally a no-op and exists only to preserve migration-version continuity.
+-- Do not add SQL statements to this historical marker.
