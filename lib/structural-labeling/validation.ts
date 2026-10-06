@@ -25,11 +25,6 @@ export function validateTransformMetadata(transform: TransformMetadata): string[
   if (transform.display_to_raster_affine && transform.display_to_raster_affine.length !== 6) errors.push("display affine length must be 6");
   if (transform.transform_validation_state !== "validated") errors.push("transform_validation_state must be validated");
   try {
-    validateRoundTrip.transform;
-  } catch {
-    // No-op; keeping the round-trip check below is deliberate.
-  }
-  try {
     validateRoundTrip(transform, 0.01);
   } catch (error) {
     errors.push(error instanceof Error ? error.message : "round-trip validation failed");
