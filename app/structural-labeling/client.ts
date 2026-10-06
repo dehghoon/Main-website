@@ -11,7 +11,7 @@ type CandidateResponseRow = {
   original_filename: string | null;
   source_ref: string;
   source_sha256: string;
-  transform_metadata: unknown;
+  transform_metadata: TransformMetadata | null;
   duplicate_of: string | null;
 };
 
