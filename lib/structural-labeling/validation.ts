@@ -1,6 +1,19 @@
 import { isLabelClass, type Annotation, type TransformMetadata, validateBBox } from "./contract.ts";
 import { validateRoundTrip } from "./coordinates.ts";
 
+function formatBboxValidationError(error: string): string {
+  switch (error) {
+    case "bbox-must-have-positive-area":
+      return "bbox must have positive area";
+    case "bbox-must-be-within-effective-page-bounds":
+      return "bbox must be within effective page bounds";
+    case "bbox-and-page-values-must-be-finite":
+      return "bbox and page values must be finite";
+    default:
+      return error;
+  }
+}
+
 export function validateTransformMetadata(transform: TransformMetadata): string[] {
   const errors: string[] = [];
   if (transform.coordinate_space !== "source-page") errors.push("coordinate_space must be source-page");
@@ -23,7 +36,9 @@ export function validateAnnotations(annotations: Annotation[], transform: Transf
     seen.add(annotation.annotation_id);
     if (!isLabelClass(annotation.class)) errors.push(`invalid class: ${String(annotation.class)}`);
     if (annotation.annotation_spec_version !== "v0.2") errors.push("annotation_spec_version must be v0.2");
-    errors.push(...validateBBox(annotation.bbox, transform.effective_page_width_pt, transform.effective_page_height_pt));
+    errors.push(
+      ...validateBBox(annotation.bbox, transform.effective_page_width_pt, transform.effective_page_height_pt).map(formatBBoxValidationError),
+     );
   }
   return errors;
 }
