@@ -15,8 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,8 +30,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN"
-          test -n "$SUPABASE_DB_PASSWORD"
           test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_DB_URL"
 
       - name: Validate Structural Labeling migration identities
         shell: bash
@@ -70,21 +71,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          supabase link \
-            --project-ref "$SUPABASE_PROJECT_REF" \
-            --password "$SUPABASE_DB_PASSWORD"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Capture deployed migration history
         shell: bash
         run: |
           set -euo pipefail
-          supabase migration list --linked | tee migration-list-before.txt
+          supabase migration list --db-url "$SUPABASE_DB_URL" | tee migration-list-before.txt
 
       - name: Dry-run committed migrations
         shell: bash
         run: |
           set -euo pipefail
-          supabase db push --linked --dry-run | tee migration-dry-run.txt
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run | tee migration-dry-run.txt
 
       - name: Add dry-run summary
         if: always()
