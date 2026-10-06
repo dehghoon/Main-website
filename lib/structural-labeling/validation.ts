@@ -1,7 +1,7 @@
 import { isLabelClass, type Annotation, type TransformMetadata, validateBBox } from "./contract.ts";
 import { validateRoundTrip } from "./coordinates.ts";
 
-function formatBboxValidationError(error: string): string {
+function formatBBoxValidationError(error: string): string {
   switch (error) {
     case "bbox-must-have-positive-area":
       return "bbox must have positive area";
@@ -24,22 +24,45 @@ export function validateTransformMetadata(transform: TransformMetadata): string[
   if (transform.raster_to_source_page_affine.length !== 6 || transform.source_page_to_raster_affine.length !== 6) errors.push("affine length must be 6");
   if (transform.display_to_raster_affine && transform.display_to_raster_affine.length !== 6) errors.push("display affine length must be 6");
   if (transform.transform_validation_state !== "validated") errors.push("transform_validation_state must be validated");
-  try { validateRoundTrip(transform, 0.01); } catch (error) { errors.push(error instanceof Error ? error.message : "round-trip validation failed"); }
+  try {
+    validateRoundTrip.transform;
+  } catch {
+    // No-op; keeping the round-trip check below is deliberate.
+  }
+  try {
+    validateRoundTrip(transform, 0.01);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : "round-trip validation failed");
+  }
   return errors;
 }
 
 export function validateAnnotations(annotations: Annotation[], transform: TransformMetadata): string[] {
   const errors = validateTransformMetadata(transform);
   const seen = new Set<string>();
+
   for (const annotation of annotations) {
-    if (!annotation.annotation_id || seen.has(annotation.annotation_id)) errors.push("annotation_id must be stable and unique");
+    if (!annotation.annotation_id || seen.has(annotation.annotation_id)) {
+      errors.push("annotation_id must be stable and unique");
+    }
     seen.add(annotation.annotation_id);
-    if (!isLabelClass(annotation.class)) errors.push(`invalid class: ${String(annotation.class)}`);
-    if (annotation.annotation_spec_version !== "v0.2") errors.push("annotation_spec_version must be v0.2");
+
+    if (!isLabelClass(annotation.class)) {
+      errors.push(`invalid class: ${String(annotation.class)}`);
+    }
+    if (annotation.annotation_spec_version !== "v0.2") {
+      errors.push("annotation_spec_version must be v0.2");
+    }
+
     errors.push(
-      ...validateBBox(annotation.bbox, transform.effective_page_width_pt, transform.effective_page_height_pt).map(formatBBoxValidationError),
-     );
+      ...validateBBox(
+        annotation.bbox,
+        transform.effective_page_width_pt,
+        transform.effective_page_height_pt,
+      ).map(formatBBoxValidationError),
+    );
   }
+
   return errors;
 }
 
