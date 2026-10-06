@@ -1,0 +1,126 @@
+name: Structural Labeling Supabase Dry Run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_DB_PASSWORD"
+          test -n "$SUPABASE_PROJECT_REF"
+
+      - name: Validate Structural Labeling migration identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from collections import Counter
+          from pathlib import Path
+
+          paths = sorted(Path("supabase/migrations").glob("*structural_labeling*.sql"))
+          if not paths:
+              raise SystemExit("No Structural Labeling migrations found.")
+
+          versions = [path.name.split("_", 1)[0] for path in paths]
+          duplicates = [version for version, count in Counter(versions).items() if count > 1]
+          invalid = [version for version in versions if len(version) != 14 or not version.isdigit()]
+
+          if duplicates or invalid:
+              raise SystemExit(
+                  f"Invalid migration identities: duplicates={duplicates}, invalid={invalid}"
+              )
+
+          print("Structural Labeling migration identities are unique and canonical.")
+          for path in paths:
+              print(path.name)
+          PY
+
+      - name: Initialize Supabase CLI project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Link deployed Supabase project
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase link \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Capture deployed migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked | tee migration-list-before.txt
+
+      - name: Dry-run committed migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --linked --dry-run | tee migration-dry-run.txt
+
+      - name: Add dry-run summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Structural Labeling Supabase Dry Run"
+            echo
+            echo "No database migration was applied by this workflow."
+            echo
+            echo "## Migration history"
+            echo '```text'
+            if [ -f migration-list-before.txt ]; then
+              cat migration-list-before.txt
+            else
+              echo "Migration history was not captured."
+            fi
+            echo '```'
+            echo
+            echo "## db push --dry-run"
+            echo '```text'
+            if [ -f migration-dry-run.txt ]; then
+              cat migration-dry-run.txt
+            else
+              echo "Dry-run output was not captured."
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload dry-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-supabase-dry-run-evidence
+          path: |
+            migration-list-before.txt
+            migration-dry-run.txt
+          if-no-files-found: warn
+          retention-days: 14
