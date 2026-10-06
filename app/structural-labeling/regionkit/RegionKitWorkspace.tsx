@@ -69,9 +69,7 @@ function parseRegionKitAnnotations(
   validateRoundTrip(transform, 0.01);
 
   if (!Array.isArray(value.annotations)) {
-    throw new Erro
-
-"invalid RegionKit NativeExport");
+    throw new Error("RegionKit NativeExport must contain annotations[].");
   }
 
   return value.annotations
@@ -106,7 +104,7 @@ function parseRegionKitAnnotations(
       const rasterBBox: PdfPointBBox = {
         xmin: data.x,
         ymin: data.y,
-       xmax: data.x + data.width,
+        xmax: data.x + data.width,
         ymax: data.y + data.height,
       };
       const bbox = rasterBBoxToSourcePage(rasterBBox, transform);
@@ -172,8 +170,8 @@ export default function RegionKitWorkspace() {
 
   useEffect(() => {
     void refreshQueue().catch((error) =>
-      setMessage(error instanceof Error ? error.messae : "Queue load failed."),
-  );
+      setMessage(error instanceof Error ? error.message : "Queue load failed."),
+    );
   }, [refreshQueue]);
 
   useEffect(() => {
@@ -229,7 +227,9 @@ export default function RegionKitWorkspace() {
       );
     } catch (error) {
       setImported([]);
-      setMessage(error instanceof Error ? error.message : "RegionKit JSON import failed.");
+      setMessage(
+        error instanceof Error ? error.message : "RegionKit JSON import failed.",
+      );
     }
   }
 
@@ -254,6 +254,7 @@ export default function RegionKitWorkspace() {
       setMessage(error instanceof Error ? error.message : "Revision save failed.");
     } finally {
       setBusy(false);
+    }
   }
 
   const state = selected?.workflow_state;
@@ -278,7 +279,13 @@ export default function RegionKitWorkspace() {
         {message && <p role="status">{message}</p>}
       </header>
 
-      <section style={{ display: "grid", gridTemplateColumns: "minmax(260px,360px) minmax(0,1fr)", gap: 20 }}>
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(260px,360px) minmax(0,1fr)",
+          gap: 20,
+        }}
+      >
         <aside>
           <h2>Candidate Queue</h2>
           <button onClick={() => void refreshQueue()}>Refresh Queue</button>
@@ -292,15 +299,20 @@ export default function RegionKitWorkspace() {
                 textAlign: "left",
                 padding: 12,
                 marginTop: 8,
-                border: selectedId === candidate.id ? "2px solid" : "1px solid #bbb",
+                border:
+                  selectedId === candidate.id ? "2px solid" : "1px solid #bbb",
                 borderRadius: 8,
               }}
             >
-              <strong>{candidate.original_filename || candidate.page_id || candidate.id}</strong>
+              <strong>
+                {candidate.original_filename || candidate.page_id || candidate.id}
+              </strong>
               <br />
               <small>
                 {candidate.workflow_state}
-                {candidate.page_index !== null ? ` · page ${candidate.page_index + 1}` : ""}
+                {candidate.page_index !== null
+                  ? ` · page ${candidate.page_index + 1}`
+                  : ""}
               </small>
             </button>
           ))}
@@ -311,33 +323,63 @@ export default function RegionKitWorkspace() {
           {selected && (
             <>
               <h2>{selected.original_filename || selected.page_id}</h2>
-              <p><strong>Status:</strong> {selected.workflow_state}</p>
-              <p><strong>SHA-256:</strong> <code>{selected.source_sha256}</code></p>
+              <p>
+                <strong>Status:</strong> {selected.workflow_state}
+              </p>
+              <p>
+                <strong>SHA-256:</strong> <code>{selected.source_sha256}</code>
+              </p>
               <p>
                 <strong>Transform:</strong>{" "}
                 {transform?.transform_validation_state ?? "missing"}
               </p>
 
-              {(state === "suitable-for-labeling" || state === "revision-required") &&
+              {(state === "suitable-for-labeling" ||
+                state === "revision-required") &&
                 employeeCanLabel && (
-                  <button disabled={busy} onClick={() => void transition("start-labeling")}>
+                  <button
+                    disabled={busy}
+                    onClick={() => void transition("start-labeling")}
+                  >
                     Start / Resume Labeling
                   </button>
                 )}
 
-              {(state === "labeling-in-progress" || state === "submitted-for-owner-qa") && (
-                <section style={{ marginTop: 20, borderTop: "1px solid #bbb", paddingTop: 16 }}>
+              {(state === "labeling-in-progress" ||
+                state === "submitted-for-owner-qa") && (
+                <section
+                  style={{
+                    marginTop: 20,
+                    borderTop: "1px solid #bbb",
+                    paddingTop: 16,
+                  }}
+                >
                   <h3>1. Open the private drawing in RegionKit</h3>
                   <p>
                     Download the authenticated source, then open RegionKit and load that local
                     file. The source is not published by LinkoTech.
                   </p>
-                  <button disabled={busy} onClick={() => void downloadPrivateSource(selected).catch((error) => setMessage(error.message))}>
+                  <button
+                    disabled={busy}
+                    onClick={() =>
+                      void downloadPrivateSource(selected).catch((error) =>
+                        setMessage(
+                          error instanceof Error
+                            ? error.message
+                            : "Private source download failed.",
+                        ),
+                      )
+                    }
+                  >
                     Download Private Source
                   </button>{" "}
                   <button
                     onClick={() =>
-                      window.open("https://editor.regionkit.app", "_blank", "noopener,noreferrer")
+                      window.open(
+                        "https://editor.regionkit.app",
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
                     }
                   >
                     Open RegionKit
@@ -345,9 +387,10 @@ export default function RegionKitWorkspace() {
 
                   <h3 style={{ marginTop: 24 }}>2. Import RegionKit Native JSON</h3>
                   <p>
-                    Use rectangles only and labels exactly <code>column</code>, <code>beam</code>,
-                    or <code>wall</code>. The adapter performs only class/shape checks and the
-                    deterministic raster-to-source-page conversion required by GPT-7.
+                    Use rectangles only and labels exactly <code>column</code>,{" "}
+                    <code>beam</code>, or <code>wall</code>. The adapter performs only
+                    class/shape checks and the deterministic raster-to-source-page
+                    conversion required by GPT-7.
                   </p>
                   <input
                     type="file"
@@ -361,10 +404,16 @@ export default function RegionKitWorkspace() {
 
                   {state === "labeling-in-progress" && employeeCanLabel && (
                     <>
-                      <button disabled={busy || imported.length === 0} onClick={() => void saveRevision()}>
+                      <button
+                        disabled={busy || imported.length === 0}
+                        onClick={() => void saveRevision()}
+                      >
                         Save RegionKit Revision
                       </button>{" "}
-                      <button disabled={busy} onClick={() => void transition("submit-owner-qa")}>
+                      <button
+                        disabled={busy}
+                        onClick={() => void transition("submit-owner-qa")}
+                      >
                         Submit for Visual QA
                       </button>
                     </>
@@ -374,16 +423,28 @@ export default function RegionKitWorkspace() {
                     <section style={{ marginTop: 20 }}>
                       <h3>3. Visual QA</h3>
                       <p>
-                        Review the drawing and labels in RegionKit. Approval below records the
-                        Owner disposition required by the pinned GPT-7 intake contract; it does
-                        not perform a second semantic QA engine.
+                        Review the drawing and labels in RegionKit. Approval below records
+                        the Owner disposition required by the pinned GPT-7 intake contract;
+                        it does not perform a second semantic QA engine.
                       </p>
                       {imported.length > 0 && (
-                        <button disabled={busy} onClick={() => void saveRevision()}>
+                        <button
+                          disabled={busy}
+                          onClick={() => void saveRevision()}
+                        >
                           Save Owner Adjudication Revision
                         </button>
                       )}{" "}
-                      <button disabled={busy} onClick={() => void transition("request-revision")}>
+                      <button
+                        disabled={busy}
+                        onClick={() => void transition("approve")}
+                      >
+                        Approve Visual QA
+                      </button>{" "}
+                      <button
+                        disabled={busy}
+                        onClick={() => void transition("request-revision")}
+                      >
                         Request Revision
                       </button>
                     </section>
@@ -395,8 +456,8 @@ export default function RegionKitWorkspace() {
                 <section style={{ marginTop: 20 }}>
                   <h3>GPT-7 Handoff Gate</h3>
                   <p>
-                    Owner visual QA is recorded. This state is still not dataset admission or
-                    training readiness. GPT-7 alone controls admission.
+                    Owner visual QA is recorded. This state is still not dataset admission
+                    or training readiness. GPT-7 alone controls admission.
                   </p>
                   {has("labeling.gpt7_export") && (
                     <a href={`/api/structural-labeling/export/${selected.id}`}>
