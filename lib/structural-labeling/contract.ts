@@ -78,13 +78,13 @@ export type Annotation = {
 
 export function validateBBox(bbox: PdfPointBBox, widthPt: number, heightPt: number): string[] {
   const values = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax, widthPt, heightPt];
-  if (!values.every(Number.isFinite)) return ["bbox and page values must be finite"];
+  if (!values.every(Number.isFinite)) return ["bbox-and-page-values-must-be-finite"];
   const errors: string[] = [];
   if (!(bbox.xmin < bbox.xmax && bbox.ymin < bbox.ymax)) {
-    errors.push("bbox must have positive area");
+    errors.push("bbox-must-have-positive-area");
   }
   if (bbox.xmin < 0 || bbox.ymin < 0 || bbox.xmax > widthPt || bbox.ymax > heightPt) {
-    errors.push("bbox must be within effective page bounds");
+    errors.push("bbox-must-be-within-effective-page-bounds");
   }
   return errors;
 }
