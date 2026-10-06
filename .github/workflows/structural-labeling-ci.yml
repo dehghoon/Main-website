@@ -1,5 +1,4 @@
 name: Structural Labeling CI
-
 on:
   push:
     branches: [main]
@@ -74,8 +73,11 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "::notice title=Structural labeling tests::exit_code=$code"
           if [ "$code" -ne 0 ]; then
-            echo "# Structural labeling test failure" >> "$GITHUB_STEP_SUMMARY"            echo """ >> "$GITHUB_STEP_SUMMARY"
-            echo "```text" >> "$GITHUB_STEP_SUMMARY"            tail -n 120 test-labeling.log >> "$GITHUB_STEP_SUMMARY"            echo "```" >> "$GITHUB_STEP_SUMMARY"
+            echo "# Structural labeling test failure" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 120 test-labeling.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
             grep -E "not ok|AssertionError|failureType|error:|code:|expected:|actual:|ERR_|location:" test-labeling.log | tail -n 60 | while IFS= read -r line; do
               line="${line//'%'/'%25'}"
               line="${line//$'\r'/'%0D'}"
@@ -92,7 +94,7 @@ jobs:
           name: structural-labeling-test-log
           path: test-labeling.log
           if-no-files-found: warn
--        retention-days: 14
+          retention-days: 14
 
       - name: Type check
         id: typecheck
