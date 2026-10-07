@@ -17,14 +17,19 @@ BEGIN
     RAISE EXCEPTION 'target_email_required';
   END IF;
 
-  SELECT count(*), min(id)
-  INTO target_count, target_id
+  SELECT count(*)
+  INTO target_count
   FROM auth.users
   WHERE lower(email) = target_email;
 
-  IF target_count <> 1 OR target_id IS NULL THEN
+  IF target_count <> 1 THEN
     RAISE EXCEPTION 'target_user_must_exist_exactly_once:%', target_email;
   END IF;
+
+  SELECT id
+  INTO target_id
+  FROM auth.users
+  WHERE lower(email) = target_email;
 
   SELECT count(*)
   INTO other_owner_count
