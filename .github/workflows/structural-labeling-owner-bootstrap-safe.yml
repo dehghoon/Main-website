@@ -1,0 +1,70 @@
+name: Structural Labeling Owner Bootstrap Safe
+on:
+  workflow_dispatch:
+    inputs:
+      target_email:
+        required: true
+        type: string
+      confirmation:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+      EMAIL: ${{ inputs.target_email }}
+      CONFIRM: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client >/dev/null
+      - name: Validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CONFIRM" = "BOOTSTRAP STRUCTURAL LABELING OWNER"
+          test -n "$DB"
+          test -n "$EMAIL"
+      - name: Preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA -f scripts/preflight-structural-labeling-owner.sql | tee preflight.txt
+          grep -Fx "target_count=1" preflight.txt
+          grep -Fx "existing_owner_count=0" preflight.txt
+      - name: Backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db dump --db-url "$DB" --file pre-owner-bootstrap-schema.sql
+          test -s pre-owner-bootstrap-schema.sql
+          sha256sum pre-owner-bootstrap-schema.sql > pre-owner-bootstrap-schema.sha256
+      - name: Bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -f scripts/bootstrap-structural-labeling-owner.sql | tee apply.txt
+      - name: Verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA -c "select case when raw_app_meta_data->>'role'='owner' and raw_app_meta_data->>'user_type'='owner' and exists(select 1 from public.structural_labeling_permissions p where p.user_id=auth.users.id and p.permission='labeling.owner_review') then 'pass' else 'fail' end from auth.users where lower(email)=lower(:'target_email');" | tee verify.txt
+          grep -Fx pass verify.txt
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-bootstrap-${{ github.run_id }}
+          path: |
+            preflight.txt
+            pre-owner-bootstrap-schema.sql
+            pre-owner-bootstrap-schema.sha256
+            apply.txt
+            verify.txt
+          if-no-files-found: warn
