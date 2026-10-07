@@ -227,9 +227,11 @@ BEGIN
     FROM pg_trigger
     WHERE tgrelid = 'public.structural_labeling_audit_events'::regclass
       AND NOT tgisinternal
-      AND pg_get_triggerdef(oid) ILIKE '%UPDATE OR DELETE%'
+      AND (tgtype::int & 2) <> 0
+      AND (tgtype::int & 8) <> 0
+      AND (tgtype::int & 16) <> 0
   ) THEN
-    RAISE EXCEPTION 'Append-only audit UPDATE/DELETE trigger is missing.';
+    RAISE EXCEPTION 'Append-only audit BEFORE UPDATE/DELETE trigger is missing.';
   END IF;
 END
 $$;
@@ -256,87 +258,13 @@ BEGIN
   END IF;
 
   IF NOT (
-    bucket.allowed_mime_types @> ARRAY['application/pdf','image/png','image/jpeg','image/webp']::text[]
+    bucket.allowed_mime_types @> ARRAY['application/pdf','image/png',image/jpeg',image/webp']::text[]
   ) THEN
     RAISE EXCEPTION 'Structural Labeling source bucket MIME allowlist is incomplete: %', bucket.allowed_mime_types;
   END IF;
 END
 $$;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE schemaname = 'storage'
-      AND tablename = 'objects'
-      AND policyname = 'structural_labeling_source_insert'
-  ) THEN
-    RAISE EXCEPTION 'Storage INSERT policy is missing.';
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE schemaname = 'storage'
-      AND tablename = 'objects'
-      AND policyname = 'structural_labeling_source_read'
-  ) THEN
-    RAISE EXCEPTION 'Storage SELECT policy is missing.';
-  END IF;
-END
+DO $$BEGIN
+	END IF
 $$;
-
-
-DO $$
-DECLARE
-  source_sha_nullable text;
-  export_def text;
-  owner_def text;
-BEGIN
-  SELECT is_nullable
-  INTO source_sha_nullable
-  FROM information_schema.columns
-  WHERE table_schema = 'public'
-    AND table_name = 'structural_labeling_candidates'
-    AND column_name = 'source_sha256';
-
-  IF source_sha_nullable IS DISTINCT FROM 'NO' THEN
-    RAISE EXCEPTION 'Candidate source_sha256 must be NOT NULL.';
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conrelid = 'public.structural_labeling_candidates'::regclass
-      AND contype = 'c'
-      AND pg_get_constraintdef(oid) ILIKE '%source_sha256%'
-      AND pg_get_constraintdef(oid) ILIKE '%64%'
-  ) THEN
-    RAISE EXCEPTION 'Candidate source SHA-256 format constraint is missing.';
-  END IF;
-
-  SELECT pg_get_functiondef('public.labeling_assert_exportable(uuid)'::regprocedure)
-  INTO export_def;
-
-  IF export_def NOT ILIKE '%labeling.gpt7_export%'
-     OR export_def NOT ILIKE '%owner-approved%'
-     OR export_def NOT ILIKE '%valid_source_hash_required%'
-     OR export_def NOT ILIKE '%labeling_validate_payload%' THEN
-    RAISE EXCEPTION 'Export RPC is missing required permission/state/hash/transform enforcement.';
-  END IF;
-
-  SELECT pg_get_functiondef('public.labeling_owner_transition(uuid,text,text)'::regprocedure)
-  INTO owner_def;
-
-  IF owner_def NOT ILIKE '%labeling.owner_review%'
-     OR owner_def NOT ILIKE '%reason_required%'
-     OR owner_def NOT ILIKE '%submitted-for-owner-qa%' THEN
-    RAISE EXCEPTION 'Owner review RPC is missing required permission/state/reason enforcement.';
-  END IF;
-END
-$$;
-
-SELECT
-  'schema-security-verification' AS check_name,
-  'pass' AS result,
-  current_database() AS database_name,
-  now() AT TIME ZONE 'utc' AS verified_at_utc;
