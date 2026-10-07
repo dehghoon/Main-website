@@ -31,15 +31,31 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$DB"
-          test -n "$EMAIL"
-          test -s scripts/verify-structural-labeling-owner.sql
+          if [ -z "${DB:-}" ]; then
+            echo "::error::SUPABASE_DB_URL secret is missing or empty."
+            exit 1
+          fi
+          if [ -z "${EMAIL:-}" ]; then
+            echo "::error::target_email workflow input is missing or empty."
+            exit 1
+          fi
+          if [ ! -s scripts/verify-structural-labeling-owner.sql ]; then
+            echo "::error::Owner verification SQL file is missing or empty."
+            exit 1
+          fi
+          echo "Validation inputs are present."
 
       - name: Verify deployed owner
         shell: bash
         run: |
           set -euo pipefail
-          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA -f scripts/verify-structural-labeling-owner.sql | tee owner-verification.txt
+          psql "$DB" \
+            --no-psqlrc \
+            -v ON_ERROR_STOP=1 \
+            -v target_email="$EMAIL" \
+            -tA \
+            -f scripts/verify-structural-labeling-owner.sql \
+            | tee owner-verification.txt
           grep -Fx "pass" owner-verification.txt
 
       - name: Upload verification evidence
