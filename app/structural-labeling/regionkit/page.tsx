@@ -1,5 +1,11 @@
+import StructuralLabelingWorkflowGuide from "../StructuralLabelingWorkflowGuide";
 import RegionKitWorkspace from "./RegionKitWorkspace";
 
 export default function RegionKitPage() {
-  return <RegionKitWorkspace />;
+  return (
+    <>
+      <StructuralLabelingWorkflowGuide active="labeling" />
+      <RegionKitWorkspace />
+    </>
+  );
 }
