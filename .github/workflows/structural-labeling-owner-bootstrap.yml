@@ -1,0 +1,129 @@
+name: Structural Labeling Owner Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_email:
+        description: 'Existing Supabase user email to bootstrap as the first Structural Labeling owner'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type BOOTSTRAP STRUCTURAL LABELING OWNER to continue'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      TARGET_EMAIL: ${{ inputs.target_email }}
+      BOOTSTRAP_CONFIRMATION: ${{ inputs.confirmation }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate confirmation and required secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$BOOTSTRAP_CONFIRMATION" = "BOOTSTRAP STRUCTURAL LABELING OWNER"
+          test -n "$SUPABASE_DB_URL"
+          test -n "$TARGET_EMAIL"
+          test -s scripts/bootstrap-structural-labeling-owner.sql
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Preflight target and existing owner state
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL"             --no-psqlrc             --set ON_ERROR_STOP=1             --set target_email="$TARGET_EMAIL"             --tuples-only             --no-align             --command "
+              select 'target_count=' || count(*)
+              from auth.users
+              where lower(email)=lower(:'target_email');
+
+              select 'existing_owner_count=' || count(*)
+              from auth.users
+              where coalesce(raw_app_meta_data->>'role', raw_app_meta_data->>'user_type')='owner';
+            " | tee owner-bootstrap-preflight.txt
+
+      - name: Create pre-bootstrap schema backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_dump "$SUPABASE_DB_URL"             --schema-only             --no-owner             --no-privileges             --file pre-owner-bootstrap-schema.sql
+          test -s pre-owner-bootstrap-schema.sql
+          sha256sum pre-owner-bootstrap-schema.sql | tee pre-owner-bootstrap-schema.sha256
+
+      - name: Bootstrap first Structural Labeling owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL"             --no-psqlrc             --set ON_ERROR_STOP=1             --set target_email="$TARGET_EMAIL"             --file scripts/bootstrap-structural-labeling-owner.sql             2>&1 | tee owner-bootstrap-apply.txt
+
+      - name: Verify owner metadata and review permission
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL"             --no-psqlrc             --set ON_ERROR_STOP=1             --set target_email="$TARGET_EMAIL"             --tuples-only             --no-align             --command "
+              select
+                case
+                  when raw_app_meta_data->>'role'='owner'
+                   and raw_app_meta_data->>'user_type'='owner'
+                   and exists (
+                     select 1
+                     from public.structural_labeling_permissions p
+                     where p.user_id=auth.users.id
+                       and p.permission='labeling.owner_review'
+                   )
+                  then 'pass'
+                  else 'fail'
+                end
+              from auth.users
+              where lower(email)=lower(:'target_email');
+            " | tee owner-bootstrap-verification.txt
+          grep -Fx "pass" owner-bootstrap-verification.txt >/dev/null
+
+      - name: Add bootstrap summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Structural Labeling Owner Bootstrap"
+            echo
+            echo "Target email was supplied as a workflow input and is intentionally not committed to source control."
+            echo
+            echo "Historical import apply was not executed."
+            echo
+            echo "enablesTraining=false."
+            echo
+            echo "YOLO training was not executed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-owner-bootstrap-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            owner-bootstrap-preflight.txt
+            pre-owner-bootstrap-schema.sql
+            pre-owner-bootstrap-schema.sha256
+            owner-bootstrap-apply.txt
+            owner-bootstrap-verification.txt
+          if-no-files-found: warn
+          retention-days: 14
