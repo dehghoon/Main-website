@@ -1,0 +1,51 @@
+name: Structural Labeling Owner Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_email:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+      EMAIL: ${{ inputs.target_email }}
+    steps:
+      - uses: actions/checkout@0v4
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DB"
+          test -n "$EMAIL"
+          test -s scripts/verify-structural-labeling-owner.sql
+
+      - name: Verify deployed owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA -f scripts/verify-structural-labeling-owner.sql | tee owner-verification.txt
+          grep -Fx "pass" owner-verification.txt
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-owner-verification-${{ github.run_id }}
+          path: owner-verification.txt
+          if-no-files-found: warn
