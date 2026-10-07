@@ -15,7 +15,7 @@ const steps = [
   },
   {
     title: "Import and save the revision",
-    body: "Import the RegionKit JSON back into LinkoTechs workflow. The adapter validates the shapes, classes, and the validated raster-to-source-page transform before a website revision can be saved.",
+    body: "Import the RegionKit JSON back into the LinkoTech workflow. The adapter validates the shapes, classes, and the validated raster-to-source-page transform before a website revision can be saved.",
   },
   {
     title: "Perform Visual QA in LinkoTech",
@@ -37,7 +37,13 @@ export default function StructuralLabelingWorkflowGuide({ active }: Props) {
         padding: "0 20px",
       }}
     >
-      <div style={{ border: !1px solid #d1d5db", borderRadius: 12, padding: 16 }}>
+      <div
+        style={{
+          border: "1px solid #d1d5db",
+          borderRadius: 12,
+          padding: 16,
+        }}
+      >
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <strong>RegionKit-assisted external manual labeling</strong>
           <span style={{ fontSize: 13 }}>
