@@ -1,0 +1,129 @@
+name: Structural Labeling Permission Admin Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Verify deployed permission administration security
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 <<'SQL' 2>&1 | tee permission-admin-runtime-verification.txt
+          DO $$
+          DECLARE
+            fn regprocedure;
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1
+              FROM supabase_migrations.schema_migrations
+              WHERE version = '20261006000200'
+            ) THEN
+              RAISE EXCEPTION 'permission administration migration is not recorded as applied';
+            END IF;
+
+            IF to_regclass('public.structural_labeling_permission_audit_events') IS NULL THEN
+              RAISE EXCEPTION 'permission audit table missing';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1
+              FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = 'public'
+                AND c.relname = 'structural_labeling_permission_audit_events'
+                AND c.relrowsecurity
+            ) THEN
+              RAISE EXCEPTION 'permission audit RLS missing';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1
+              FROM pg_trigger
+              WHERE tgrelid = 'public.structural_labeling_permission_audit_events'::regclass
+                AND NOT tgisinternal
+                AND (tgtype::int & 2) <> 0
+                AND (tgtype::int & 8) <> 0
+                AND (tgtype::int & 16) <> 0
+            ) THEN
+              RAISE EXCEPTION 'permission audit immutable trigger missing';
+            END IF;
+
+            FOREACR fn IN ARRAY ARRAY[
+              'public.labeling_permission_admin_allowed()'::regprocedure,
+              'public.labeling_list_employee_permissions()'::regprocedure,
+              'public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure
+            ]
+            LOOP
+              IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE oid = fn AND prosecdef) THEN
+                RAISE EXCEPTION 'required permission function is not SECURITY DEFINER: %', fn;
+              END IF;
+              IF has_function_privilege('public', fn, 'EXECUTE') THEN
+                RAISE Exception 'PUBLIC can execute protected permission function: %', fn;
+              END IF;
+              IF has_function_privilege('anon', fn, 'EXECUTE') THEN
+                RAISE EXCEPTION 'anon can execute protected permission function: %', fn;
+              END IF;
+              IF NOT has_function_privilege('authenticated', fn, 'EXECUTE') THEN
+                RAISE EXCEPTION 'authenticated cannot invoke protected permission function: %', fn;
+              END IF;
+            END LOOP;
+
+            IF has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'INSERT')
+              OR has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'UPDATE')
+              OR has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'DELETE')
+            THEN
+              RAISE Exception 'authenticated has direct permission-audit mutation privilege';
+            END IF;
+
+            IF pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+              ~ 'labeling\.owner_review|labeling\.gpt7_export'
+            THEN
+              RAISE EXCEPTION 'permission manager exposes privileged review/export permissions';
+            END IF;
+
+            IF pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+              NOT LIKE '%target_must_be_employee%'
+            THEN
+              RAISE EXCEPTION 'employee role guard missing';
+            END IF;
+          END $$;
+
+          SELECT
+            'permission-admin-runtime-verification' AS check_name,
+            'pass' AS result,
+            now() AT TIME ZONE 'utc' AS verified_at_utc;
+          SQL
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-permission-admin-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: permission-admin-runtime-verification.txt
+          if-no-files-found: warn
+          retention-days: 14
