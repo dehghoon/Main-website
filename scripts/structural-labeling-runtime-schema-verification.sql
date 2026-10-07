@@ -202,7 +202,14 @@ BEGIN
       RAISE EXCEPTION 'Required function is not SECURITY DEFINER: %', fn;
     END IF;
 
-    IF has_function_privilege('public', fn, 'EXECUTE') THEN
+    IF EXISTS (
+      SELECT 1
+      FROM pg_proc p
+      CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+      WHERE p.oid = fn
+        AND a.grantee = 0
+        AND a.privilege_type = 'EXECUTE'
+    ) THEN
       RAISE EXCEPTION 'PUBLIC can execute protected function: %', fn;
     END IF;
 
@@ -248,7 +255,8 @@ BEGIN
     RAISE EXCEPTION 'Unexpected Structural Labeling source bucket size limit: %', bucket.file_size_limit;
   END IF;
 
-  IF NOT X(Š    bucket.allowed_mime_types @> ARRAY['application/pdf','image/png','image/jpeg','image/webp']::text[]
+  IF NOT (
+    bucket.allowed_mime_types @> ARRAY['application/pdf','image/png','image/jpeg','image/webp']::text[]
   ) THEN
     RAISE EXCEPTION 'Structural Labeling source bucket MIME allowlist is incomplete: %', bucket.allowed_mime_types;
   END IF;
@@ -276,6 +284,7 @@ BEGIN
   END IF;
 END
 $$;
+
 
 DO $$
 DECLARE
@@ -320,7 +329,7 @@ BEGIN
 
   IF owner_def NOT ILIKE '%labeling.owner_review%'
      OR owner_def NOT ILIKE '%reason_required%'
-    OR owner_def NOT ILIKE '%submitted-for-owner-qa%' THEN
+     OR owner_def NOT ILIKE '%submitted-for-owner-qa%' THEN
     RAISE EXCEPTION 'Owner review RPC is missing required permission/state/reason enforcement.';
   END IF;
 END
