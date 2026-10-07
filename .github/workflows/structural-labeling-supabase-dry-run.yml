@@ -77,13 +77,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          supabase migration list --db-url "$SUPABASE_DB_URL" | tee migration-list-before.txt
+          supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1 | tee migration-list-before.txt
 
       - name: Dry-run committed migrations
         shell: bash
         run: |
           set -euo pipefail
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run | tee migration-dry-run.txt
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee migration-dry-run.txt
 
       - name: Enforce Structural Labeling pending migration allowlist
         shell: bash
