@@ -1,0 +1,207 @@
+name: Structural Labeling Supabase Controlled Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type APPLY STRUCTURAL LABELING MIGRATIONS to continue'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate confirmation
+        shell: bash
+        env:
+          APPLY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          expected='APPLY STRUCTURAL LABELING MIGRATIONS'
+          if [ "$APPLY_CONFIRMATION" != "$expected" ]; then
+            echo "Confirmation phrase did not match."
+            exit 1
+          fi
+
+      - name: Validate required secrets and verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_DB_URL"
+          python3 -m py_compile scripts/verify-structural-labeling-migrations.py
+
+      - name: Initialize Supabase CLI project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Link deployed Supabase project
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Capture pre-apply migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1 | tee migration-list-before.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --tuples-only \
+            --no-align \
+            --command "select version from supabase_migrations.schema_migrations order by version;" \
+            | sed '/^[[:space:]]*$/d' \
+            | tee remote-migration-versions-before.txt
+
+      - name: Enforce pre-apply Structural Labeling allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify-structural-labeling-migrations.py \
+            --remote-file remote-migration-versions-before.txt \
+            --expect pending
+
+      - name: Repeat dry run immediately before backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee migration-dry-run-before-apply.txt
+
+      - name: Create pre-apply schema backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            --file pre-apply-schema.sql
+          test -s pre-apply-schema.sql
+          sha256sum pre-apply-schema.sql | tee pre-apply-schema.sha256
+
+      - name: Capture pre-apply Structural Labeling storage state
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --pset pager=off \
+            --command "select id, name, public, file_size_limit, allowed_mime_types from storage.buckets where id = 'structural-labeling-sources';" \
+            > pre-apply-storage-bucket.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --pset pager=off \
+            --command "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname in ('public','storage') and (tablename like 'structural_labeling_%' or policyname ilike '%structural%label%') order by schemaname, tablename, policyname;" \
+            > pre-apply-policies.txt
+
+      - name: Record apply metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "workflow=Structural Labeling Supabase Controlled Apply"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "actor=$GITHUB_ACTOR"
+            echo "repository=$GITHUB_REPOSITORY"
+            echo "ref=$GITHUB_REF"
+            echo "sha=$GITHUB_SHA"
+            echo "started_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "enablesTraining=false"
+            echo "historical_apply=false"
+            echo "yolo_training=false"
+          } | tee apply-metadata.txt
+
+      - name: Apply approved Structural Labeling migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push \
+            --db-url "$SUPABASE_DB_URL" \
+            --yes \
+            2>&1 | tee migration-apply.txt
+
+      - name: Capture post-apply migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1 | tee migration-list-after.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --tuples-only \
+            --no-align \
+            --command "select version from supabase_migrations.schema_migrations order by version;" \
+            | sed '/^[[:space:]]*$/d' \
+            | tee remote-migration-versions-after.txt
+
+      - name: Verify post-apply migration history delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify-structural-labeling-migrations.py \
+            --remote-file remote-migration-versions-after.txt \
+            --before-remote-file remote-migration-versions-before.txt \
+            --expect applied
+
+      - name: Add apply summary
+        if: always()
+        shell: bash
+        run: |
+          printf '%s\n' \
+            '# Structural Labeling Supabase Controlled Apply' \
+            '' \
+            'This workflow is authorized only for the approved Structural Labeling migration allowlist.' \
+            '' \
+            'Review the uploaded evidence artifact for backup checksum, migration history, and apply output.' \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload controlled-apply evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-supabase-controlled-apply-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            apply-metadata.txt
+            migration-list-before.txt
+            remote-migration-versions-before.txt
+            migration-dry-run-before-apply.txt
+            pre-apply-schema.sql
+            pre-apply-schema.sha256
+            pre-apply-storage-bucket.txt
+            pre-apply-policies.txt
+            migration-apply.txt
+            migration-list-after.txt
+            remote-migration-versions-after.txt
+          if-no-files-found: warn
+          retention-days: 14
