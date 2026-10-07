@@ -1,0 +1,295 @@
+name: Structural Labeling Permission Admin Controlled Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type APPLY STRUCTURAL LABELING PERMISSION ADMIN to continue'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      TARGET_VERSION: "20261006000200"
+      TARGET_FILE: "20261006000200_structural_labeling_permission_admin.sql"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate confirmation and required secrets
+        shell: bash
+        env:
+          APPLY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "$APPLY_CONFIRMATION" = "APPLY STRUCTURAL LABELING PERMISSION ADMIN"
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_DB_URL"
+          test -f "supabase/migrations/$TARGET_FILE"
+
+      - name: Initialize and link Supabase project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Capture remote migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --tuples-only \
+            --no-align \
+            --command "select version from supabase_migrations.schema_migrations order by version;" \
+            | sed '/^[[:space:]]*$/d' \
+            | tee remote-migration-versions-before.txt
+
+      - name: Enforce exact pending migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          target = "20261006000200"
+          remote = {
+              line.strip()
+              for line in Path("remote-migration-versions-before.txt").read_text().splitlines()
+              if line.strip()
+          }
+          local = {}
+          for path in Path("supabase/migrations").glob("*.sql"):
+              version = path.name.split("_", 1)[0]
+              if version.isdigit() and len(version) == 14:
+                local[version] = path.name
+
+          pending = sorted(set(local) - remote)
+          if pending != [target]:
+              raise SystemExit(
+                "Refusing apply. Local-only migration versions must be exactly "
+                f"[{target}]; observed {pending}."
+            )
+
+          expected_file = "20261006000200_structural_labeling_permission_admin.sql"
+          if local[target] != expected_file:
+              raise SystemExit(f"Target filename mismatch: {local[target]}")
+
+          print(f"Validated only pending migration: {expected_file}")
+          PY
+
+      - name: Dry-run exact pending migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee permission-admin-dry-run.txt
+          grep -F "$TARGET_FILE" permission-admin-dry-run.txt >/dev/null
+
+      - name: Create pre-apply schema backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            --file pre-permission-admin-schema.sql
+          test -s pre-permission-admin-schema.sql
+          sha256sum pre-permission-admin-schema.sql | tee pre-permission-admin-schema.sha256
+
+      - name: Record apply metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "workflow=Structural Labeling Permission Admin Controlled Apply"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "actor=$GITHUB_ACTOR"
+            echo "repository=$GITHUB_REPOSITORY"
+            echo "ref=$GITHUB_REF"
+            echo "sha=$GITHUB_SHA"
+            echo "target_migration=$TARGET_FILE"
+            echo "started_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "historical_apply=false"
+            echo "enablesTraining=false"
+            echo "yolo_training=false"
+          } | tee permission-admin-apply-metadata.txt
+
+      - name: Apply permission administration migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push \
+            --db-url "$SUPABASE_DB_URL" \
+            --yes \
+            2>&1 | tee permission-admin-apply.txt
+
+      - name: Verify migration history delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --tuples-only \
+            --no-align \
+            --command "select version from supabase_migrations.schema_migrations order by version;" \
+            | sed '/^[[:space:]]*$/d' \
+            | tee remote-migration-versions-after.txt
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          target = "20261006000200"
+          before = {
+              x.strip()
+              for x in Path("remote-migration-versions-before.txt").read_text().splitlines()
+              if x.strip()
+          }
+          after = {
+              x.strip()
+              for x in Path("remote-migration-versions-after.txt").read_text().splitlines()
+              if x.strip()
+          }
+          added = sorted(after - before)
+          if added != [target]:
+              raise SystemExit(f"Unexpected migration history delta: {added}")
+          print(f"Verified applied migration version: {target}")
+          PY
+
+      - name: Verify deployed permission administration security
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 <<'SQL' 2>&1 | tee permission-admin-runtime-verification.txt
+          do $$
+          declare
+            fn regprocedure;
+          begin
+            if to_regclass('public.structural_labeling_permission_audit_events') is null then
+              raise exception 'permission audit table missing';
+            end if;
+
+            if not exists (
+              select 1
+              from pg_class c
+              join pg_namespace n on n.oid = c.relnamespace
+              where n.nspname = 'public'
+                and c.relname = 'structural_labeling_permission_audit_events'
+                and c.relrowsecurity
+            ) then
+              raise exception 'permission audit RLS missing';
+            end if;
+
+            if not exists (
+              select 1
+              from pg_trigger
+              where tgrelid = 'public.structural_labeling_permission_audit_events'::regclass
+                and not tgisinternal
+                and (tgtype::int & 2) <> 0
+                and (tgtype::int & 8) <> 0
+                and (tgtype::int & 16) <> 0
+            ) then
+              raise exception 'permission audit immutable trigger missing';
+            end if;
+
+            foreach fn in array array[
+              'public.labeling_permission_admin_allowed()'::regprocedure,
+              'public.labeling_list_employee_permissions()'::regprocedure,
+              'public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure
+            ]
+            loop
+              if not exists (select 1 from pg_proc where oid = fn and prosecdef) then
+                raise exception 'required permission function is not SECURITY DEFINER: %', fn;
+              end if;
+              if has_function_privilege('public', fn, 'EXECUTE') then
+                raise exception 'PUBLIC can execute protected permission function: %', fn;
+              end if;
+              if has_function_privilege('anon', fn, 'EXECUTE') then
+                raise exception 'anon can execute protected permission function: %', fn;
+              end if;
+              if not has_function_privilege('authenticated', fn, 'EXECUTE') then
+                raise exception 'authenticated cannot invoke protected permission function: %', fn;
+              end if;
+            end loop;
+
+            if has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'INSERT')
+               or has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'UPDATE')
+               or has_table_privilege('authenticated', 'public.structural_labeling_permission_audit_events', 'DELETE') then
+              raise exception 'authenticated has direct permission-audit mutation privilege';
+            end if;
+
+            if pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+               ~ 'labeling\.owner_review|labeling\.gpt7_export' then
+              raise exception 'permission manager exposes privileged review/export permissions';
+            end if;
+
+            if pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+                not like '%target_must_be_employee%' then
+              raise exception 'employee role guard missing';
+            end if;
+          end
+          $$;
+
+          select
+            "permission-admin-runtime-verification" as check_name,
+            "pass" as result,
+            now() at time zone 'utc' as verified_at_utc;
+          SQL
+
+      - name: Add apply summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Structural Labeling Permission Admin Controlled Apply"
+            echo
+            echo "Target: `$TARGET_FILE`"
+            echo
+            echo "Historical import apply was not executed."
+            echo "enablesTraining=false."
+            echo "YOLO training was not executed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload controlled-apply evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-permission-admin-apply-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            remote-migration-versions-before.txt
+            permission-admin-dry-run.txt
+            pre-permission-admin-schema.sql
+            pre-permission-admin-schema.sha256
+            permission-admin-apply-metadata.txt
+            permission-admin-apply.txt
+            remote-migration-versions-after.txt
+            permission-admin-runtime-verification.txt
+          if-no-files-found: warn
+          retention-days: 14
