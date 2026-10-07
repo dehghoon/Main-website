@@ -42,3 +42,16 @@ test("visual QA workflow preserves the approved labeling classes and authority b
   assert.match(guide, /source-page PDF point boxes/);
   assert.match(guide, /Owner approval does not mean dataset admission or training readiness/);
 });
+
+test("RegionKit labeling page exposes the existing authenticated upload path for an empty queue", () => {
+  const page = source("app/structural-labeling/regionkit/page.tsx");
+  const uploadPanel = source("app/structural-labeling/regionkit/StructuralLabelingUploadPanel.tsx");
+  const uploadRoute = source("app/api/structural-labeling/upload/route.ts");
+
+  assert.match(page, /StructuralLabelingUploadPanel/);
+  assert.match(uploadPanel, /\/api\/structural-labeling\/upload/);
+  assert.match(uploadPanel, /labeling\.upload/);
+  assert.match(uploadPanel, /Upload and Create Candidates/);
+  assert.match(uploadRoute, /projectGroupId/);
+  assert.match(uploadRoute, /labeling\.upload/);
+});
