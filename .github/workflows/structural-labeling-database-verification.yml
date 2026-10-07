@@ -1,0 +1,76 @@
+name: Structural Labeling Database Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate database secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Verify deployed schema, RLS, RPC, and storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --file scripts/structural-labeling-runtime-schema-verification.sql \
+            2>&1 | tee runtime-schema-verification.txt
+
+      - name: Run transactional authorization behavior tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --file scripts/structural-labeling-runtime-authorization-verification.sql \
+            2>&1 | tee runtime-authorization-verification.txt
+
+      - name: Add verification summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Structural Labeling Database Verification"
+            echo
+            echo "Authorization behavior tests execute inside one transaction and end with ROLLBACK."
+            echo "No historical import is executed."
+            echo "enablesTraining=false."
+            echo "YOLO training is not executed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-database-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            runtime-schema-verification.txt
+            runtime-authorization-verification.txt
+          if-no-files-found: warn
+          retention-days: 14
