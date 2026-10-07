@@ -3,8 +3,8 @@
 
 create table if not exists public.structural_labeling_permission_audit_events (
   event_id uuid primary key default gen_random_uuid(),
-  target_user_id uuid not null references auth.users(id) on delete cascade,
-  actor_id uuid not null references auth.users(id) on delete restrict,
+  target_user_id uuid not null,
+  actor_id uuid not null,
   permission text not null check (permission in (
     'labeling.workspace','labeling.upload','labeling.annotate','labeling.submit'
   )),
@@ -15,6 +15,13 @@ create table if not exists public.structural_labeling_permission_audit_events (
 alter table public.structural_labeling_permission_audit_events enable row level security;
 
 revoke all on public.structural_labeling_permission_audit_events from public, anon, authenticated;
+
+drop trigger if exists structural_labeling_permission_audit_immutable
+on public.structural_labeling_permission_audit_events;
+
+create trigger structural_labeling_permission_audit_immutable
+before update or delete on public.structural_labeling_permission_audit_events
+for each row execute function public.prevent_structural_labeling_audit_mutation();
 
 create or replace function public.labeling_permission_admin_allowed()
 returns boolean
@@ -49,10 +56,13 @@ begin
     u.id,
     u.email::text,
     coalesce(u.raw_app_meta_data->>'role', u.raw_app_meta_data->>'user_type')::text,
-    coalesce(array_agg(p.permission order by p.permission) filter (where p.permission is not null), '{}'::text[])
+    coalesce(
+      array_agg(p.permission order by p.permission) filter (where p.permission is not null),
+      '{}'::text[]
+    )
   from auth.users u
-  left join public.structural_labeling_permissions p=u.id
-  where coalesce(u.raw_app_meta_data->>'role', u.raw_app_meta_data->>'user_type')='employee'
+  left join public.structural_labeling_permissions p on p.user_id = u.id
+  where coalesce(u.raw_app_meta_data->>'role', u.raw_app_meta_data->>'user_type') = 'employee'
   group by u.id, u.email, u.raw_app_meta_data
   order by lower(coalesce(u.email, '')), u.id;
 end;
@@ -62,13 +72,13 @@ create or replace function public.labeling_manage_employee_permission(
   p_email text,
   p_permission text,
   p_enabled boolean
-
 )
 returns table (
   user_id uuid,
   email text,
   permission text,
   enabled boolean
+
 )
 language plpgsql
 security definer
@@ -156,4 +166,4 @@ for select
 to authenticated
 using (public.labeling_permission_admin_allowed());
 
--- No direct INSERT/UPDATE/DELETE grants are provided for the audit table.
+-- No direct INSERT/UPDATE/DELETE grants are provided for the permission audit table.
