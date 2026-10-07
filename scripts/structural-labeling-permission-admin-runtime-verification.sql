@@ -1,8 +1,9 @@
 -- Read-only production verification for Structural Labeling permission administration.
-
 -- This script must not mutate Structural Labeling data.
 
 DO $$
+DECLARE
+  manage_def text;
 BEGIN
   IF NOT EXISTS (
     SELECT 1
@@ -50,7 +51,7 @@ BEGIN
     SELECT 1 FROM pg_proc
     WHERE oid = 'public.labeling_list_employee_permissions()'::regprocedure
       AND prosecdef
-  ) THEN
+   ) THEN
     RAISE EXCEPTION 'employee permission list function is not SECURITY DEFINER';
   END IF;
 
@@ -86,16 +87,26 @@ BEGIN
     RAISE EXCEPTION 'authenticated has direct permission-audit mutation privilege';
   END IF;
 
-  IF pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
-    ~ 'labeling\.owner_review|labeling\.gpt7_export'
-  THEN
+  manage_def := pg_get_functiondef(
+    'public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure
+  );
+
+  IF manage_def ~ 'labeling\.owner_review|labeling\.gpt7_export' THEN
     RAISE EXCEPTION 'permission manager exposes privileged review/export permissions';
   END IF;
 
-  IF pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
-    NOT LIKE '%target_must_be_employee%9'
+  IF manage_def NOT LIKE '%raw_app_meta_data%'
+    OR manage_def NOT LIKE '%employee%'
   THEN
     RAISE EXCEPTION 'employee role guard missing';
+  END IF;
+
+  IF manage_def NOT LIKE '%labeling.workspace%'
+    OR manage_def NOT LIKE '%labeling.upload%'
+    OR manage_def NOT LIKE '%labeling.annotate%'
+    OR manage_def NOT LIKE '%labeling.submit%'
+  THEN
+    RAISE EXCEPTION 'operational permission allowlist missing';
   END IF;
 END $$;
 
