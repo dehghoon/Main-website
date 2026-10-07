@@ -139,11 +139,14 @@ jobs:
 
           if unexpected:
               raise SystemExit(f"Unapproved pending migrations detected: {unexpected}")
-
           if missing:
-              raise SystemExit(f"Approved Structural Labeling migrations missing from pending set: {missing}")
+              raise SystemExit(
+                  f"Approved Structural Labeling migrations missing from pending set: {missing}"
+              )
 
-          print("Pending migration set exactly matches the approved Structural Labeling allowlist.")
+          print(
+              "Pending migration set exactly matches the approved Structural Labeling allowlist."
+          )
           PY
 
       - name: Add dry-run summary
@@ -181,7 +184,7 @@ jobs:
               echo "Dry-run output was not captured."
             fi
             echo '```'
-          } >> "$GITHUB_STEP_SUMMMARY"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload dry-run evidence
         if: always()
