@@ -1,0 +1,67 @@
+name: Structural Labeling REST Boundary Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_PROJECT_REF"
+
+      - name: Validate verification script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/structural-labeling-rest-boundary-verification.py
+
+      - name: Run production REST authorization boundary verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/structural-labeling-rest-boundary-verification.py 2>&1 | tee runtime-rest-boundary-verification.txt
+
+      - name: Add verification summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Structural Labeling REST Boundary Verification"
+            echo
+            echo "This workflow exercises the deployed Supabase Auth and PostgREST boundary."
+            echo "A disposable auth identity is created and deleted during the run."
+            echo "No Structural Labeling source, candidate, revision, or audit row is intentionally created."
+            echo "Historical import apply is not executed."
+            echo "enablesTraining=false."
+            echo "YOLO training is not executed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload REST boundary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-rest-boundary-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            runtime-rest-boundary-verification.txt
+            runtime-rest-boundary-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
