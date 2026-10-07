@@ -18,7 +18,7 @@ jobs:
       DB: ${{ secrets.SUPABASE_DB_URL }}
       EMAIL: ${{ inputs.target_email }}
     steps:
-      - uses: actions/checkout/v4
+      - uses: actions/checkout@v4
 
       - name: Install PostgreSQL client
         shell: bash
