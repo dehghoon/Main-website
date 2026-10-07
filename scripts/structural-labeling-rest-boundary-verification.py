@@ -159,19 +159,19 @@ def main():
                 f"{base}/rest/v1/rpc/labeling_create_candidate",
                 auth_headers,
                 {
-                    "p_source_sha256": "b" * 64,
-                    "p_original_filename": "runtime-rest-gate.pdf",
-                    "p_mime_type": "application/pdf",
-                    "p_byte_size": 128,
-                    "p_storage_path": f"runtime-rest-gate/{uuid.uuid4()}.pdf",
-                    "p_source_kind": "website-upload",
-                    "p_source_ref": "runtime-rest-gate",
-                    "p_project_group_id": f"runtime-rest-gate-{run_id}",
+                    "p_hash": "b" * 64,
+                    "p_filename": "runtime-rest-gate.pdf",
+                    "p_mime": "application/pdf",
+                    "p_bytes": 128,
+                    "p_storage": f"runtime-rest-gate/{uuid.uuid4()}.pdf",
+                    "p_origin_kind": "website-upload",
+                    "p_origin_ref": "runtime-rest-gate",
+                    "p_project_group": f"runtime-rest-gate-{run_id}",
                     "p_page_id": "page-1",
                     "p_page_index": 0,
-                    "p_transform_metadata": {},
+                    "p_transform": {},
                     "p_provenance": {"runtime_rest_gate": True},
-                    "p_historical_metadata": {},
+                    "p_historical": {},
                 },
             ),
             fragment="permission_denied:labeling.upload",
@@ -232,12 +232,12 @@ def main():
         )
     finally:
         cleanup_ok = True
-        cleanup_error = None
+        cleanup_err = None
         if user_id:
             status, body = req("DELETE", f"{base}/auth/v1/admin/users/{user_id}", admin_headers)
             cleanup_ok = status in (200, 204)
             if not cleanup_ok:
-                cleanup_error = f"{status} {body[:500]}"
+                cleanup_err = f"{status} {body[:500]}"
 
         Path("runtime-rest-boundary-evidence.json").write_text(
             json.dumps(
@@ -250,7 +250,7 @@ def main():
                     "yolo_training": False,
                     "tests": results,
                     "disposable_auth_user_deleted": cleanup_ok,
-                    "cleanup_error": cleanup_error,
+                    "cleanup_error": cleanup_err,
                     "labeling_records_created": False,
                 },
                 indent=2,
@@ -258,7 +258,7 @@ def main():
             )
         )
         if not cleanup_ok:
-            raise RuntimeError(f"Disposable auth cleanup failed: {cleanup_error}")
+            raise RuntimeError(f"Disposable auth cleanup failed: {cleanup_err}")
 
     print("All production REST authorization boundary checks passed.")
     print("Disposable auth identity was deleted.")
