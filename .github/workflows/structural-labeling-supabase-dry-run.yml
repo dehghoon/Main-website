@@ -108,18 +108,18 @@ jobs:
           pending = set()
 
           for line in text.splitlines():
-              if "|" not in line:
-                continue
-              columns = [column.strip() for column in line.split("|")]
-              if len(columns) < 2:
+              match = re.match(r"^\s*(\d{14})\s*[│|]\s*(\d{14})?\s*[│|]", line)
+              if not match:
                   continue
-
-              local_version, remote_version = columns[0], columns[1]
-              if re.fullmatch(r"\d{14}", local_version) and not remote_version:
+              local_version = match.group(1)
+              remote_version = match.group(2)
+              if not remote_version:
                   pending.add(local_version)
 
           if not pending:
-              raise SystemExit("No local-only pending migration versions were found in migration history.")
+              raise SystemExit(
+                  "No local-only pending migration versions were found in migration history."
+              )
 
           unexpected = sorted(pending - approved)
           missing = sorted(approved - pending)
@@ -129,12 +129,18 @@ jobs:
               print(version)
 
           if unexpected:
-              raise SystemExit(f"Unapproved pending migrations detected: {unexpected}")
+              raise SystemExit(
+                  f"Unapproved pending migrations detected: {unexpected}"
+              )
 
           if missing:
-              raise SystemExit(f"Approved Structural Labeling migrations missing from pending set: {missing}")
+              raise SystemExit(
+                  f"Approved Structural Labeling migrations missing from pending set: {missing}"
+              )
 
-          print("Pending migration set exactly matches the approved Structural Labeling allowlist.")
+          print(
+              "Pending migration set exactly matches the approved Structural Labeling allowlist."
+          )
           PY
 
       - name: Add dry-run summary
