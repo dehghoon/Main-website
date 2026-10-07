@@ -5,7 +5,6 @@ import { applyAffine, rasterBBoxToSourcePage, validateRoundTrip } from "../lib/s
 import type { Annotation, PdfPointBBox, TransformMetadata } from "../lib/structural-labeling/contract.ts";
 import { validateAnnotations } from "../lib/structural-labeling/validation.ts";
 import { buildGpt7IntakePackage, validateGpt7IntakePackage } from "../lib/structural-labeling/gpt7.ts";
-
 function tx(r: 0|90|180|270): TransformMetadata {
   const w = r===90||r===270 ? 792 : 612, h = r===90||r===270 ? 612 : 792;
   return { coordinate_space:"source-page", unit:"pdf-point", effective_page_width_pt:w,
@@ -49,10 +48,10 @@ test("GPT7 package remains pending admission and never training-ready",()=>{
 });
 test("database path blocks arbitrary direct mutations and separates privileges",()=>{
   const root=process.cwd();
-  const schema=readFileSync(`${root}/supabase/migrations/20261004_structural_labeling_milestone2_authorization.sql`,"utf8");
-  const core=readFileSync(`${root}/supabase/migrations/20261004_structural_labeling_milestone2_rpc_core.sql`,"utf8");
-  const review=readFileSync(`${root}/supabase/migrations/20261004_structural_labeling_milestone2_rpc_review.sql`,"utf8");
-  const foundation=readFileSync(`${root}/supabase/migrations/20261004_structural_labeling_foundation.sql`,"utf8");
+  const schema=readFileSync(`${root}/supabase/migrations/20261004000200_structural_labeling_milestone2_authorization.sql`,"utf8");
+  const core=readFileSync(`${root}/supabase/migrations/20261004000300_structural_labeling_milestone2_rpc_core.sql`,"utf8");
+  const review=readFileSync(`${root}/supabase/migrations/20261004000400_structural_labeling_milestone2_rpc_review.sql`,"utf8");
+  const foundation=readFileSync(`${root}/supabase/migrations/20261004000100_structural_labeling_foundation.sql`,"utf8");
   assert.match(schema,/revoke insert,update,delete on public\.structural_labeling_candidates from anon,authenticated/i);
   assert.match(schema,/revoke insert,update,delete on public\.structural_labeling_annotation_revisions from anon,authenticated/i);
   assert.match(core,/employee_cannot_execute_owner_action/);
