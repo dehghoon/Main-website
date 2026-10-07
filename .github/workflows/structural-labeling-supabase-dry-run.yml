@@ -79,6 +79,20 @@ jobs:
           set -euo pipefail
           supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1 | tee migration-list-before.txt
 
+      - name: Capture remote migration versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --tuples-only \
+            --no-align \
+            --command "select version from supabase_migrations.schema_migrations order by version;" \
+            | sed '/^[[:space:]]*$/d' \
+            | tee remote-migration-versions.txt
+
       - name: Dry-run committed migrations
         shell: bash
         run: |
@@ -90,7 +104,6 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import re
           from pathlib import Path
 
           approved = {
@@ -104,43 +117,33 @@ jobs:
               "20261006000100",
           }
 
-          text = Path("migration-list-before.txt").read_text()
-          pending = set()
+          local_versions = set()
+          for path in Path("supabase/migrations").glob("*.sql"):
+              version = path.name.split("_", 1)[0]
+              if len(version) == 14 and version.isdigit():
+                  local_versions.add(version)
 
-          for line in text.splitlines():
-              match = re.match(r"^\s*(\d{14})\s*[│|]\s*(\d{14})?\s*[│|]", line)
-              if not match:
-                  continue
-              local_version = match.group(1)
-              remote_version = match.group(2)
-              if not remote_version:
-                  pending.add(local_version)
+          remote_versions = {
+              line.strip()
+              for line in Path("remote-migration-versions.txt").read_text().splitlines()
+              if line.strip()
+          }
 
-          if not pending:
-              raise SystemExit(
-                  "No local-only pending migration versions were found in migration history."
-              )
-
+          pending = local_versions - remote_versions
           unexpected = sorted(pending - approved)
           missing = sorted(approved - pending)
 
-          print("Pending migration versions reported by Supabase migration history:")
+          print("Pending local-only migration versions:")
           for version in sorted(pending):
               print(version)
 
           if unexpected:
-              raise SystemExit(
-                  f"Unapproved pending migrations detected: {unexpected}"
-              )
+              raise SystemExit(f"Unapproved pending migrations detected: {unexpected}")
 
           if missing:
-              raise SystemExit(
-                  f"Approved Structural Labeling migrations missing from pending set: {missing}"
-              )
+              raise SystemExit(f"Approved Structural Labeling migrations missing from pending set: {missing}")
 
-          print(
-              "Pending migration set exactly matches the approved Structural Labeling allowlist."
-          )
+          print("Pending migration set exactly matches the approved Structural Labeling allowlist.")
           PY
 
       - name: Add dry-run summary
@@ -161,6 +164,15 @@ jobs:
             fi
             echo '```'
             echo
+            echo "## Remote migration versions"
+            echo '```text'
+            if [ -f remote-migration-versions.txt ]; then
+              cat remote-migration-versions.txt
+            else
+              echo "Remote migration versions were not captured."
+            fi
+            echo '```'
+            echo
             echo "## db push --dry-run"
             echo '```text'
             if [ -f migration-dry-run.txt ]; then
@@ -169,7 +181,7 @@ jobs:
               echo "Dry-run output was not captured."
             fi
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } >> "$GITHUB_STEP_SUMMMARY"
 
       - name: Upload dry-run evidence
         if: always()
@@ -178,6 +190,7 @@ jobs:
           name: structural-labeling-supabase-dry-run-evidence
           path: |
             migration-list-before.txt
+            remote-migration-versions.txt
             migration-dry-run.txt
           if-no-files-found: warn
           retention-days: 14
