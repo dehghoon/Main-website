@@ -33,31 +33,11 @@ jobs:
           test -n "$SUPABASE_PROJECT_REF"
           test -n "$SUPABASE_DB_URL"
 
-      - name: Validate Structural Labeling migration identities
+      - name: Validate migration verifier
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from collections import Counter
-          from pathlib import Path
-
-          paths = sorted(Path("supabase/migrations").glob("*structural_labeling*.sql"))
-          if not paths:
-              raise SystemExit("No Structural Labeling migrations found.")
-
-          versions = [path.name.split("_", 1)[0] for path in paths]
-          duplicates = [version for version, count in Counter(versions).items() if count > 1]
-          invalid = [version for version in versions if len(version) != 14 or not version.isdigit()]
-
-          if duplicates or invalid:
-              raise SystemExit(
-                  f"Invalid migration identities: duplicates={duplicates}, invalid={invalid}"
-              )
-
-          print("Structural Labeling migration identities are unique and canonical.")
-          for path in paths:
-              print(path.name)
-          PY
+          python3 -m py_compile scripts/verify-structural-labeling-migrations.py
 
       - name: Initialize Supabase CLI project
         shell: bash
@@ -85,13 +65,13 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client >/dev/null
-          psql "$SUPABASE_DB_URL" \
-            --no-psqlrc \
-            --tuples-only \
-            --no-align \
-            --command "select version from supabase_migrations.schema_migrations order by version;" \
-            | sed '/^[[:space:]]*$/d' \
-            | tee remote-migration-versions.txt
+          psql "$SUPABASE_DB_URL"             --no-psqlrc             --tuples-only             --no-align             --command "select version from supabase_migrations.schema_migrations order by version;"             | sed '/^[[:space:]]*$/d'             | tee remote-migration-versions.txt
+
+      - name: Enforce Structural Labeling pending migration allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify-structural-labeling-migrations.py             --remote-file remote-migration-versions.txt             --expect pending
 
       - name: Dry-run committed migrations
         shell: bash
@@ -99,92 +79,11 @@ jobs:
           set -euo pipefail
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee migration-dry-run.txt
 
-      - name: Enforce Structural Labeling pending migration allowlist
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          approved = {
-              "20261004000100",
-              "20261004000200",
-              "20261004000300",
-              "20261004000400",
-              "20261004000500",
-              "20261004000600",
-              "20261004000700",
-              "20261006000100",
-          }
-
-          local_versions = set()
-          for path in Path("supabase/migrations").glob("*.sql"):
-              version = path.name.split("_", 1)[0]
-              if len(version) == 14 and version.isdigit():
-                  local_versions.add(version)
-
-          remote_versions = {
-              line.strip()
-              for line in Path("remote-migration-versions.txt").read_text().splitlines()
-              if line.strip()
-          }
-
-          pending = local_versions - remote_versions
-          unexpected = sorted(pending - approved)
-          missing = sorted(approved - pending)
-
-          print("Pending local-only migration versions:")
-          for version in sorted(pending):
-              print(version)
-
-          if unexpected:
-              raise SystemExit(f"Unapproved pending migrations detected: {unexpected}")
-          if missing:
-              raise SystemExit(
-                  f"Approved Structural Labeling migrations missing from pending set: {missing}"
-              )
-
-          print(
-              "Pending migration set exactly matches the approved Structural Labeling allowlist."
-          )
-          PY
-
       - name: Add dry-run summary
         if: always()
         shell: bash
         run: |
-          {
-            echo "# Structural Labeling Supabase Dry Run"
-            echo
-            echo "No database migration was applied by this workflow."
-            echo
-            echo "## Migration history"
-            echo '```text'
-            if [ -f migration-list-before.txt ]; then
-              cat migration-list-before.txt
-            else
-              echo "Migration history was not captured."
-            fi
-            echo '```'
-            echo
-            echo "## Remote migration versions"
-            echo '```text'
-            if [ -f remote-migration-versions.txt ]; then
-              cat remote-migration-versions.txt
-            else
-              echo "Remote migration versions were not captured."
-            fi
-            echo '```'
-            echo
-            echo "## db push --dry-run"
-            echo '```text'
-            if [ -f migration-dry-run.txt ]; then
-              cat migration-dry-run.txt
-            else
-              echo "Dry-run output was not captured."
-            fi
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n'             '# Structural Labeling Supabase Dry Run'             ''             'No database migration was applied by this workflow.'             ''             'Evidence files are attached as the workflow artifact.'             >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload dry-run evidence
         if: always()
