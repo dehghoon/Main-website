@@ -48,15 +48,21 @@ def load_remote_versions(remote_file: Path) -> set[str]:
         if line.strip()
     }
     invalid = sorted(
-        version for version in versions
+        version
+        for version in versions
         if len(version) != 14 or not version.isdigit()
     )
     if invalid:
-        raise SystemExit(f"Invalid remote migration versions detected: {invalid}")
+        raise SystemExit(
+            f"Invalid remote migration versions detected: {invalid}"
+        )
     return versions
 
 
-def verify_pending(local_versions: set[str], remote_versions: set[str]) -> None:
+def verify_pending(
+    local_versions: set[str],
+    remote_versions: set[str],
+) -> None:
     approved = set(APPROVED_FILES)
     pending = local_versions - remote_versions
     unexpected = sorted(pending - approved)
@@ -82,7 +88,11 @@ def verify_pending(local_versions: set[str], remote_versions: set[str]) -> None:
     )
 
 
-def verify_applied(local_versions: set[str], remote_versions: set[str]) -> None:
+def verify_applied(
+    local_versions: set[str],
+    remote_versions: set[str],
+    before_remote_versions: set[str] | None,
+) -> None:
     approved = set(APPROVED_FILES)
     remaining = local_versions - remote_versions
     missing_remote = sorted(approved - remote_versions)
@@ -93,13 +103,40 @@ def verify_applied(local_versions: set[str], remote_versions: set[str]) -> None:
 
     if remaining:
         raise SystemExit(
-            f"Local migrations remain unapplied after controlled apply: {sorted(remaining)}"
+            "Local migrations remain unapplied after controlled apply: "
+            f"{sorted(remaining)}"
         )
     if missing_remote:
         raise SystemExit(
             "Approved Structural Labeling migrations are not present in remote "
             f"history after apply: {missing_remote}"
         )
+
+    if before_remote_versions is not None:
+        remote_delta = remote_versions - before_remote_versions
+        removed_remote = before_remote_versions - remote_versions
+        unexpected_delta = sorted(remote_delta - approved)
+        missing_delta = sorted(approved - remote_delta)
+
+        print("Remote migration-history delta:")
+        for version in sorted(remote_delta):
+            print(version)
+
+        if removed_remote:
+            raise SystemExit(
+                "Remote migration history lost versions during controlled apply: "
+                f"{sorted(removed_remote)}"
+            )
+        if unexpected_delta:
+            raise SystemExit(
+                "Unexpected migration versions appeared during controlled apply: "
+                f"{unexpected_delta}"
+            )
+        if missing_delta:
+            raise SystemExit(
+                "Approved Structural Labeling migrations missing from remote "
+                f"history delta: {missing_delta}"
+            )
 
     print(
         "All local migrations are represented in remote history and all approved "
@@ -109,7 +146,9 @@ def verify_applied(local_versions: set[str], remote_versions: set[str]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Verify the controlled Structural Labeling Supabase migration set."
+        description=(
+            "Verify the controlled Structural Labeling Supabase migration set."
+        )
     )
     parser.add_argument(
         "--migrations-dir",
@@ -122,20 +161,38 @@ def main() -> None:
         type=Path,
     )
     parser.add_argument(
+        "--before-remote-file",
+        type=Path,
+    )
+    parser.add_argument(
         "--expect",
         choices=("pending", "applied"),
         default="pending",
     )
     args = parser.parse_args()
 
+    if args.expect == "pending" and args.before_remote_file is not None:
+        raise SystemExit(
+            "--before-remote-file is only valid with --expect applied."
+        )
+
     validate_approved_files(args.migrations_dir)
     local_versions = load_local_versions(args.migrations_dir)
     remote_versions = load_remote_versions(args.remote_file)
+    before_remote_versions = (
+        load_remote_versions(args.before_remote_file)
+        if args.before_remote_file is not None
+        else None
+    )
 
     if args.expect == "pending":
         verify_pending(local_versions, remote_versions)
     else:
-        verify_applied(local_versions, remote_versions)
+        verify_applied(
+            local_versions,
+            remote_versions,
+            before_remote_versions,
+        )
 
 
 if __name__ == "__main__":
