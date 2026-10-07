@@ -10,11 +10,14 @@ on:
         description: Type BOOTSTRAP STRUCTURAL LABELING OWNER
         required: true
         type: string
+
 permissions:
   contents: read
+
 concurrency:
   group: structural-labeling-supabase-production
   cancel-in-progress: false
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
@@ -25,6 +28,7 @@ jobs:
       BOOTSTRAP_CONFIRMATION: ${{ inputs.confirmation }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Validate inputs
         shell: bash
         run: |
@@ -34,19 +38,29 @@ jobs:
           test -n "$TARGET_EMAIL"
           test -s scripts/preflight-structural-labeling-owner.sql
           test -s scripts/bootstrap-structural-labeling-owner.sql
+
       - name: Install PostgreSQL client
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client >/dev/null
+
       - name: Preflight target and existing owner state
         shell: bash
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 --set target_email="$TARGET_EMAIL" --file scripts/preflight-structural-labeling-owner.sql | tee owner-bootstrap-preflight.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set ON_ERROR_STOP=1 \
+            --set target_email="$TARGET_EMAIL" \
+            --tuples-only \
+            --no-align \
+            --file scripts/preflight-structural-labeling-owner.sql \
+            | tee owner-bootstrap-preflight.txt
           grep -Fx "target_count=1" owner-bootstrap-preflight.txt >/dev/null
           grep -Fx "existing_owner_count=0" owner-bootstrap-preflight.txt >/dev/null
+
       - name: Create pre-bootstrap schema backup
         shell: bash
         run: |
@@ -54,17 +68,32 @@ jobs:
           pg_dump "$SUPABASE_DB_URL" --schema-only --no-owner --no-privileges --file pre-owner-bootstrap-schema.sql
           test -s pre-owner-bootstrap-schema.sql
           sha256sum pre-owner-bootstrap-schema.sql | tee pre-owner-bootstrap-schema.sha256
+
       - name: Bootstrap first Structural Labeling owner
         shell: bash
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 --set target_email="$TARGET_EMAIL" --file scripts/bootstrap-structural-labeling-owner.sql 2>&1 | tee owner-bootstrap-apply.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set ON_ERROR_STOP=1 \
+            --set target_email="$TARGET_EMAIL" \
+            --file scripts/bootstrap-structural-labeling-owner.sql \
+            2>&1 | tee owner-bootstrap-apply.txt
+
       - name: Verify owner
         shell: bash
         run: |
           set -euo pipefail
-          psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 --set target_email="$TARGET_EMAIL" --tuples-only --no-align --command "select case when raw_app_meta_data->>'role'='owner' and raw_app_meta_data->>'user_type'='owner' and exists (select 1 from public.structural_labeling_permissions p where p.user_id=auth.users.id and p.permission='labeling.owner_review') then 'pass' else 'fail' end from auth.users where lower(email)=lower(:'target_email');" | tee owner-bootstrap-verification.txt
+          psql "$SUPABASE_DB_URL" \
+            --no-psqlrc \
+            --set ON_ERROR_STOP=1 \
+            --set target_email="$TARGET_EMAIL" \
+            --tuples-only \
+            --no-align \
+            --command "select case when raw_app_meta_data->>'role'='owner' and raw_app_meta_data->>'user_type'='owner' and exists (select 1 from public.structural_labeling_permissions p where p.user_id=auth.users.id and p.permission='labeling.owner_review') then 'pass' else 'fail' end from auth.users where lower(email)=lower(:'target_email');" \
+            | tee owner-bootstrap-verification.txt
           grep -Fx "pass" owner-bootstrap-verification.txt >/dev/null
+
       - name: Summary
         if: always()
         shell: bash
@@ -72,6 +101,7 @@ jobs:
           echo "Historical import apply was not executed." >> "$GITHUB_STEP_SUMMARY"
           echo "enablesTraining=false." >> "$GITHUB_STEP_SUMMARY"
           echo "YOLO training was not executed." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
