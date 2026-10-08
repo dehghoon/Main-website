@@ -39,7 +39,7 @@ export default function PrivateSourceCanvas({
         });
 
         if (!response.ok) {
-          throw new Error(`Private source load failed (${response.status)`);
+          throw new Error("Private source load failed (" + response.status + ")");
         }
 
         const source = await response.blob();
@@ -132,12 +132,13 @@ export default function PrivateSourceCanvas({
               image.src = objectUrl;
             });
           } finally {
-            URL.revokeObjectURL(_objectUrl);
+            URL.revokeObjectURL(objectUrl);
           }
         }
       } catch (cause) {
         if (cancelled) return;
-        const message = cause instanceof Error ? cause.message : "Source render failed";
+        const message =
+          cause instanceof Error ? cause.message : "Source render failed";
         setError(message);
         onError(message);
       }
