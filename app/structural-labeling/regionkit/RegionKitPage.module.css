@@ -1,0 +1,26 @@
+.workspace {
+  min-width: 0;
+}
+
+.workspace :global(main) {
+  overflow-x: hidden;
+}
+
+.workspace :global(main > section) {
+  min-width: 0;
+}
+
+.workspace :global(main > section > aside),
+.workspace :global(main > section > article) {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .workspace :global(main > section) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .workspace :global(main > section > article) {
+    margin-top: 12px;
+  }
+}
