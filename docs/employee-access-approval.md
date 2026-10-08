@@ -108,3 +108,7 @@ The migration is additive and includes:
 - Structural Labeling grants are mirrored into its existing permission table so existing server authorization remains authoritative.
 - Service-role credentials are restricted to the server-side notification endpoint.
 - Permission changes are auditable.
+
+## Deployment Retrigger
+
+A fresh deployment trigger commit was created after the Vercel deployment interruption. This documentation-only change does not alter application behavior.
