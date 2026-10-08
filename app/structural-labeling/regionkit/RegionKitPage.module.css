@@ -1,26 +1,32 @@
-.workspace {
+.workspaceMain {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
   min-width: 0;
-}
-
-.workspace :global(main) {
   overflow-x: hidden;
 }
 
-.workspace :global(main > section) {
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 20px;
   min-width: 0;
 }
 
-.workspace :global(main > section > aside),
-.workspace :global(main > section > article) {
+.workspaceGrid > * {
   min-width: 0;
 }
 
 @media (max-width: 760px) {
-  .workspace :global(main > section) {
-    grid-template-columns: minmax(0, 1fr) !important;
+  .workspaceMain {
+    padding: 24px 16px 64px;
   }
 
-  .workspace :global(main > section > article) {
-    margin-top: 12px;
+  .workspaceGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspaceGrid > article {
+    margin-top: 4px;
   }
 }
