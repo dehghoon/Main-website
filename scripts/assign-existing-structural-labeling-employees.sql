@@ -33,7 +33,7 @@ $$;
 
 COMMIT;
 
-SELEC
+SELECT
   email,
   raw_app_meta_data->>'role' AS role,
   raw_app_meta_data->>'user_type' AS user_type
