@@ -2,6 +2,7 @@ import StructuralLabelingWorkflowGuide from "../StructuralLabelingWorkflowGuide"
 import RegionKitWorkspace from "./RegionKitWorkspace";
 import StructuralLabelingPermissionAdmin from "./StructuralLabelingPermissionAdmin";
 import StructuralLabelingUploadPanel from "./StructuralLabelingUploadPanel";
+import styles from "./RegionKitPage.module.css";
 
 export default function RegionKitPage() {
   return (
@@ -9,7 +10,9 @@ export default function RegionKitPage() {
       <StructuralLabelingWorkflowGuide active="labeling" />
       <StructuralLabelingPermissionAdmin />
       <StructuralLabelingUploadPanel />
-      <RegionKitWorkspace />
+      <div className={styles.workspace}>
+        <RegionKitWorkspace />
+      </div>
     </>
   );
 }
