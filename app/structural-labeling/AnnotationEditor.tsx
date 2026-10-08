@@ -31,7 +31,7 @@ type Revision = {
   revision_kind: string;
 };
 
-const MESSAGES: Record<string, string> = {
+const VALIDATION_MESSAGES: Record<string, string> = {
   "bbox-must-have-positive-area":
     "Annotation box must have positive width and height.",
   "bbox-must-be-within-effective-page-bounds":
@@ -40,8 +40,27 @@ const MESSAGES: Record<string, string> = {
     "Annotation and page coordinates must be finite numbers.",
 };
 
-const explain = (code: string) =>
-  MESSAGES[code] ? `${MESSAGES[code]} (${code})` : code;
+function explainValidation(code: string) {
+  return VALIDATION_MESSAGES[code]
+    ? `${VALIDATION_MESSAGES[code]} (${code})`
+    : code;
+}
+
+function isTransformMetadata(value: unknown): value is TransformMetadata {
+  if (typeof value !== "object" || value === null) return false;
+  const item = value as Partial<TransformMetadata>;
+  return (
+    item.coordinate_space === "source-page" &&
+    item.unit === "pdf-point" &&
+    item.transform_validation_state === "validated" &&
+    typeof item.raster_width_px === "number" &&
+    typeof item.raster_height_px === "number" &&
+    typeof item.effective_page_width_pt === "number" &&
+    typeof item.effective_page_height_pt === "number" &&
+    Array.isArray(item.source_page_to_raster_affine) &&
+    Array.isArray(item.raster_to_source_page_affine)
+  );
+}
 
 export default function AnnotationEditor({
   candidate,
@@ -57,9 +76,10 @@ export default function AnnotationEditor({
   onMessage: (message: string) => void;
 }) {
   const latest = revisions.at(-1);
-  const rawTransform =
-    latest?.transform_metadata ??
-    (candidate.transform_metadata as TransformMetadata | null);
+  const candidateTransform = isTransformMetadata(candidate.transform_metadata)
+    ? candidate.transform_metadata
+    : null;
+  const rawTransform = latest?.transform_metadata ?? candidateTransform;
 
   const [annotations, setAnnotations] = useState<Annotation[]>(
     latest?.annotations ?? [],
@@ -67,10 +87,13 @@ export default function AnnotationEditor({
   const [currentClass, setCurrentClass] = useState<LabelClass>("column");
   const [zoom, setZoom] = useState(1);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
-  const [hostWidth,setHostWidth] = useState(0);
+  const [hostWidth, setHostWidth] = useState(0);
   const hostRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setAnnotations(latest?.annotations ?? []),[latest?.revision_no]);
+  useEffect(() => {
+    setAnnotations(latest?.annotations ?? []);
+  }, [latest?.revision_no]);
+
   useEffect(() => {
     const node = hostRef.current;
     if (!node) return;
@@ -79,12 +102,9 @@ export default function AnnotationEditor({
     const observer = new ResizeObserver(update);
     observer.observe(node);
     return () => observer.disconnect();
-  },[]);
+  }, []);
 
-  if (
-    !rawTransform ||
-    rawTransform.transform_validation_state !== "validated"
-  ) {
+  if (!rawTransform || rawTransform.transform_validation_state !== "validated") {
     return (
       <p>
         Pixel-only or unvalidated source. Labeling and GPT-7 handoff are blocked
@@ -96,8 +116,7 @@ export default function AnnotationEditor({
   const transform: TransformMetadata = rawTransform;
   const rasterWidth = Math.max(1, transform.raster_width_px);
   const rasterHeight = Math.max(1, transform.raster_height_px);
-  const fitScale =
-    hostWidth > 0 ? Math.min(1, hostWidth / rasterWidth) : 1;
+  const fitScale = hostWidth > 0 ? Math.min(1, hostWidth / rasterWidth) : 1;
   const displayScale = Math.max(0.05, fitScale * zoom);
   const displayWidth = rasterWidth * displayScale;
   const displayHeight = rasterHeight * displayScale;
@@ -130,7 +149,7 @@ export default function AnnotationEditor({
     );
 
     if (errors.length) {
-      onMessage(errors.map(explain).join(" "));
+      onMessage(errors.map(explainValidation).join(" "));
     } else {
       setAnnotations((values) => [
         ...values,
@@ -154,7 +173,10 @@ export default function AnnotationEditor({
           annotation.bbox,
           transform.effective_page_width_pt,
           transform.effective_page_height_pt,
-        ).map((error) => `${annotation.annotation_id}: ${explain(error)}`),
+        ).map(
+          (error) =>
+            `${annotation.annotation_id}: ${explainValidation(error)}`,
+        ),
       );
       if (errors.length) throw new Error(errors.join(" "));
 
@@ -168,10 +190,12 @@ export default function AnnotationEditor({
           transform,
         }),
       });
+
       onMessage("Annotation revision saved.");
       onSaved();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Save failed";
+      const message =
+        error instanceof Error ? error.message : "Save failed";
       onMessage(message);
     }
   }
@@ -197,11 +221,15 @@ export default function AnnotationEditor({
             {value}
           </button>
         ))}
-        <button onClick={() => setZoom((value) => Math.max(0.5, value - 0.25))}>
-         #Š’
+        <button
+          onClick={() => setZoom((value) => Math.max(0.5, value - 0.25))}
+        >
+          -
         </button>
         <span>{Math.round(displayScale * 100)}%</span>
-        <button onClick={() => setZoom((value) => Math.min(3, value + 0.25))}>
+        <button
+          onClick={() => setZoom((value) => Math.min(3, value + 0.25))}
+        >
           +
         </button>
         <button onClick={() => setZoom(1)}>Fit width</button>
@@ -210,7 +238,7 @@ export default function AnnotationEditor({
 
       <p>
         Authoritative annotations are source-page PDF points mapped
-        deterministically through display â†’ raster â†’ source-page.
+        deterministically through display to raster to source-page.
       </p>
 
       <div ref={hostRef} style={{ width: "100%", minWidth: 0 }}>
@@ -250,11 +278,17 @@ export default function AnnotationEditor({
             {annotations.map((annotation) => {
               const a = applyAffine(
                 transform.source_page_to_raster_affine,
-                { x: annotation.bbox.xmin, y: annotation.bbox.ymin },
+                {
+                  x: annotation.bbox.xmin,
+                  y: annotation.bbox.ymin,
+                },
               );
               const b = applyAffine(
                 transform.source_page_to_raster_affine,
-                { x: annotation.bbox.xmax, y: annotation.bbox.ymax },
+                {
+                  x: annotation.bbox.xmax,
+                  y: annotation.bbox.ymax,
+                },
               );
 
               return (
@@ -283,7 +317,12 @@ export default function AnnotationEditor({
       {annotations.map((annotation, index) => (
         <div
           key={annotation.annotation_id}
-          style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            gap: 6,
+            marginBottom: 6,
+            flexWrap: "wrap",
+          }}
         >
           <select
             disabled={!canEdit}
@@ -292,7 +331,10 @@ export default function AnnotationEditor({
               setAnnotations((values) =>
                 values.map((value, i) =>
                   i === index
-                    ? { ...value, class: event.target.value as LabelClass }
+                    ? {
+                        ...value,
+                        class: event.target.value as LabelClass,
+                      }
                     : value,
                 ),
               )
