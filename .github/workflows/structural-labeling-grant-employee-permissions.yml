@@ -1,0 +1,107 @@
+name: Structural Labeling Grant Employee Permissions
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_email:
+        description: Existing employee email to grant Structural Labeling permissions
+        required: true
+        type: string
+      confirmation:
+        description: Type GRANT STRUCTURAL LABELING EMPLOYEE PERMISSIONS
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+      EMAIL: ${{ inputs.target_email }}
+      CONFIRM: ${{ inputs.confirmation }}
+
+    steps:
+      - uses: actions/checkout4v4
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CONFIRM" = "GRANT STRUCTURAL LABELING EMPLOYEE PERMISSIONS"
+          test -n "$DB"
+          test -n "$EMAIL"
+          test -s scripts/grant-structural-labeling-employee-permissions.sql
+          test -s scripts/verify-structural-labeling-employee-permissions.sql
+
+      - name: Verify target before grant
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA \
+            -f scripts/verify-structural-labeling-employee-permissions.sql \
+            | tee before.txt
+          grep -Fx "target_count=1" before.txt >/dev/null
+          grep -Fx "base_role=employee" before.txt >/dev/null
+
+      - name: Backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e DATABASE_URL="$DB" \
+            -v "$PWD:/work" \
+            -w /work \
+            postgres:17 \
+            sh -lc 'pg_dump "$DATABASE_URL" --schema-only --no-owner --no-privileges -f pre-employee-permission-grant-schema.sql'
+          test -s pre-employee-permission-grant-schema.sql
+          sha256sum pre-employee-permission-grant-schema.sql > pre-employee-permission-grant-schema.sha256
+
+      - name: Grant four employee permissions through production RPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" \
+            -f scripts/grant-structural-labeling-employee-permissions.sql \
+            | tee apply.txt
+
+      - name: Verify granted permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB" --no-psqlrc -v ON_ERROR_STOP=1 -v target_email="$EMAIL" -tA \
+            -f scripts/verify-structural-labeling-employee-permissions.sql \
+            | tee after.txt
+          grep -Fx "target_count=1" after.txt >/dev/null
+          grep -Fx "base_role=employee" after.txt >/dev/null
+          for permission in \
+            labeling.workspace \
+            labeling.upload \
+            labeling.annotate \
+            labeling.submit
+          do
+            grep -Fx "permission=$permission" after.txt >/dev/null
+          done
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-employee-permission-grant-${{ github.run_id }}
+          path: |
+            before.txt
+            pre-employee-permission-grant-schema.sql
+            pre-employee-permission-grant-schema.sha256
+            apply.txt
+            after.txt
+          if-no-files-found: warn
