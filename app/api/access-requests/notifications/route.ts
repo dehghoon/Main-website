@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 const OWNER_EMAIL =
-  process.env.ACCESS_REQUEST_OWNER_EMAIL C? "deghhani.pmp@gmail.com";
+  process.env.ACCESS_REQUEST_OWNER_EMAIL ?? "dehghani.pmp@gmail.com";
 
 function requireScheduler(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -63,7 +63,9 @@ async function sendOwnerEmail(employeeEmail: string) {
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`access_request_email_failed:${response.status}:${detail.slice(0, 200)}`);
+    throw new Error(
+      `access_request_email_failed:${response.status}:${detail.slice(0, 200)}`,
+    );
   }
 }
 
