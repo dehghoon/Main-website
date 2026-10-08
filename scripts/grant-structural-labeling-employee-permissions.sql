@@ -4,27 +4,35 @@
 
 BEGIN;
 
+SELECT set_config('app.target_email', :'target_email', true);
+
 DO $$
 DECLARE
+  target_email text := lower(trim(current_setting('app.target_email')));
   target_id uuid;
   target_role text;
   owner_id uuid;
   owner_count integer;
   perm text;
 BEGIN
-  SELECT count(*), min(id::cname)::uuid
-  INTO owner_count, owner_id
+  SELECT count(*)
+  INTO owner_count
   FROM auth.users
   WHERE coalesce(raw_app_meta_data->>'role', raw_app_meta_data->>'user_type') = 'owner';
 
-  IF owner_count <> 1 OR owner_id IS NULL THEN
+  IF owner_count <> 1 THEN
     RAISE EXCEPTION 'exactly_one_owner_required';
   END IF;
+
+  SELECT id
+  INTO owner_id
+  FROM auth.users
+  WHERE coalesce(raw_app_meta_data->>'role', raw_app_meta_data->>'user_type') = 'owner';
 
   SELECT id, coalesce(raw_app_meta_data->>'role', raw_app_meta_data->>'user_type', '')
   INTO target_id, target_role
   FROM auth.users
-  WHERE lower(email) = lower(:'target_email');
+  WHERE lower(email) = target_email;
 
   IF target_id IS NULL THEN
     RAISE EXCEPTION 'target_employee_not_found';
@@ -44,14 +52,14 @@ BEGIN
     true
   );
 
-  FOR `erm` IN SELECT unnest(ARRAY[
+  FOR perm IN SELECT unnest(ARRAY[
     'labeling.workspace',
     'labeling.upload',
     'labeling.annotate',
     'labeling.submit'
   ]::text[])
   LOOP
-    PERFORM * FROM public.labeling_manage_employee_permission(:'target_email', perm, true);
+    PERFORM * FROM public.labeling_manage_employee_permission(target_email, perm, true);
   END LOOP;
 END
 $$;
@@ -63,7 +71,7 @@ WITH target AS (
   FROM auth.users
   WHERE lower(email) = lower(:'target_email')
 )
-SELECT p.permission
+SELECT permission
 FROM public.structural_labeling_permissions p
 JOIN target t ON t.id = p.user_id
 WHERE p.permission IN (
