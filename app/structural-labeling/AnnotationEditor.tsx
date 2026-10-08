@@ -171,7 +171,8 @@ export default function AnnotationEditor({
       onMessage("Annotation revision saved.");
       onSaved();
     } catch (error) {
-      onMessage(error instanceof Error ? error.messae : "Save failed");
+      const message = error instanceof Error ? error.message : "Save failed";
+      onMessage(message);
     }
   }
 
@@ -197,7 +198,7 @@ export default function AnnotationEditor({
           </button>
         ))}
         <button onClick={() => setZoom((value) => Math.max(0.5, value - 0.25))}>
-          âˆ’
+         #Š’
         </button>
         <span>{Math.round(displayScale * 100)}%</span>
         <button onClick={() => setZoom((value) => Math.min(3, value + 0.25))}>
