@@ -14,6 +14,8 @@ import {
 } from "../../../lib/structural-labeling/coordinates";
 import { labelingAccessToken, labelingApi } from "../client";
 
+const REGIONKIT_URL = "https://editor.regionkit.app";
+
 type Candidate = {
   id: string;
   workflow_state: string;
@@ -127,6 +129,7 @@ async function downloadPrivateSource(candidate: Candidate) {
   const response = await fetch(`/api/structural-labeling/source/${candidate.id}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error || "Private source download failed.");
@@ -180,6 +183,7 @@ export default function RegionKitWorkspace() {
       setImported([]);
       return;
     }
+
     void refreshDetail(selectedId).catch((error) =>
       setMessage(error instanceof Error ? error.message : "Candidate load failed."),
     );
@@ -195,8 +199,9 @@ export default function RegionKitWorkspace() {
     selected?.transform_metadata ??
     null;
 
-  async function transition(action: string) {
-    if (!selectedId) return;
+  async function transition(action: string): Promise<boolean> {
+    if (!selectedId) return false;
+
     setBusy(true);
     try {
       await labelingApi("/api/structural-labeling/action", {
@@ -204,13 +209,42 @@ export default function RegionKitWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ candidateId: selectedId, action }),
       });
+
       await Promise.all([refreshQueue(), refreshDetail(selectedId)]);
       setMessage(`Action completed: ${action}`);
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Action failed.");
+      return false;
     } finally {
       setBusy(false);
     }
+  }
+
+  async function startLabelingInRegionKit() {
+    const regionKitWindow = window.open(REGIONKIT_URL, "_blank");
+
+    if (regionKitWindow) {
+      regionKitWindow.opener = null;
+    }
+
+    const started = await transition("start-labeling");
+
+    if (!started) {
+      regionKitWindow?.close();
+      return;
+    }
+
+    if (regionKitWindow) {
+      setMessage(
+        "Labeling started and RegionKit opened in a new tab. Download the private source and load that local file in RegionKit.",
+      );
+      return;
+    }
+
+    setMessage(
+      "Labeling started, but the browser blocked the RegionKit tab. Use Open RegionKit below.",
+    );
   }
 
   async function importJson(file: File) {
@@ -218,6 +252,7 @@ export default function RegionKitWorkspace() {
       setMessage("Candidate transform metadata is unavailable.");
       return;
     }
+
     try {
       const parsed = JSON.parse(await file.text()) as RegionKitNativeExport;
       const annotations = parseRegionKitAnnotations(parsed, transform);
@@ -235,6 +270,7 @@ export default function RegionKitWorkspace() {
 
   async function saveRevision() {
     if (!selectedId || !transform || imported.length === 0) return;
+
     setBusy(true);
     try {
       await labelingApi("/api/structural-labeling/action", {
@@ -248,6 +284,7 @@ export default function RegionKitWorkspace() {
           notes: "Imported from RegionKit NativeExport after manual labeling.",
         }),
       });
+
       await refreshDetail(selectedId);
       setMessage("RegionKit annotations saved as a Website revision.");
     } catch (error) {
@@ -339,9 +376,9 @@ export default function RegionKitWorkspace() {
                 employeeCanLabel && (
                   <button
                     disabled={busy}
-                    onClick={() => void transition("start-labeling")}
+                    onClick={() => void startLabelingInRegionKit()}
                   >
-                    Start / Resume Labeling
+                    Start / Resume Labeling in RegionKit
                   </button>
                 )}
 
@@ -376,7 +413,7 @@ export default function RegionKitWorkspace() {
                   <button
                     onClick={() =>
                       window.open(
-                        "https://editor.regionkit.app",
+                        REGIONKIT_URL,
                         "_blank",
                         "noopener,noreferrer",
                       )
