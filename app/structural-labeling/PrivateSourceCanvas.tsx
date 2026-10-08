@@ -37,10 +37,9 @@ export default function PrivateSourceCanvas({
         const response = await fetch(`/api/structural-labeling/source/${candidateId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         if (!response.ok) {
-          throw new Error(
-            `Private source load failed (${response.status)`,
-          );
+          throw new Error(`Private source load failed (${response.status)`);
         }
 
         const source = await response.blob();
@@ -129,18 +128,16 @@ export default function PrivateSourceCanvas({
                 }
                 resolve();
               };
-              image.onerror = () =>
-                reject(new Error("Image render failed"));
+              image.onerror = () => reject(new Error("Image render failed"));
               image.src = objectUrl;
             });
           } finally {
-            URL.revokeObjectURL(objectUrl);
+            URL.revokeObjectURL(_objectUrl);
           }
         }
       } catch (cause) {
         if (cancelled) return;
-        const message =
-          cause instanceof Error ? cause.message : "Source render failed";
+        const message = cause instanceof Error ? cause.message : "Source render failed";
         setError(message);
         onError(message);
       }
