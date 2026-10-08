@@ -1,0 +1,61 @@
+name: Structural Labeling Employee Permission Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_email:
+        description: Existing employee email to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+      EMAIL: ${{ inputs.target_email }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client >/dev/null
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DB"
+          test -n "$EMAIL"
+          test -s scripts/verify-structural-labeling-employee-permissions.sql
+
+      - name: Verify deployed employee permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DB"             --no-psqlrc             -v ON_ERROR_STOP=1             -v target_email="$EMAIL"             -tA             -f scripts/verify-structural-labeling-employee-permissions.sql             | tee employee-permission-verification.txt
+
+          grep -Fx "target_count=1" employee-permission-verification.txt >/dev/null
+          grep -Fx "base_role=employee" employee-permission-verification.txt >/dev/null
+
+          for permission in             labeling.workspace             labeling.upload             labeling.annotate             labeling.submit
+          do
+            grep -Fx "permission=$permission" employee-permission-verification.txt >/dev/null
+          done
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-employee-permission-verification-${{ github.run_id }}
+          path: employee-permission-verification.txt
+          if-no-files-found: warn
+          retention-days: 14
