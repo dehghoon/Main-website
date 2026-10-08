@@ -1,0 +1,54 @@
+name: Structural Labeling Assign Existing Employees
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    env:
+      DB: ${{ secrets.SUPABASE_DB_URL }}
+      CONFIRM: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client >/dev/null
+      - name: Validate
+        run: |
+          set -euo pipefail
+          test "$CONFIRM" = "ASSIGN EXISTING STRUCTURAL LABELING EMPLOYEES"
+          test -n "$DB"
+          test -s scripts/assign-existing-structural-labeling-employees.sql
+      - name: Preflight
+        run: |
+          set -euo pipefail
+          psql "$DB" -X -v ON_ERROR_STOP=1 -tA -c "select 'owner_count='||count(*) from auth.users where coalesce(raw_app_meta_data->>'role',raw_app_meta_data->>'user_type')='owner';" | tee before.txt
+          grep -Eq '^owner_count=[1-9][0-9]*$' before.txt
+      - name: Backup
+        run: |
+          set -euo pipefail
+          docker run --rm -e DATABASE_URL="$DB" -v "$PWD:/work" -w /work postgres:17 sh -lc 'pg_dump "$DATABASE_URL" --schema-only --no-owner --no-privileges -f pre-employee-role-assignment-schema.sql'
+          test -s pre-employee-role-assignment-schema.sql
+      - name: Assign
+        run: |
+          set -euo pipefail
+          psql "$DB" -X -v ON_ERROR_STOP=1 -f scripts/assign-existing-structural-labeling-employees.sql | tee apply.txt
+      - name: Verify
+        run: |
+          set -euo pipefail
+          psql "$DB" -X -v ON_ERROR_STOP=1 -tA -c "select 'owner_count='||count(*) from auth.users where coalesce(raw_app_meta_data->>'role',raw_app_meta_data->>'user_type')='owner'; select 'employee_count='||count(*) from auth.users where coalesce(raw_app_meta_data->>'role',raw_app_meta_data->>'user_type')='employee'; select 'remaining='||count(*) from auth.users where email is not null and coalesce(raw_app_meta_data->>'role',raw_app_meta_data->>'user_type','') not in ('owner','admin','employee');" | tee after.txt
+          test "$(grep '^owner_count=' before.txt)" = "$(grep '^owner_count=' after.txt)"
+          grep -Fx 'remaining=0' after.txt >/dev/null
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: employee-role-assignment-${{ github.run_id }}
+          path: |
+            before.txt
+            pre-employee-role-assignment-schema.sql
+            apply.txt
+            after.txt
+          if-no-files-found: warn
