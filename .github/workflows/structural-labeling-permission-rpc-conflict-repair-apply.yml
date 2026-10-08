@@ -1,0 +1,141 @@
+name: Structural Labeling Permission RPC Conflict Repair Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type APPLY STRUCTURAL LABELING PERMISSION RPC CONFLICT REPAIR
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: structural-labeling-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      TARGET_VERSION: "20261007000200"
+      TARGET_FILE: "20261007000200_structural_labeling_permission_admin_rpc_conflict_repair.sql"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate
+        shell: bash
+        env:
+          APPLY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "$APPLY_CONFIRMATION" = "APPLY STRUCTURAL LABELING PERMISSION RPC CONFLICT REPAIR"
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_DB_URL"
+          test -s "supabase/migrations/$TARGET_FILE"
+
+      - name: Initialize and link Supabase project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Capture migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align             --command "select version from supabase_migrations.schema_migrations order by version;"             | sed '/^[[:space:]]*$/d' | tee remote-before.txt
+
+      - name: Enforce exact pending migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          target = "20261007000200"
+          remote = {x.strip() for x in Path("remote-before.txt").read_text().splitlines() if x.strip()}
+          local = {}
+          for path in Path("supabase/migrations").glob("*.sql"):
+              version = path.name.split("_", 1)[0]
+              if version.isdigit() and len(version) == 14:
+                  local[version] = path.name
+          pending = sorted(set(local) - remote)
+          if pending != [target]:
+              raise SystemExit(f"Refusing apply. Expected pending [{target}], observed {pending}.")
+          expected = "20261007000200_structural_labeling_permission_admin_rpc_conflict_repair.sql"
+          if local[target] != expected:
+              raise SystemExit(f"Target filename mismatch: {local[target]}")
+          print(expected)
+          PY
+
+      - name: Dry-run exact migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee dry-run.txt
+          grep -F "$TARGET_FILE" dry-run.txt >/dev/null
+
+      - name: Backup schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm             -e DATABASE_URL="$SUPABASE_DB_URL"             -v "$PWD:/work"             -w /work             postgres:17             sh -lc 'pg_dump "$DATABASE_URL" --schema-only --no-owner --no-privileges -f pre-rpc-conflict-repair-schema.sql'
+          test -s pre-rpc-conflict-repair-schema.sql
+          sha256sum pre-rpc-conflict-repair-schema.sql > pre-rpc-conflict-repair-schema.sha256
+
+      - name: Apply exact migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --yes 2>&1 | tee apply.txt
+
+      - name: Verify migration history
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align             --command "select version from supabase_migrations.schema_migrations where version = '$TARGET_VERSION';"             | grep -Fx "$TARGET_VERSION"
+
+      - name: Verify repaired RPC definition
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --set ON_ERROR_STOP=1 <<'SQL' | tee verify.txt
+          select case
+            when pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+                   like '%on conflict on constraint structural_labeling_permissions_pkey do nothing%'
+             and pg_get_functiondef('public.labeling_manage_employee_permission(text,text,boolean)'::regprocedure)
+                   like '%where lower(u.email) = lower(trim(p_email))%'
+            then 'pass'
+            else 'fail'
+          end;
+          SQL
+          grep -Fx "pass" verify.txt >/dev/null
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: structural-labeling-permission-rpc-conflict-repair-${{ github.run_id }}
+          path: |
+            remote-before.txt
+            dry-run.txt
+            pre-rpc-conflict-repair-schema.sql
+            pre-rpc-conflict-repair-schema.sha256
+            apply.txt
+            verify.txt
+          if-no-files-found: warn
+          retention-days: 14
