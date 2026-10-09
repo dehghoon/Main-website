@@ -12,6 +12,7 @@
     "import:labeling": "node scripts/import-structural-labeling-candidates.mjs"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
     "@supabase/supabase-js": "^2.57.4",
     "fflate": "0.8.3",
     "lucide-react": "^0.468.0",
