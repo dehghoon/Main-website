@@ -57,7 +57,7 @@ export default function StructuralLabelingWorkspace() {
   }, []);
 
   useEffect(() => {
-    void refreshQueue().catch((error) => setMessage(error.message));
+    void refreshQueue().catch((error) => setMessage(error.messae));
   }, [refreshQueue]);
 
   useEffect(() => {
@@ -71,22 +71,25 @@ export default function StructuralLabelingWorkspace() {
     [candidates, selected],
   );
 
-  const latestSavedRevision = detail?.revisions.at(-1) ?? null;
-  const latestSavedAnnotationCount = latestSavedRevision?.annotations?.length ?? 0;
+  const state = selectedCandidate?.workflow_state;
+  const employeeCanAnnotate = has("labeling.annotate");
+  const ownerCanReview = has("labeling.owner_review");
+  const canEdit =
+    (state === "labeling-in-progress" && employeeCanAnnotate) ||
+    (state === "submitted-for-owner-qa" && ownerCanReview);
+
+  const latestRevision = detail?.revisions.at(-1) ?? null;
+  const savedLabelCount = latestRevision?.annotations?.length ?? 0;
+
+  const employeeCanDelete =
+    has("labeling.upload") &&
+    !ownerCanReview &&
+    Boolean(selectedCandidate);
 
   async function action(name: string, actionReason?: string) {
     if (!selected) return;
-
-    if (name === "submit-owner-qa" && latestSavedAnnotationCount === 0) {
-      const warning = "Save the current annotation revision before submitting for Owner QA.";
-      setMessage(warning);
-      setActionMessage(warning);
-      return;
-    }
-
     setBusy(true);
     setActionMessage(`Running: ${name}...`);
-
     try {
       await labelingApi("/api/structural-labeling/action", {
         method: "POST",
@@ -97,26 +100,20 @@ export default function StructuralLabelingWorkspace() {
           reason: actionReason || null,
         }),
       });
-
       setReason("");
-      const successMessage = `Action complete: ${name}`;
-      setMessage(successMessage);
-      setActionMessage(successMessage);
-
+      setActionMessage(`Action complete: ${name}`);
       await Promise.all([refreshQueue(), refreshDetail(selected)]);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Action failed";
-      setMessage(errorMessage);
-      setActionMessage(`Failed: ${errorMessage}`);
+      const text = error instanceof Error ? error.message : "Action failed";
+      setMessage(text);
+      setActionMessage(`Failed: ${text}`);
     } finally {
       setBusy(false);
     }
   }
 
-  async function deleteSelected() {
+  async function removeSelected() {
     if (!selected || !selectedCandidate) return;
-
     const label =
       selectedCandidate.original_filename ||
       selectedCandidate.page_id ||
@@ -124,7 +121,7 @@ export default function StructuralLabelingWorkspace() {
 
     if (
       !window.confirm(
-        `Remove "${label}" from your active labeling queue? The source and audit history will be preserved.`,
+        `Remove "${label}" from your active labeling queue? Source and audit history will be preserved.`,
       )
     ) {
       return;
@@ -132,60 +129,32 @@ export default function StructuralLabelingWorkspace() {
 
     setBusy(true);
     setActionMessage("Removing uploaded drawing...");
-
     try {
       await labelingApi(
         `/api/structural-labeling/candidates/${selected}/delete`,
         { method: "DELETE" },
       );
-
       setSelected(null);
       setDetail(null);
-      setMessage("Drawing removed from the active labeling queue.");
       setActionMessage("Drawing removed from the active labeling queue.");
       await refreshQueue();
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Delete failed";
-      setMessage(errorMessage);
-      setActionMessage(`Failed: ${errorMessage}`);
+      const text = error instanceof Error ? error.message : "Delete failed";
+      setMessage(text);
+      setActionMessage(`Failed: ${text}`);
     } finally {
       setBusy(false);
     }
   }
 
-  const state = selectedCandidate?.workflow_state;
-  const employeeCanAnnotate = has("labeling.annotate");
-  const ownerCanReview =
-    has("labeling.owner_review") && !employeeCanAnnotate;
-  const canEdit =
-    state === "labeling-in-progress"
-      ? employeeCanAnnotate
-      : state === "submitted-for-owner-qa"
-        ? ownerCanReview
-        : false;
-
-  const employeeCanDelete =
-    has("labeling.upload") &&
-    employeeCanAnnotate &&
-    [
-      "candidate",
-      "suitable-for-labeling",
-      "unsuitable-for-labeling",
-      "labeling-in-progress",
-      "revision-required",
-      "submitted-for-owner-qa",
-    ].includes(state ?? "");
-
   return (
-    <main className="structural-labeling-page">
-      <header className="structural-labeling-header">
+    <main className="labeling-page">
+      <header className="labeling-header">
         <p>Authenticated Workspace</p>
         <h1>Structural Labeling</h1>
-        {message && <p role="status">{message}</p>}
+        {message && <p role="status" className="status-message">{message}</p>}
       </header>
-
-      <section className="structural-labeling-toolbar">
+      <section className="labeling-toolbar">
         {has("labeling.upload") && (
           <UploadDrawing
             onDone={() => void refreshQueue()}
@@ -195,64 +164,52 @@ export default function StructuralLabelingWorkspace() {
         <button onClick={() => void refreshQueue()}>Refresh Queue</button>
         <span>{candidates.length} candidates</span>
       </section>
-
-      <section className="structural-labeling-layout">
-        <aside className="structural-labeling-queue">
-          <h2>Candidate Queu</h2>
-          <div className="structural-labeling-queue-list">
+      <section className="labeling-grid">
+        <aside className="candidate-queue">
+          <h2>Candidate Queue</h2>
+          <div className="candidate-list">
             {candidates.map((candidate) => (
               <button
-                className="structural-labeling-queue-item"
+                className={candidate.id === selected ? "candidate-card selected" : "candidate-card"}
                 key={candidate.id}
                 onClick={() => setSelected(candidate.id)}
               >
                 <strong>
-                  {candidate.original_filename ||
-                    candidate.page_id ||
-                    candidate.id}
+                  {candidate.original_filename || candidate.page_id || candidate.id}
                 </strong>
                 <small>
                   {candidate.workflow_state}
-                  {candidate.page_index != null
-                    ? ` · page ${candidate.page_index + 1}`
-                    : ""}
+                  {candidate.page_index != null ? ` · page ${candidate.page_index + 1}` : ""}
                 </small>
               </button>
             ))}
           </div>
         </aside>
-
-        <article className="structural-labeling-detail">
+        <article className="candidate-detail">
           {!selectedCandidate && <p>Select a candidate.</p>}
-
           {selectedCandidate && (
             <>
-              <h2>
-                {selectedCandidate.original_filename ||
-                  selectedCandidate.page_id}
-              </h2>
-              <p>
-                <strong>Status:</strong>{" "}
-                {selectedCandidate.workflow_state}
-              </p>
-
+              <div className="candidate-heading">
+                <h2>
+                  {selectedCandidate.original_filename ||
+                    selectedCandidate.page_id ||
+                    selectedCandidate.id}
+                </h2>
+                <p><strong>Status:</strong> {selectedCandidate.workflow_state}</p>
+                <p><strong>Saved labels:</strong> {savedLabelCount}</p>
+              </div>
               {employeeCanDelete && (
-                <p>
-                  <button
-                    disabled={busy}
-                    onClick={() => void deleteSelected()}
-                  >
-                    Remove uploaded drawing
-                  </button>
-                </p>
+                <button
+                  className="danger-button"
+                  disabled={busy}
+                  onClick={() => void removeSelected()}
+                >
+                  Remove uploaded drawing
+                </button>
               )}
-
               {state === "candidate" && employeeCanAnnotate && (
-                <div className="structural-labeling-action-row">
-                  <button
-                    disabled={busy}
-                    onClick={() => void action("mark-suitable")}
-                  >
+                <div className="action-row">
+                  <button disabled={busy} onClick={() => void action("mark-suitable")}>
                     Suitable for labeling
                   </button>
                   <input
@@ -262,15 +219,12 @@ export default function StructuralLabelingWorkspace() {
                   />
                   <button
                     disabled={busy || !reason.trim()}
-                    onClick={() =>
-                      void action("mark-unsuitable", reason)
-                    }
+                    onClick={() => void action("mark-unsuitable", reason)}
                   >
                     Unsuitable for labeling
                   </button>
                 </div>
               )}
-
               {(state === "suitable-for-labeling" ||
                 state === "revision-required") &&
                 employeeCanAnnotate && (
@@ -281,85 +235,78 @@ export default function StructuralLabelingWorkspace() {
                     Start / Resume Labeling
                   </button>
                 )}
-
               {detail && (
                 <AnnotationEditor
                   candidate={detail.candidate}
                   revisions={detail.revisions}
                   canEdit={canEdit}
-                  onSaved={() =>
-                    void refreshDetail(selectedCandidate.id)
-                  }
+                  onSaved={() => {
+                    void refreshDetail(selectedCandidate.id);
+                    void refreshQueue();
+                  }}
                   onMessage={setMessage}
                 />
               )}
-
-              {state === "labeling-in-progress" &&
-                has("labeling.submit") && (
-                  <section className="structural-labeling-action-panel">
-                    <p>
-                      Saved labels: <strong>{latestSavedAnnotationCount}</strong>
+              {state === "labeling-in-progress" && has("labeling.submit") && (
+                <section className="action-panel">
+                  <p>
+                    Save the current labels first. Only saved revision labels are
+                    transferred to Owner QA.
+                  </p>
+                  <button
+                    disabled={busy || savedLabelCount === 0}
+                    onClick={() => void action("submit-owner-qa")}
+                  >
+                    Submit saved labels for Owner QA
+                  </button>
+                  {savedLabelCount === 0 && (
+                    <p className="warning">
+                      No saved labels are available for submission.
                     </p>
-                    {latestSavedAnnotationCount === 0 && (
-                      <p>
-                        Draw labels, then use <strong>Save revision</strong>{" "}
-                        before submitting.
-                      </p>
-                    )}
-                    <button
-                      disabled={busy || latestSavedAnnotationCount === 0}
-                      onClick={() => void action("submit-owner-qa")}
-                    >
-                      {busy
-                        ? "Submitting..."
-                        : "Submit for Owner QA"}
-                    </button>
-                    {actionMessage && (
-                      <p role="status" aria-live="polite">
-                        {actionMessage}
-                      </p>
-                    )}
-                  </section>
-              )}
-
-              {state === "submitted-for-owner-qa" &&
-                ownerCanReview && (
-                  <section className="structural-labeling-action-panel">
-                    <h3>Owner QA</h3>
-                    <p>
-                      Any annotation correction saved above creates a new
-                      Owner adjudication revision; the Employee submission is
-                      preserved.
-                    </p>
-                    <button
-                      disabled={busy}
-                      onClick={() => void action( "approve")}
-                    >
-                      Approve
-                    </button>{" "}
-                    <input
-                      value={reason}
-                      onChange={(event) =>
-                        setReason(event.target.value)
-                      }
-                      placeholder="Reason for reject/revision"
-                    />{" "}
-                    <button
-                      disabled={busy || !reason.trim()}
-                      onClick={() => void action("reject", reason)}
-                    >
-                      Reject
-                    </button>{" "}
-                    <button
-                      disabled={busy || !reason.trim()}
-                      onClick={() =>
-                        void action("request-revision", reason)}
-                      >
-                      Revision Required
-                    </button>
+                  )}
                 </section>
               )}
-
+              {state === "submitted-for-owner-qa" && ownerCanReview && (
+                <section className="action-panel">
+                  <h3>Owner QA</h3>
+                  {savedLabelCount === 0 ? (
+                    <p className="warning">
+                      This legacy submission contains no saved labels. Request a
+                      revision instead of approving it.
+                    </p>
+                  ) : (
+                    <p>{savedLabelCount} saved label(s) are available for review.</p>
+                  )}
+                  <button
+                    disabled={busy || savedLabelCount === 0}
+                    onClick={() => void action("approve")}
+                  >
+                    Approve
+                  </button>
+                  <input
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    placeholder="Reason for reject/revision"
+                  />
+                  <button
+                    disabled={busy || !reason.trim()}
+                    onClick={() => void action("reject", reason)}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    disabled={busy || !reason.trim()}
+                    onClick={() => void action("request-revision", reason)}
+                  >
+                    Revision Required
+                  </button>
+                </section>
+              )}
+              {actionMessage && (
+                <p role="status" aria-live="polite" className="action-message">
+                  {actionMessage}
+                </p>
+              )}
               <details>
                 <summary>Audit / Revision History</summary>
                 <pre>
@@ -377,6 +324,119 @@ export default function StructuralLabelingWorkspace() {
           )}
         </article>
       </section>
+      <style jsx>{`
+        .labeling-page {
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 32px 20px 64px;
+          font-size: 16px;
+          line-height: 1.45;
+        }
+        .labeling-header h1,
+        .candidate-queue h2,
+        .candidate-detail h2 {
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+        .labeling-toolbar,
+        .action-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: center;
+          margin: 16px 0 22px;
+        }
+        .labeling-grid {
+          display: grid;
+          grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+          gap: 28px;
+          align-items: start;
+        }
+        .candidate-list {
+          display: grid;
+          gap: 10px;
+        }
+        .candidate-card {
+          width: 100%;
+          min-width: 0;
+          padding: 12px 14px;
+          text-align: left;
+          border-radius: 8px;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          line-height: 1.35;
+        }
+        .candidate-card strong,
+        .candidate-card small {
+          display: block;
+          max-width: 100%;
+          overflow-wrap: anywhere;
+        }
+        .candidate-card small {
+          margin-top: 5px;
+        }
+        .candidate-card.selected {
+          outline: 2px solid #2563eb;
+        }
+        .candidate-detail {
+          min-width: 0;
+        }
+        .candidate-heading {
+          margin-bottom: 12px;
+        }
+        .action-panel {
+          margin-top: 16px;
+          padding: 14px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+        }
+        .action-panel input {
+          min-height: 38px;
+          margin: 6px 8px 6px 0;
+        }
+        .action-panel button,
+        .action-row button,
+        .danger-button {
+          min-height: 38px;
+          margin: 6px 8px 6px 0;
+          padding: 8px 12px;
+        }
+        .danger-button {
+          border-color: #b91c1c;
+        }
+        .warning {
+          font-weight: 600;
+        }
+        .action-message,
+        .status-message {
+          margin-top: 10px;
+          overflow-wrap: anywhere;
+        }
+        pre {
+          max-width: 100%;
+          overflow: auto;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+        }
+        @media (max-width: 1100px) {
+          .labeling-grid {
+            grid-template-columns: 1fr;
+          }
+          .candidate-list {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          }
+        }
+        @media (max-width: 640px) {
+          .labeling-page {
+            padding: 20px 12px 48px;
+            font-size: 15px;
+          }
+          .candidate-list {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </main>
   );
 }
