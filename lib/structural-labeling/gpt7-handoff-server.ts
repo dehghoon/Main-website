@@ -152,7 +152,7 @@ async function commitGithubBundle(input: {
   );
 
   const tree = await githubJson<{ sha: string }>(
-    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees`,
+    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees ,
     {
       method: "POST",
       body: JSON.stringify({
@@ -263,7 +263,7 @@ export async function prepareGpt7Handoff(
 
   const validationErrors = validateGpt7IntakePackage(pkg);
   if (validationErrors.length) {
-    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(),")}`);
+    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(",")}`);
   }
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
