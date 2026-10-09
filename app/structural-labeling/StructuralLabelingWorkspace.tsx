@@ -31,6 +31,7 @@ export default function StructuralLabelingWorkspace() {
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [message, setMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const has = useCallback((permission: string) => permissions.includes(permission), [permissions]);
@@ -52,6 +53,7 @@ export default function StructuralLabelingWorkspace() {
   async function action(name: string, actionReason?: string) {
     if (!selected) return;
     setBusy(true);
+    setActionMessage(`Running: ${name}...`);
     try {
       await labelingApi("/api/structural-labeling/action", {
         method: "POST",
@@ -59,10 +61,14 @@ export default function StructuralLabelingWorkspace() {
         body: JSON.stringify({ candidateId: selected, action: name, reason: actionReason || null }),
       });
       setReason("");
-      setMessage(`Action completed: ${name}`);
+      const successMessage = `Action completed: ${name}`;
+      setMessage(successMessage);
+      setActionMessage(successMessage);
       await Promise.all([refreshQueue(), refreshDetail(selected)]);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Action failed");
+      const errorMessage = error instanceof Error ? error.message : "Action failed";
+      setMessage(errorMessage);
+      setActionMessage(`Failed: ${errorMessage}`);
     } finally {
       setBusy(false);
     }
@@ -99,11 +105,10 @@ export default function StructuralLabelingWorkspace() {
     ["candidate", "suitable-for-labeling", "unsuitable-for-labeling", "labeling-in-progress", "revision-required"].includes(state ?? "");
 
   return (
-    <main style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 20px 80px" }}>
+    <main style={{ maxWidth: 1440, margin: "0 auto", padding: "40px 20px 80px" }}>
       <header>
-        <p style={{ textTransform: "uppercase", letterSpacing: ".12em", fontWeight: 700 }}>Authenticated Workspace</p>
+        <p>Authenticated Workspace</p>
         <h1>Structural Labeling</h1>
-        <p>Owner approval remains <strong>Pending GPT-7 Admission</strong>. It is not dataset admission or training readiness.</p>
         {message && <p role="status">{message}</p>}
       </header>
       <section style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", margin: "20px 0" }}>
@@ -113,19 +118,11 @@ export default function StructuralLabelingWorkspace() {
       </section>
       <section style={{ display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0, 1fr)", gap: 20 }}>
         <aside>
-          <h2>Candidate Queue</h2>
+          <h2>Candidate Queu</h2>
           {candidates.map((candidate) => (
-            <button
-              key={candidate.id}
-              onClick={() => setSelected(candidate.id)}
-              style={{
-                display: "block", width: "100%", textAlign: "left", padding: 12, marginBottom: 8,
-                border: selected === candidate.id ? "2px solid" : "1px solid #bbb", borderRadius: 8,
-              }}
-            >
+            <button key={candidate.id} onClick={() => setSelected(candidate.id)}>
               <strong>{candidate.original_filename || candidate.page_id || candidate.id}</strong><br />
               <small>{candidate.workflow_state}{candidate.page_index != null ? ` · page ${candidate.page_index + 1}` : ""}</small>
-              {candidate.duplicate_of && <><br /><small>Exact duplicate identity flagged</small></>}
             </button>
           ))}
         </aside>
@@ -134,17 +131,10 @@ export default function StructuralLabelingWorkspace() {
           {selectedCandidate && (
             <>
               <h2>{selectedCandidate.original_filename || selectedCandidate.page_id}</h2>
-              <p><strong>Status:</strong> {selectedCandidate.workflow_state === "owner-approved" ? "Owner Approved · Pending GPT-7 Admission" : selectedCandidate.workflow_state}</p>
-              <p><strong>SHA-256:</strong> <code>{selectedCandidate.source_sha256}</code></p>
-              {employeeCanDelete && (
-                <p>
-                  <button disabled={busy} onClick={() => void deleteSelected()}>
-                    Remove uploaded drawing
-                  </button>
-                </p>
-              )}
+              <p><strong>Status:</strong> {selectedCandidate.workflow_state}</p>
+              {employeeCanDelete && (<p><button disabled={busy} onClick={() => void deleteSelected()}>Remove uploaded drawing</button></p>)}
               {state === "candidate" && employeeCanAnnotate && (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                <div>
                   <button disabled={busy} onClick={() => void action("mark-suitable")}>Suitable for labeling</button>
                   <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Unsuitable reason" />
                   <button disabled={busy || !reason.trim()} onClick={() => void action("mark-unsuitable", reason)}>Unsuitable for labeling</button>
@@ -154,46 +144,27 @@ export default function StructuralLabelingWorkspace() {
                 <button disabled={busy} onClick={() => void action("start-labeling")}>Start / Resume Labeling</button>
               )}
               {detail && (
-                <AnnotationEditor
-                  candidate={detail.candidate}
-                  revisions={detail.revisions}
-                  canEdit={canEdit}
-                  onSaved={() => void refreshDetail(selectedCandidate.id)}
-                  onMessage={setMessage}
-                />
-              )}
+                <AnnotationEditor candidate={detail.candidate} revisions={detail.revisions} canEdit={canEdit} onSaved={() => void refreshDetail(selectedCandidate.id)} onMessage={setMessage} />
+              }
               {state === "labeling-in-progress" && has("labeling.submit") && (
-                <button disabled={busy} onClick={() => void action("submit-owner-qa")}>Submit for Owner QA</button>
+                <section style={{ marginTop: 12, padding: 12, border: "1px solid #cbd5e1", borderRadius: 8 }}>
+                  <button disabled={busy} onClick={() => void action("submit-owner-qa")}>
+                    {busy ? "Submitting..." : "Submit for Owner QA"}
+                  </button>
+                  {actionMessage && <p role="status" aria-live="polite" style={{ marginBottom: 0 }}>{actionMessage}</p>}
+                </section>
               )}
               {state === "submitted-for-owner-qa" && ownerCanReview && (
                 <section style={{ marginTop: 20, borderTop: "1px solid #bbb", paddingTop: 16 }}>
                   <h3>Owner QA</h3>
                   <p>Any annotation correction saved above creates a new Owner adjudication revision; the Employee submission is preserved.</p>
-                  <button disabled={busy} onClick={() => void action("approve")}>Approve</button>{" "}
-                  <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason for reject/revision" />{" "}
+                  <button disabled={busy} onClick={() => void action( "approve")}>Approve</button>{"}"}
+                  <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason for reject/revision" />{"}"}
                   <button disabled={busy || !reason.trim()} onClick={() => void action("reject", reason)}>Reject</button>{" "}
                   <button disabled={busy || !reason.trim()} onClick={() => void action("request-revision", reason)}>Revision Required</button>
                 </section>
               )}
-              {state === "owner-approved" && has("labeling.gpt7_export") && (
-                <p><a href={`/api/structural-labeling/export/${selectedCandidate.id}`} onClick={async (event) => {
-                  event.preventDefault();
-                  try {
-                    const access = await (await import("./client")).labelingAccessToken();
-                    const response = await fetch(`/api/structural-labeling/export/${selectedCandidate.id}`, { headers: { Authorization: `Bearer ${access}` } });
-                    if (!response.ok) throw new Error((await response.json()).error || "Export failed");
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const anchor = document.createElement("a");
-                    anchor.href = url; anchor.download = `gpt7-manual-labeling-${selectedCandidate.id}.json`; anchor.click();
-                    URL.revokeObjectURL(url);
-                  } catch (error) { setMessage(error instanceof Error ? error.message : "Export failed"); }
-                }}>Generate GPT-7 Intake Package</a></p>
-              )}
-              <details style={{ marginTop: 20 }}>
-                <summary>Audit / Revision History</summary>
-                <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{JSON.stringify({ revisions: detail?.revisions ?? [], audit: detail?.audit ?? [] }, null, 2)}</pre>
-              </details>
+              <details><summary>Audit / Revision History</summary><pre>{JSON.stringify(s revisions: detail?.revisions ?? [], audit: detail?.audit ?? [] }, null, 2)}</pre></details>
             </>
           )}
         </article>
