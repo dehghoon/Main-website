@@ -1,0 +1,87 @@
+.structural-labeling-shell {
+  width: 100%;
+}
+
+.structural-labeling-shell main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.structural-labeling-shell mai > section:first-of-type {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.structural-labeling-shell mai > section:nth-of-type(2) {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.structural-labeling-shell aside {
+  min-width: 0;
+}
+
+.structural-labeling-shell aside > button {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.structural-labeling-shell aside > button strong,
+.structural-labeling-shell aside > button small {
+  display: block;
+}
+
+.structural-labeling-shell article {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.structural-labeling-shell article button {
+  margin-top: 8px;
+  margin-right: 8px;
+  padding: 8px 12px;
+}
+
+.structural-labeling-shell article input,
+.structural-labeling-shell article select {
+  min-height: 36px;
+  margin: 4px 8px 4px 0;
+}
+
+.structural-labeling-shell details {
+  margin-top: 16px;
+}
+
+.structural-labeling-shell pre {
+  overflow: auto;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 800px) {
+  .structural-labeling-shell mai {
+    padding: 24px 12px 60px;
+  }
+
+  .structural-labeling-shell mai > section:nth-of-type(2) {
+    grid-template-columns: 1fr;
+  }
+
+  .structural-labeling-shell aside > button {
+    font-size: 14px;
+  }
+}
