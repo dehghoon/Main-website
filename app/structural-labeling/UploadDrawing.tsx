@@ -118,7 +118,7 @@ export default function UploadDrawing({
           disabled={busy || files.length === 0}
           onClick={() => void uploadSelected()}
         >
-          {busy ? "Uploading…" : `Upload selected (${files.length)`}
+          {busy ? "Uploading…" : `Upload selected (${files.length})`}
         </button>
 
         {files.length > 0 && (
@@ -155,7 +155,7 @@ export default function UploadDrawing({
             ))}
           </div>
           <small style={{ display: "block", marginTop: 6 }}>
-            {((totalSize / (1024 * 1024)).toFixed(1)} MB selected
+            {(totalSize / (1024 * 1024)).toFixed(1)} MB selected
           </small>
         </div>
       )}
