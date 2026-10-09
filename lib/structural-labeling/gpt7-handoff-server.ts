@@ -4,20 +4,19 @@ import {
   validateGpt7IntakePackage,
   type Gpt7IntakePackage,
 } from "./gpt7";
+import { renderPdfPageToPng } from "./pdf-render-server";
 import type { Annotation, TransformMetadata } from "./contract";
 
 type CandidateRow = Record<string, unknown> & {
   id: string;
   source_id: string;
   page_id: string;
+  page_index: number | null;
   project_group_id: string;
   source_ref: string;
   source_sha256: string;
   original_filename: string;
   workflow_state: string;
-  gpt7_commit_sha?: string | null;
-  gpt7_export_path?: string | null;
-  gpt7_repository?: string | null;
 };
 
 type SourceRow = Record<string, unknown> & {
@@ -37,6 +36,7 @@ export type Gpt7HandoffResult = {
   commitSha: string;
   exportPath: string;
   sourcePath: string;
+  yoloImagePath: string;
   annotationsPath: string;
   manifestPath: string;
   package: Gpt7IntakePackage;
@@ -144,7 +144,7 @@ async function commitGithubBundle(input: {
   );
 
   const tree = await githubJson<{ sha: string }>(
-    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees`,
+    `${apiBase}/repos/${input.owner}/${repo}/git/trees`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -230,7 +230,9 @@ export async function prepareGpt7Handoff(
     .from("structural-labeling-sources")
     .download(typedSource.storage_path);
 
-  if (downloadError || !sourceBlob) throw new Error(downloadError?.message ?? "source_download_failed");
+  if (downloadError || !sourceBlob) throw new Error(
+    downloadError?.message ?? "source_download_failed",
+  );
 
   const sourceBytes = new Uint8Array(await sourceBlob.arrayBuffer());
   const typedRevision = revision as RevisionRow;
@@ -241,12 +243,12 @@ export async function prepareGpt7Handoff(
     annotations: typedRevision.annotations,
     transform: typedRevision.transform_metadata,
     audit: audit ?? [],
-    toolVersion: "github-handoff-v1",
+    toolVersion: "github-handoff-v2-raster",
   });
 
   const validationErrors = validateGpt7IntakePackage(pkg);
   if (validationErrors.length) {
-    throw new Error( pinned_contract_validation_failed:${validationErrors.join(",")}`);
+    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(",")}`);
   }
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
@@ -255,9 +257,48 @@ export async function prepareGpt7Handoff(
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
   const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
-  const originalSourcePath = `${exportPath}/${sourceFileName(typedSource)}`;
+  const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
   const manifestPath = `${exportPath}/manifest.json`;
+
+  const files: Array<{ path: string; content: string; encoding: "utf-8" | "base64" }> = [
+    {
+      path: originalSourcePath,
+      content: Buffer.from(sourceBytes).toString("base64"),
+      encoding: "base64",
+    },
+  ];
+
+  let yoloImagePath = originalSourcePath;
+  let renderedImage:
+    | {
+        path: string;
+        page_index: number;
+        width_px: number;
+        height_px: number;
+        render_scale: number;
+        mime_type: "image/png";
+      }
+    | null = null;
+
+  if (typedSource.mime_type === "application/pdf") {
+    const pageIndex = typedCandidate.page_index ?? 0;
+    const rendered = await renderPdfPageToPng(sourceBytes, pageIndex);
+    yoloImagePath = `${exportPath}/rendered/page-${String(pageIndex + 1).padStart(4, "0")}.png`;
+    renderedImage = {
+      path: yoloImagePath,
+      page_index: pageIndex,
+      width_px: rendered.widthPx,
+      height_px: rendered.heightPx,
+      render_scale: rendered.scale,
+      mime_type: "image/png",
+    };
+    files.push({
+      path: yoloImagePath,
+      content: Buffer.from(rendered.png).toString("base64"),
+      encoding: "base64",
+    });
+  }
 
   const annotationDocument = {
     schema_version: pkg.schema_version,
@@ -267,11 +308,16 @@ export async function prepareGpt7Handoff(
     coordinate_space: pkg.coordinate_space,
     unit: pkg.unit,
     transform: pkg.transform,
+    raster_target: {
+      path: yoloImagePath,
+      width_px: renderedImage?.width_px ?? pkg.transform.raster_width_px,
+      height_px: renderedImage?.height_px ?? pkg.transform.raster_height_px,
+    },
     annotations: pkg.annotations,
   };
 
   const manifest = {
-    handoff_version: "github-manual-labeling-v1",
+    handoff_version: "github-manual-labeling-v2",
     source_repository: "dehghoon/Main-website",
     destination_repository: repository,
     candidate_id: pkg.candidate_id,
@@ -279,28 +325,47 @@ export async function prepareGpt7Handoff(
     project_group_id: pkg.project_group_id,
     source_sha256: pkg.source_sha256,
     original_filename: pkg.original_filename,
+    source_mime_type: typedSource.mime_type,
+    page_index: typedCandidate.page_index ?? 0,
     workflow_state: pkg.workflow_state,
     owner_disposition: pkg.owner_disposition,
     dataset_admission: "pending-gpt7",
     training_ready: false,
     dataset_split_assigned: false,
-    source_file: originalSourcePath,
+    original_source_file: originalSourcePath,
+    yolo_image_file: yoloImagePath,
+    rendered_image: renderedImage,
     annotations_file: annotationsPath,
+    annotation_coordinate_space: pkg.coordinate_space,
+    annotation_unit: pkg.unit,
+    transform: pkg.transform,
+    note:
+      typedSource.mime_type === "application/pdf"
+        ? "Original PDF is preserved for provenance. GPT-7/YOLO consumes the rendered PNG page referenced by yolo_image_file."
+        : "Original raster image is the GPT-7/YOLO image candidate.",
     created_at: new Date().toISOString(),
   };
 
-  const sourceBase64 = Buffer.from(sourceBytes).toString("base64");
+  files.push(
+    {
+      path: annotationsPath,
+      content: `${JSON.stringify(annotationDocument, null, 2)}\n`,
+      encoding: "utf-8",
+    },
+    {
+      path: manifestPath,
+      content: `${JSON.stringify(manifest, null, 2)}\n`,
+      encoding: "utf-8",
+    },
+  );
+
   const commitSha = await commitGithubBundle({
     token,
     owner,
     repo,
     branch,
     message: `Add approved manual labeling candidate ${candidateId}`,
-    files: [
-      { path: originalSourcePath, content: sourceBase64, encoding: "base64" },
-      { path: annotationsPath, content: `${JSON.stringify(annotationDocument, null, 2)}\n`, encoding: "utf-8" },
-      { path: manifestPath, content: `${JSON.stringify(manifest, null, 2)}\n`, encoding: "utf-8" },
-    ],
+    files,
   });
 
   const receipt = await supabase.rpc("labeling_record_gpt7_github_export", {
@@ -316,6 +381,7 @@ export async function prepareGpt7Handoff(
     commitSha,
     exportPath,
     sourcePath: originalSourcePath,
+    yoloImagePath,
     annotationsPath,
     manifestPath,
     package: pkg,
