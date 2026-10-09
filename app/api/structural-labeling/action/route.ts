@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
           {
+            error: `Owner approval succeeded, but GPT-7 GitHub handoff failed: ${message}`,
             state: data,
             handoff: {
               state: "github-export-required",
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
               error: message,
             },
           },
-          { status: 202 },
+          { status: 502 },
         );
       }
     }
