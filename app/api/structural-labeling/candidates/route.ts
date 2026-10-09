@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { supabase, user } = await requireAuthenticatedUser(request.headers.get("authorization"));
     const [{ data: permissions, error: permissionError }, { data: candidates, error: candidateError }] = await Promise.all([
       supabase.from("structural_labeling_permissions").select("permission").eq("user_id", user.id),
-      supabase.from("structural_labeling_candidates").select("*").is("archived_at", null).order("created_at", { ascending: true }),
+      supabase.from("structural_labeling_candidates").select("*").order("created_at", { ascending: true }),
     ]);
     if (permissionError) throw new Error(permissionError.message);
     if (candidateError) throw new Error(candidateError.message);
