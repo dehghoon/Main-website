@@ -1,4 +1,5 @@
 import StructuralLabelingWorkflowGuide from "../StructuralLabelingWorkflowGuide";
+import RegionKitImageDownloadPanel from "./RegionKitImageDownloadPanel";
 import RegionKitWorkspace from "./RegionKitWorkspace";
 import StructuralLabelingPermissionAdmin from "./StructuralLabelingPermissionAdmin";
 import StructuralLabelingUploadPanel from "./StructuralLabelingUploadPanel";
@@ -10,6 +11,7 @@ export default function RegionKitPage() {
       <StructuralLabelingWorkflowGuide active="labeling" />
       <StructuralLabelingPermissionAdmin />
       <StructuralLabelingUploadPanel />
+      <RegionKitImageDownloadPanel />
       <div className={styles.workspace}>
         <RegionKitWorkspace />
       </div>
