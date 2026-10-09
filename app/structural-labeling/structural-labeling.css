@@ -2,103 +2,132 @@
   width: 100%;
 }
 
-.structural-labeling-shell main {
+.structural-labeling-shell main,
+.structural-labeling-shell .labeling-page {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 40px 20px 80px;
+  padding: 32px 20px 64px;
+  box-sizing: border-box;
 }
 
-.structural-labeling-shell main > section:first-of-type {
+.structural-labeling-shell .labeling-toolbar,
+.structural-labeling-shell .action-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin: 20px 0;
 }
 
-.structural-labeling-shell main > section:nth-of-type(2) {
+.structural-labeling-shell .labeling-grid {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) !important;
+  gap: 28px !important;
+  align-items: start !important;
+}
+
+.structural-labeling-shell .candidate-list {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
+  gap: 10px;
 }
 
-.structural-labeling-shell aside {
-  min-width: 0;
-}
-
-.structural-labeling-shell aside > button {
-  display: block;
+.structural-labeling-shell .candidate-card {
   width: 100%;
-  margin: 0 0 10px;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 12px 14px;
   text-align: left;
-  white-space: normal;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
   line-height: 1.35;
   border-radius: 8px;
-  box-sizing: border-box;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
-.structural-labeling-shell aside > button strong,
-.structural-labeling-shell aside > button small {
+.structural-labeling-shell .candidate-card strong,
+.structural-labeling-shell .candidate-card small,
+.structural-labeling-shell .candidate-heading h2,
+.structural-labeling-shell .candidate-heading p {
   display: block;
   max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  white-space: normal !important;
 }
 
-.structural-labeling-shell article {
+.structural-labeling-shell .candidate-card small {
+  margin-top: 5px;
+}
+
+.structural-labeling-shell .candidate-detail {
   min-width: 0;
-  overflow-x: auto;
+  overflow: visible;
 }
 
-.structural-labeling-shell article button {
-  margin-top: 8px;
-  margin-right: 8px;
-  padding: 8px 12px;
+.structural-labeling-shell .candidate-detail button,
+.structural-labeling-shell .candidate-detail input,
+.structural-labeling-shell .candidate-detail select {
+  min-height: 38px;
 }
 
-.structural-labeling-shell article input,
-.structural-labeling-shell article select {
-  min-height: 36px;
-  margin: 4px 8px 4px 0;
-}
-
-.structural-labeling-shell details {
+.structural-labeling-shell .candidate-detail details {
   margin-top: 16px;
 }
 
-.structural-labeling-shell pre {
-  overflow: auto;
+.structural-labeling-shell .candidate-detail pre {
   max-width: 100%;
+  overflow: auto;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-.structural-labeling-shell article > section > div:nth-of-type(2) {
+/* The editor used to reserve 72-88vh regardless of the fitted page height.
+   Force normal document flow so short landscape drawings do not leave a gray void. */
+.structural-labeling-shell .candidate-detail .annotation-editor {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.structural-labeling-shell .candidate-detail .annotation-viewport {
+  min-height: 0 !important;
+  max-height: 75vh;
+}
+
+.structural-labeling-shell .candidate-detail section[style*="min-height"] {
+  min-height: 0 !important;
+}
+
+.structural-labeling-shell .candidate-detail section > div[style*="72vh"] {
   height: auto !important;
   min-height: 0 !important;
-  max-height: 72vh;
 }
 
-.structural-labeling-shell h2,
-.structural-labeling-shell h3 {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+.structural-labeling-shell .candidate-detail section > div[style*="520px"] {
+  min-height: 0 !important;
+  height: auto !important;
 }
 
-@media (max-width: 800px) {
-  .structural-labeling-shell main {
-    padding: 24px 12px 60px;
+@media (max-width: 1200px) {
+  .structural-labeling-shell .labeling-grid {
+    grid-template-columns: 1fr !important;
   }
 
-  .structural-labeling-shell main > section:nth-of-type(2) {
+  .structural-labeling-shell .candidate-list {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .structural-labeling-shell main,
+  .structural-labeling-shell .labeling-page {
+    padding: 20px 12px 48px;
+    font-size: 15px;
+  }
+
+  .structural-labeling-shell .candidate-list {
     grid-template-columns: 1fr;
   }
 
-  .structural-labeling-shell aside > button {
+  .structural-labeling-shell .candidate-card {
     font-size: 14px;
   }
 }
