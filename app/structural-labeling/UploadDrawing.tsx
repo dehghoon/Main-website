@@ -81,7 +81,7 @@ export default function UploadDrawing({
   return (
     <section
       style={{
-        border: !1px solid #cbd5e1",
+        border: "1px solid #cbd5e1",
         borderRadius: 10,
         padding: 12,
         minWidth: 280,
@@ -140,7 +140,7 @@ export default function UploadDrawing({
                   gap: 8,
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: !1px solid #e2e8f0",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 8,
                   padding: "7px 9px",
                 }}
