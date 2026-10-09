@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Building2, ChevronDown, Clock3, Layers3, LifeBuoy, Snowflake, UsersRound } from "lucide-react";
+import { Building2, ChevronDown, Clock3, Layers3, LifeBuoy, Snowflake, Tag, UsersRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase-browser";
 
 const MODEL_3D_URL = "https://3dmodel.linkoteq.com/";
@@ -55,7 +55,7 @@ export default function SiteHeader() {
           </div>
           <a href="/pricing">Pricing</a>
           <div className="navMenu">
-            <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
+            <button className="navMenuBtton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
               <a href={MODEL_3D_URL}><Layers3 size={16} /> 3D Structural Model</a>
               <a href={W_SECTION_URL}><Building2 size={16} /> W-Section</a>
@@ -81,7 +81,16 @@ export default function SiteHeader() {
         <a href="/">Home</a>
         <a href="/#platform">AI Platform</a>
         <a href="/#roadmap">Roadmap</a>
-        <a href="/knowledge/documentation">Knowledge Center</a>
+        <div className="navMenu knowledgeMenu">
+          <button className="navMenuButton" type="button" aria-haspopup="true">
+            Knowledge Center <ChevronDown size={14} />
+          </button>
+          <div className="navDropdown knowledgeDropdown">
+            <a href="/knowledge/documentation">Documentation</a>
+            <a href="/structural-labeling"><Tag size={16} /> Structural Labeling</a>
+            <a href="/structural-labeling/regionkit"><Layers3 size={16} /> RegionKit</a>
+          </div>
+        </div>
         <a href="/blog">Blog</a>
       </nav>
     </header>
