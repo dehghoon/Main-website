@@ -142,7 +142,7 @@ export default function StructuralLabelingWorkspace() {
                 textAlign: "left",
                 padding: 12,
                 marginBottom: 8,
-                border: selected === candidate.id ? "2px solid" : !1px solid #bbb",
+                border: selected === candidate.id ? "2px solid" : "1px solid #bbb",
                 borderRadius: 8,
               }}
             >
@@ -168,7 +168,7 @@ export default function StructuralLabelingWorkspace() {
             <>
               <h2>{selectedCandidate.original_filename || selectedCandidate.page_id}</h2>
               <p>
-                <strong>Status:</strong> {{" "}}
+                <strong>Status:</strong>{" "}
                 {selectedCandidate.workflow_state === "owner-approved"
                   ? "Owner Approved · Pending GPT-7 Admission"
                   : selectedCandidate.workflow_state}
@@ -217,18 +217,18 @@ export default function StructuralLabelingWorkspace() {
                 <button disabled={busy} onClick={() => void action("submit-owner-qa")}>
                   Submit for Owner QA
                 </button>
-              {}
+              )}
 
               {state === "submitted-for-owner-qa" && ownerCanReview && (
                 <section style={{ marginTop: 20, borderTop: "1px solid #bbb", paddingTop: 16 }}>
                   <h3>Owner QA</h3>
                   <p>
-                  Any annotation correction saved above creates a new Owner adjudication revision; the
-                  Employee submission is preserved.
+                    Any annotation correction saved above creates a new Owner adjudication revision;
+                    the Employee submission is preserved.
                   </p>
-                  <button disabled={busy} onClick={() => void action( "approve" )}>
+                  <button disabled={busy} onClick={() => void action("approve")}>
                     Approve
-                  </button>{"  "}
+                  </button>{" "}
                   <input
                     value={reason}
                     onChange={(event) => setReason(event.target.value)}
@@ -242,7 +242,6 @@ export default function StructuralLabelingWorkspace() {
                   </button>{" "}
                   <button
                     disabled={busy || !reason.trim()}
-                    onChange={}
                     onClick={() => void action("request-revision", reason)}
                   >
                     Revision Required
@@ -257,7 +256,9 @@ export default function StructuralLabelingWorkspace() {
                     onClick={async (event) => {
                       event.preventDefault();
                       try {
-                        const access = await (await import("./client")).labelingAccessToken();
+                        const access = await (
+                          await import("./client")
+                        ).labelingAccessToken();
                         const response = await fetch(
                           `/api/structural-labeling/export/${selectedCandidate.id}`,
                           { headers: { Authorization: `Bearer ${access}` } },
@@ -273,8 +274,8 @@ export default function StructuralLabelingWorkspace() {
                         anchor.click();
                         URL.revokeObjectURL(url);
                       } catch (error) {
-                          setMessage(error instanceof Error ? error.message : "Export failed");
-                        }
+                        setMessage(error instanceof Error ? error.message : "Export failed");
+                      }
                     }}
                   >
                     Generate GPT-7 Intake Package
