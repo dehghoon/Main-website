@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         p_transform: transform,
         p_notes: body.notes ?? null,
       });
-      if (error) throw new Error(error.messae);
+      if (error) throw new Error(error.message);
       return NextResponse.json({ revisionId: data });
     }
 
