@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "../../../../lib/structural-labeling/server";
 import { assertAnnotationsValid } from "../../../../lib/structural-labeling/validation";
 import type { Annotation, TransformMetadata } from "../../../../lib/structural-labeling/contract";
+import { prepareGpt7Handoff } from "../../../../lib/structural-labeling/gpt7-handoff-server";
 
 function failure(error: unknown) {
   const message = error instanceof Error ? error.message : "request_failed";
@@ -16,7 +17,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const candidateId = String(body.candidateId ?? "");
     const action = String(body.action ?? "");
-    if (!candidateId || !action) return NextResponse.json({ error: "candidateId_and_action_required" }, { status: 400 });
+    if (!candidateId || !action) {
+      return NextResponse.json(
+        { error: "candidateId_and_action_required" },
+        { status: 400 },
+      );
+    }
 
     if (action === "save-revision") {
       const annotations = body.annotations as Annotation[];
@@ -28,11 +34,15 @@ export async function POST(request: NextRequest) {
         p_transform: transform,
         p_notes: body.notes ?? null,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(error.messae);
       return NextResponse.json({ revisionId: data });
     }
 
-    if (["mark-suitable", "mark-unsuitable", "start-labeling", "submit-owner-qa"].includes(action)) {
+    if (
+      ["mark-suitable", "mark-unsuitable", "start-labeling", "submit-owner-qa"].includes(
+        action,
+      )
+    ) {
       const { data, error } = await supabase.rpc("labeling_employee_transition", {
         p_id: candidateId,
         p_action: action,
@@ -49,7 +59,59 @@ export async function POST(request: NextRequest) {
         p_reason: body.reason ?? null,
       });
       if (error) throw new Error(error.message);
-      return NextResponse.json({ state: data });
+
+      if (action !== "approve") {
+        return NextResponse.json({ state: data });
+      }
+
+      try {
+        const handoff = await prepareGpt7Handoff(supabase, candidateId);
+        return NextResponse.json({
+          state: data,
+          handoff: {
+            id: handoff.handoffId,
+            state: handoff.handoffState,
+            contractVersion: handoff.contractVersion,
+            datasetAdmission: handoff.datasetAdmission,
+            trainingReady: handoff.trainingReady,
+            datasetSplitAssigned: handoff.datasetSplitAssigned,
+          },
+        });
+      } catch (handoffError) {
+        const message =
+          handoffError instanceof Error
+            ? handoffError.message
+            : "gpt7_handoff_build_failed";
+
+        return NextResponse.json(
+          {
+            state: data,
+            handoff: {
+              state: "build-required",
+              datasetAdmission: "pending-gpt7",
+              trainingReady: false,
+              datasetSplitAssigned: false,
+              error: message,
+            },
+          },
+          { status: 202 },
+        );
+      }
+    }
+
+    if (action === "retry-gpt7-handoff") {
+      const handoff = await prepareGpt7Handoff(supabase, candidateId);
+      return NextResponse.json({
+        state: "owner-approved",
+        handoff: {
+          id: handoff.handoffId,
+          state: handoff.handoffState,
+          contractVersion: handoff.contractVersion,
+          datasetAdmission: handoff.datasetAdmission,
+          trainingReady: handoff.trainingReady,
+          datasetSplitAssigned: handoff.datasetSplitAssigned,
+        },
+      });
     }
 
     return NextResponse.json({ error: "unsupported_action" }, { status: 400 });
