@@ -28,6 +28,8 @@ export default function AnnotationEditor(props: {
 }) {
   const [retrying, setRetrying] = useState(false);
   const [handoffMessage, setHandoffMessage] = useState("");
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [diagnosticMessage, setDiagnosticMessage] = useState("");
 
   const retryHandoff = async () => {
     setRetrying(true);
@@ -66,6 +68,35 @@ export default function AnnotationEditor(props: {
     }
   };
 
+
+
+  const diagnoseEnv = async () => {
+    setDiagnosing(true);
+    setDiagnosticMessage("Checking GPT-7 environment...");
+    try {
+      const result = await labelingApi<{
+        vercelEnv?: string | null;
+        vercelGitCommitSha?: string | null;
+        env?: Record<string, { present: boolean; length: number }>;
+      }>("/api/structural-labeling/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateId: props.candidate.id,
+          action: "diagnose-gpt7-env",
+        }),
+      });
+
+      setDiagnosticMessage(JSON.stringify(result, null, 2));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Diagnostic failed";
+      setDiagnosticMessage(message);
+    } finally {
+      setDiagnosing(false);
+    }
+  };
+
   return (
     <>
       <EnhancedAnnotationEditor {...props} />
@@ -82,13 +113,23 @@ export default function AnnotationEditor(props: {
           <p style={{ margin: "8px 0" }}>
             If the automatic export did not complete after approval, retry it here.
           </p>
-          <button disabled={retrying} onClick={() => void retryHandoff()}>
-            {retrying ? "Retrying..." : "Retry GPT-7 handoff"}
-          </button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button disabled={retrying} onClick={() => void retryHandoff()}>
+              {retrying ? "Retrying..." : "Retry GPT-7 handoff"}
+            </button>
+            <button disabled={diagnosing} onClick={() => void diagnoseEnv()}>
+              {diagnosing ? "Checking..." : "Check GPT-7 env"}
+            </button>
+          </div>
           {handoffMessage && (
             <p role="status" aria-live="polite" style={{ marginBottom: 0 }}>
               {handoffMessage}
             </p>
+          )}
+          {diagnosticMessage && (
+            <pre style={{ marginTop: 12, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+              {diagnosticMessage}
+            </pre>
           )}
         </section>
       )}
