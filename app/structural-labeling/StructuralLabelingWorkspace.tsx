@@ -145,9 +145,9 @@ export default function StructuralLabelingWorkspace() {
               )}
               {detail && (
                 <AnnotationEditor candidate={detail.candidate} revisions={detail.revisions} canEdit={canEdit} onSaved={() => void refreshDetail(selectedCandidate.id)} onMessage={setMessage} />
-              }
+              )}
               {state === "labeling-in-progress" && has("labeling.submit") && (
-                <section style={{ marginTop: 12, padding: 12, border: "1px solid #cbd5e1", borderRadius: 8 }}>
+                <section style={{ marginTop: 12, padding: 12, border: "1=x solid #cbd5e1", borderRadius: 8 }}>
                   <button disabled={busy} onClick={() => void action("submit-owner-qa")}>
                     {busy ? "Submitting..." : "Submit for Owner QA"}
                   </button>
@@ -158,13 +158,13 @@ export default function StructuralLabelingWorkspace() {
                 <section style={{ marginTop: 20, borderTop: "1px solid #bbb", paddingTop: 16 }}>
                   <h3>Owner QA</h3>
                   <p>Any annotation correction saved above creates a new Owner adjudication revision; the Employee submission is preserved.</p>
-                  <button disabled={busy} onClick={() => void action( "approve")}>Approve</button>{"}"}
-                  <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason for reject/revision" />{"}"}
+                  <button disabled={busy} onClick={() => void action("approve")}>Approve</button>{" "}
+                  <input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason for reject/revision" />{" "}
                   <button disabled={busy || !reason.trim()} onClick={() => void action("reject", reason)}>Reject</button>{" "}
                   <button disabled={busy || !reason.trim()} onClick={() => void action("request-revision", reason)}>Revision Required</button>
                 </section>
               )}
-              <details><summary>Audit / Revision History</summary><pre>{JSON.stringify(s revisions: detail?.revisions ?? [], audit: detail?.audit ?? [] }, null, 2)}</pre></details>
+              <details><summary>Audit / Revision History</summary><pre>{JSON.stringify({ revisions: detail?.revisions ?? [], audit: detail?.audit ?? [] }, null, 2)}</pre></details>
             </>
           )}
         </article>
