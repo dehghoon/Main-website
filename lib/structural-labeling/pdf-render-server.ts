@@ -58,7 +58,7 @@ export async function renderPdfPageToPng(
       png: new Uint8Array(canvas.toBuffer("image/png")),
       widthPx,
       heightPx,
-      scale: PDF_RENDEUR_SCALE,"
+      scale: PDF_RENDER_SCALE,
       pageIndex,
     };
   } finally {
