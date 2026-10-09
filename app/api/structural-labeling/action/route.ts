@@ -4,6 +4,8 @@ import { assertAnnotationsValid } from "../../../../lib/structural-labeling/vali
 import type { Annotation, TransformMetadata } from "../../../../lib/structural-labeling/contract";
 import { prepareGpt7Handoff } from "../../../../lib/structural-labeling/gpt7-handoff-server";
 
+const OWNER_EMAIL = "dehghani.pmp@gmail.com";
+
 function failure(error: unknown) {
   const message = error instanceof Error ? error.message : "request_failed";
   const status = message.includes("authentication_required") ? 401 : 403;
@@ -25,19 +27,40 @@ function githubHandoffResponse(handoff: Awaited<ReturnType<typeof prepareGpt7Han
   };
 }
 
+function safeEnv(value: string | undefined) {
+  const present = typeof value === "string" && value.length > 0;
+  return { present, length: present ? value!.length : 0 };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authorization = request.headers.get("authorization");
-    const { supabase } = await requireAuthenticatedUser(authorization);
+    const { supabase, user } = await requireAuthenticatedUser(authorization);
     const body = await request.json();
     const candidateId = String(body.candidateId ?? "");
     const action = String(body.action ?? "");
 
     if (!candidateId || !action) {
-      return NextResponse.json(
-        { error: "candidateId_and_action_required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "candidateId_and_action_required" }, { status: 400 });
+    }
+
+    if (action === "diagnose-gpt7-env") {
+      const email = user.email?.trim().toLowerCase();
+      if (email !== OWNER_EMAIL) {
+        return NextResponse.json({ error: "owner_access_required" }, { status: 403 });
+      }
+
+      return NextResponse.json({
+        diagnostic: "gpt7-github-handoff-env",
+      vercelEnv: process.env.VERCEL_ENV ?? null,
+        vercelGitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+        env: {
+          GPT7_GITHUB_TOKEN: safeEnv(process.env.GPT7_GITHUB_TOKEN),
+          GPT7_GITHUB_REPO: safeEnv(process.env.GPT7_GITHUB_REPO),
+          GPT7_GITHUB_OWNER: safeEnv(process.env.GPT7_GITHUB_OWNER),
+          GPT7_GITHUB_BRANCH: safeEnv(process.env.GPT7_GITHUB_BRANCH),
+        },
+      });
     }
 
     if (action === "save-revision") {
@@ -54,11 +77,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ revisionId: data });
     }
 
-    if (
-      ["mark-suitable", "mark-unsuitable", "start-labeling", "submit-owner-qa"].includes(
-        action,
-      )
-    ) {
+    if (["mark-suitable", "mark-unsuitable", "start-labeling", "submit-owner-qa"].includes(action)) {
       const { data, error } = await supabase.rpc("labeling_employee_transition", {
         p_id: candidateId,
         p_action: action,
@@ -87,22 +106,12 @@ export async function POST(request: NextRequest) {
           handoff: githubHandoffResponse(handoff),
         });
       } catch (handoffError) {
-        const message =
-          handoffError instanceof Error
-            ? handoffError.message
-            : "gpt7_github_export_failed";
-
+        const message = handoffError instanceof Error ? handoffError.message : "gpt7_github_export_failed";
         return NextResponse.json(
           {
             error: `Owner approval succeeded, but GPT-7 GitHub handoff failed: ${message}`,
             state: data,
-            handoff: {
-              state: "github-export-required",
-              datasetAdmission: "pending-gpt7",
-              trainingReady: false,
-              datasetSplitAssigned: false,
-              error: message,
-            },
+            handoff: { state: "github-export-required", datasetAdmission: "pending-gpt7", trainingReady: false, datasetSplitAssigned: false, error: message },
           },
           { status: 502 },
         );
@@ -111,10 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (action === "retry-gpt7-handoff") {
       const handoff = await prepareGpt7Handoff(supabase, candidateId);
-      return NextResponse.json({
-        state: "owner-approved",
-        handoff: githubHandoffResponse(handoff),
-      });
+      return NextResponse.json({ state: "owner-approved", handoff: githubHandoffResponse(handoff) });
     }
 
     return NextResponse.json({ error: "unsupported_action" }, { status: 400 });
