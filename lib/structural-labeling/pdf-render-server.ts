@@ -62,6 +62,6 @@ export async function renderPdfPageToPng(
       pageIndex,
     };
   } finally {
-    await document.destroy();
+    await loadingTask.destroy();
   }
 }
