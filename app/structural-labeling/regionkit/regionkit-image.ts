@@ -46,10 +46,7 @@ async function fetchPrivateSource(candidateId: string) {
 
   return {
     blob: await response.blob(),
-    contentType: (
-      response.headers.get("content-type") ??
-      ""
-    ).toLowerCase(),
+    contentType: (response.headers.get("content-type") ?? "").toLowerCase(),
   };
 }
 
@@ -71,10 +68,7 @@ async function renderPdfToRegionKitPng(
 
   if (!sharedPdfWorker) {
     sharedPdfWorker = new Worker(
-      new URL(
-        "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-        import.meta.url,
-      ),
+      new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url),
       { type: "module" },
     );
   }
@@ -90,9 +84,7 @@ async function renderPdfToRegionKitPng(
     const pdf = await loadingTask.promise;
     const pageNumber = pageIndex + 1;
     if (pageNumber < 1 || pageNumber > pdf.numPages) {
-      throw new Error(
-        `Source PDF does not contain page ${pageNumber}.`,
-      );
+      throw new Error(`Source PDF does not contain page ${pageNumber}.`);
     }
 
     const page = await pdf.getPage(pageNumber);
@@ -100,12 +92,12 @@ async function renderPdfToRegionKitPng(
       scale: 1,
       rotation: transform.page_rotation_deg,
     });
-    const scale = Math.min(
+    const renderScale = Math.max(
       width / baseViewport.width,
       height / baseViewport.height,
     );
     const viewport = page.getViewport({
-      scale,
+      scale: renderScale,
       rotation: transform.page_rotation_deg,
     });
 
@@ -133,10 +125,7 @@ async function renderPdfToRegionKitPng(
 
     outputContext.fillStyle = "#fff";
     outputContext.fillRect(0, 0, width, height);
-
-    const offsetX = (width - rendered.width) / 2;
-    const offsetY = (height - rendered.height) / 2;
-    outputContext.drawImage(rendered, offsetX, offsetY);
+    outputContext.drawImage(rendered, 0, 0, width, height);
 
     return canvasToPng(output);
   } finally {
@@ -163,17 +152,7 @@ async function renderImageToRegionKitPng(
 
     context.fillStyle = "#fff";
     context.fillRect(0, 0, width, height);
-
-    const scale = Math.min(width / bitmap.width, height / bitmap.height);
-    const drawWidth = bitmap.width * scale;
-    const drawHeight = bitmap.height * scale;
-    context.drawImage(
-      bitmap,
-      (width - drawWidth) / 2,
-      (height - drawHeight) / 2,
-      drawWidth,
-      drawHeight,
-    );
+    context.drawImage(bitmap, 0, 0, width, height);
 
     return canvasToPng(output);
   } finally {
