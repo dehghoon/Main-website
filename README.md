@@ -41,3 +41,5 @@ Production deployments are triggered by commits to the `main` branch in the conn
 - Contact call-to-action
 
 Deployment trigger check: 2026-10-09 after Git reconnect.
+
+Deployment verification trigger: current `main` includes the corrected structural-labeling API error handling.
