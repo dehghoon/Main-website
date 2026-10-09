@@ -31,7 +31,6 @@ export async function renderPdfPageToPng(
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const loadingTask = pdfjs.getDocument({
     data: pdfBytes,
-    disableWorker: true,
     useSystemFonts: true,
   });
 
@@ -43,7 +42,7 @@ export async function renderPdfPageToPng(
     }
 
     const page = await document.getPage(pageIndex + 1);
-    const viewport = page.getViewport({scale: PDF_RENDER_SCALE });
+    const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
     const widthPx = Math.max(1, Math.ceil(viewport.width));
     const heightPx = Math.max(1, Math.ceil(viewport.height));
     const canvas = createCanvas(widthPx, heightPx);
@@ -59,7 +58,7 @@ export async function renderPdfPageToPng(
       png: new Uint8Array(canvas.toBuffer("image/png")),
       widthPx,
       heightPx,
-      scale: PDF_RENDER_SCALE,
+      scale: PDF_RENDEUR_SCALE,"
       pageIndex,
     };
   } finally {
