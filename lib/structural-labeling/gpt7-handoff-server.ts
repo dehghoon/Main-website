@@ -48,17 +48,17 @@ export type Gpt7HandoffResult = {
   package: Gpt7IntakePackage;
 };
 
-function requireEnv(name: string) {
+function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`missing_server_env:${name}`);
   return value;
 }
 
-function safeSegment(value: string) {
+function safeSegment(value: string): string {
   return value.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^_+|_+$/g, "") || "source";
 }
 
-function sourceFilename(source: SourceRow) {
+function sourceFilename(source: SourceRow): string {
   const original = safeSegment(source.original_filename || "source");
   if (original.includes(".")) return original;
 
@@ -76,7 +76,11 @@ function sourceFilename(source: SourceRow) {
   return `${original}${ext}`;
 }
 
-async function githubJson<T>(url: string, init: RequestInit, token: string): Promise<T> {
+async function githubJson<T>(
+  url: string,
+  init: RequestInit,
+  token: string,
+): Promise<T> {
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -90,7 +94,9 @@ async function githubJson<T>(url: string, init: RequestInit, token: string): Pro
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`github_export_failed:${response.status}:${text.slice(0, 500)}`);
+    throw new Error(
+      `github_export_failed:${response.status}:${text.slice(0, 500)}`,
+    );
   }
 
   return (await response.json()) as T;
@@ -102,7 +108,7 @@ async function createBlob(input: {
   owner: string;
   repo: string;
   file: GithubFile;
-}) {
+}): Promise<{ sha: string }> {
   return githubJson<{ sha: string }>(
     `${input.apiBase}/repos/${input.owner}/${input.repo}/git/blobs`,
     {
@@ -123,7 +129,7 @@ async function commitGithubBundle(input: {
   branch: string;
   files: GithubFile[];
   message: string;
-}) {
+}): Promise<string> {
   const apiBase = "https://api.github.com";
 
   const ref = await githubJson<{ object: { sha: string } }>(
@@ -152,7 +158,7 @@ async function commitGithubBundle(input: {
   );
 
   const tree = await githubJson<{ sha: string }>(
-    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees ,
+    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -202,7 +208,11 @@ export async function prepareGpt7Handoff(
     { data: revision, error: revisionError },
     { data: audit, error: auditError },
   ] = await Promise.all([
-    supabase.from("structural_labeling_candidates").select("*").eq("id", candidateId).single(),
+    supabase
+      .from("structural_labeling_candidates")
+      .select("*")
+      .eq("id", candidateId)
+      .single(),
     supabase
       .from("structural_labeling_annotation_revisions")
       .select("annotations,transform_metadata")
@@ -262,18 +272,22 @@ export async function prepareGpt7Handoff(
   });
 
   const validationErrors = validateGpt7IntakePackage(pkg);
-  if (validationErrors.length) {
-    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(",")}`);
+  if (validationErrors.length > 0) {
+    throw new Error(
+      `pinned_contract_validation_failed:${validationErrors.join(",")}`,
+    );
   }
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
   const owner = process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon";
-  const repo = process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
+  const repo =
+    process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
 
   const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
-  const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
+  const originalSourcePath =
+    `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
   const manifestPath = `${exportPath}/manifest.json`;
 
@@ -300,7 +314,9 @@ export async function prepareGpt7Handoff(
   if (typedSource.mime_type === "application/pdf") {
     const pageIndex = typedCandidate.page_index ?? 0;
     const rendered = await renderPdfPageToPng(sourceBytes, pageIndex);
-    yoloImagePath = `${exportPath}/rendered/page-${String(pageIndex + 1).padStart(4, "0")}.png`;
+    yoloImagePath =
+      `${exportPath}/rendered/page-${String(pageIndex + 1).padStart(4, "0")}.png`;
+
     renderedImage = {
       path: yoloImagePath,
       page_index: pageIndex,
@@ -309,6 +325,7 @@ export async function prepareGpt7Handoff(
       render_scale: rendered.scale,
       mime_type: "image/png",
     };
+
     files.push({
       path: yoloImagePath,
       content: Buffer.from(rendered.png).toString("base64"),
@@ -390,6 +407,7 @@ export async function prepareGpt7Handoff(
     p_commit_sha: commitSha,
     p_export_path: exportPath,
   });
+
   if (receipt.error) throw new Error(receipt.error.message);
 
   return {
