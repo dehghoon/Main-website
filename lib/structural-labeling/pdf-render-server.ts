@@ -3,15 +3,11 @@ import { DOMMatrix, ImageData, Path2D, createCanvas } from "@napi-rs/canvas";
 const PDF_RENDER_SCALE = 2;
 
 function installPdfJsCanvasGlobals() {
-  const target = globalThis as typeof globalThis & {
-    DOMMatrix?: typeof DOMMatrix;
-    ImageData?: typeof ImageData;
-    Path2D?: typeof Path2D;
-  };
+  const target = globalThis as unknown as Record<string, unknown>;
 
-  target.DOMMatrix ??= DOMMatrix;
-  target.ImageData ??= ImageData;
-  target.Path2D ??= Path2D;
+  if (!target.DOMMatrix) target.DOMMatrix = DOMMatrix;
+  if (!target.ImageData) target.ImageData = ImageData;
+  if (!target.Path2D) target.Path2D ] = Path2D;
 }
 
 export type RenderedPdfPage = {
@@ -30,7 +26,7 @@ export async function renderPdfPageToPng(
     throw new Error("invalid_pdf_page_index");
   }
 
-  installPdfJsCanvasGlobals();
+  installPdfjsCanvasGlobals();
 
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const loadingTask = pdfjs.getDocument({
@@ -47,7 +43,7 @@ export async function renderPdfPageToPng(
     }
 
     const page = await document.getPage(pageIndex + 1);
-    const viewport = page.getViewport({scale:PDF_RENDER_SCALE});
+    const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
     const widthPx = Math.max(1, Math.ceil(viewport.width));
     const heightPx = Math.max(1, Math.ceil(viewport.height));
     const canvas = createCanvas(widthPx, heightPx);
