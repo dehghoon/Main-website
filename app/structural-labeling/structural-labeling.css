@@ -8,7 +8,7 @@
   padding: 40px 20px 80px;
 }
 
-.structural-labeling-shell mai > section:first-of-type {
+.structural-labeling-shell main > section:first-of-type {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -16,7 +16,7 @@
   margin: 20px 0;
 }
 
-.structural-labeling-shell mai > section:nth-of-type(2) {
+.structural-labeling-shell main > section:nth-of-type(2) {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
   gap: 24px;
@@ -37,11 +37,16 @@
   line-height: 1.35;
   border-radius: 8px;
   box-sizing: border-box;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .structural-labeling-shell aside > button strong,
 .structural-labeling-shell aside > button small {
   display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .structural-labeling-shell article {
@@ -72,12 +77,24 @@
   word-break: break-word;
 }
 
+.structural-labeling-shell article > section > div:nth-of-type(2) {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 72vh;
+}
+
+.structural-labeling-shell h2,
+.structural-labeling-shell h3 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 @media (max-width: 800px) {
-  .structural-labeling-shell mai {
+  .structural-labeling-shell main {
     padding: 24px 12px 60px;
   }
 
-  .structural-labeling-shell mai > section:nth-of-type(2) {
+  .structural-labeling-shell main > section:nth-of-type(2) {
     grid-template-columns: 1fr;
   }
 
