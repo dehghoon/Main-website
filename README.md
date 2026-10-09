@@ -26,6 +26,10 @@ npm run build
 npm run start
 ```
 
+## Deployment
+
+Production deployments are triggered by commits to the `main` branch in the connected Vercel project. Verify the Vercel build logs and production status after each push.
+
 ## Current sections
 
 - LinkoTech platform vision
