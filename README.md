@@ -39,3 +39,5 @@ Production deployments are triggered by commits to the `main` branch in the conn
 - Steel Member Verification
 - 2D drawing intelligence roadmap
 - Contact call-to-action
+
+Deployment trigger check: 2026-10-09 after Git reconnect.
