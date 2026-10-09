@@ -31,6 +31,12 @@ type RevisionRow = {
   transform_metadata: TransformMetadata;
 };
 
+type GithubFile = {
+  path: string;
+  content: string;
+  encoding: "utf-8" | "base64";
+};
+
 export type Gpt7HandoffResult = {
   repository: string;
   commitSha: string;
@@ -90,21 +96,23 @@ async function githubJson<T>(url: string, init: RequestInit, token: string): Pro
   return (await response.json()) as T;
 }
 
-async function createBlob(
-  apiBase: string,
-  token: string,
-  owner: string,
-  repo: string,
-  content: string,
-  encoding: "utf-8" | "base64",
-) {
+async function createBlob(input: {
+  apiBase: string;
+  token: string;
+  owner: string;
+  repo: string;
+  file: GithubFile;
+}) {
   return githubJson<{ sha: string }>(
-    `${apiBase}/repos/${owner}/${repo}/git/blobs`,
+    `${input.apiBase}/repos/${input.owner}/${input.repo}/git/blobs`,
     {
       method: "POST",
-      body: JSON.stringify({ content, encoding }),
+      body: JSON.stringify({
+        content: input.file.content,
+        encoding: input.file.encoding,
+      }),
     },
-    token,
+    input.token,
   );
 }
 
@@ -113,10 +121,11 @@ async function commitGithubBundle(input: {
   owner: string;
   repo: string;
   branch: string;
-  files: Array<{ path: string; content: string; encoding: "utf-8" | "base64" }>;
+  files: GithubFile[];
   message: string;
 }) {
   const apiBase = "https://api.github.com";
+
   const ref = await githubJson<{ object: { sha: string } }>(
     `${apiBase}/repos/${input.owner}/${input.repo}/git/ref/heads/${encodeURIComponent(input.branch)}`,
     { method: "GET" },
@@ -132,19 +141,18 @@ async function commitGithubBundle(input: {
   const blobs = await Promise.all(
     input.files.map(async (file) => ({
       file,
-      blob: await createBlob(
+      blob: await createBlob({
         apiBase,
-        input.token,
-        input.owner,
-        input.repo,
-        file.content,
-        file.encoding,
-      ),
+        token: input.token,
+        owner: input.owner,
+        repo: input.repo,
+        file,
+      }),
     })),
   );
 
   const tree = await githubJson<{ sha: string }>(
-    `${apiBase}/repos/${input.owner}/${repo}/git/trees`,
+    `${apiBase}/repos/${input.owner}/${input.repo}/git/trees`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -189,33 +197,38 @@ export async function prepareGpt7Handoff(
   supabase: SupabaseClient,
   candidateId: string,
 ): Promise<Gpt7HandoffResult> {
-  const [{ data: candidate, error: candidateError }, { data: revision, error: revisionError }, { data: audit, error: auditError }] =
-    await Promise.all([
-      supabase
-        .from("structural_labeling_candidates")
-        .select("*")
-        .eq("id", candidateId)
-        .single(),
-      supabase
-        .from("structural_labeling_annotation_revisions")
-        .select("annotations,transform_metadata")
-        .eq("candidate_id", candidateId)
-        .order("revision_no", { ascending: false })
-        .limit(1)
-        .single(),
-      supabase
-        .from("structural_labeling_audit_events")
-        .select("*")
-        .eq("candidate_id", candidateId)
-        .order("created_at", { ascending: true }),
-    ]);
+  const [
+    { data: candidate, error: candidateError },
+    { data: revision, error: revisionError },
+    { data: audit, error: auditError },
+  ] = await Promise.all([
+    supabase.from("structural_labeling_candidates").select("*").eq("id", candidateId).single(),
+    supabase
+      .from("structural_labeling_annotation_revisions")
+      .select("annotations,transform_metadata")
+      .eq("candidate_id", candidateId)
+      .order("revision_no", { ascending: false })
+      .limit(1)
+      .single(),
+    supabase
+      .from("structural_labeling_audit_events")
+      .select("*")
+      .eq("candidate_id", candidateId)
+      .order("created_at", { ascending: true }),
+  ]);
 
-  if (candidateError || !candidate) throw new Error(candidateError?.message ?? "candidate_not_found");
-  if (revisionError || !revision) throw new Error(revisionError?.message ?? "annotation_revision_required");
+  if (candidateError || !candidate) {
+    throw new Error(candidateError?.message ?? "candidate_not_found");
+  }
+  if (revisionError || !revision) {
+    throw new Error(revisionError?.message ?? "annotation_revision_required");
+  }
   if (auditError) throw new Error(auditError.message);
 
   const typedCandidate = candidate as CandidateRow;
-  if (typedCandidate.workflow_state !== "owner-approved") throw new Error("owner_approval_required");
+  if (typedCandidate.workflow_state !== "owner-approved") {
+    throw new Error("owner_approval_required");
+  }
 
   const { data: source, error: sourceError } = await supabase
     .from("structural_labeling_sources")
@@ -223,16 +236,18 @@ export async function prepareGpt7Handoff(
     .eq("source_id", typedCandidate.source_id)
     .single();
 
-  if (sourceError || !source) throw new Error(sourceError?.message ?? "source_not_found");
-  const typedSource = source as SourceRow;
+  if (sourceError || !source) {
+    throw new Error(sourceError?.message ?? "source_not_found");
+  }
 
+  const typedSource = source as SourceRow;
   const { data: sourceBlob, error: downloadError } = await supabase.storage
     .from("structural-labeling-sources")
     .download(typedSource.storage_path);
 
-  if (downloadError || !sourceBlob) throw new Error(
-    downloadError?.message ?? "source_download_failed",
-  );
+  if (downloadError || !sourceBlob) {
+    throw new Error(downloadError?.message ?? "source_download_failed");
+  }
 
   const sourceBytes = new Uint8Array(await sourceBlob.arrayBuffer());
   const typedRevision = revision as RevisionRow;
@@ -248,7 +263,7 @@ export async function prepareGpt7Handoff(
 
   const validationErrors = validateGpt7IntakePackage(pkg);
   if (validationErrors.length) {
-    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(",")}`);
+    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(),")}`);
   }
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
@@ -256,12 +271,13 @@ export async function prepareGpt7Handoff(
   const repo = process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
+
   const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
   const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
   const manifestPath = `${exportPath}/manifest.json`;
 
-  const files: Array<{ path: string; content: string; encoding: "utf-8" | "base64" }> = [
+  const files: GithubFile[] = [
     {
       path: originalSourcePath,
       content: Buffer.from(sourceBytes).toString("base64"),
