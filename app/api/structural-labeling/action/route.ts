@@ -10,6 +10,21 @@ function failure(error: unknown) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function githubHandoffResponse(handoff: Awaited<ReturnType<typeof prepareGpt7Handoff>>) {
+  return {
+    state: "exported-to-gpt7-github",
+    repository: handoff.repository,
+    commitSha: handoff.commitSha,
+    exportPath: handoff.exportPath,
+    sourcePath: handoff.sourcePath,
+    annotationsPath: handoff.annotationsPath,
+    manifestPath: handoff.manifestPath,
+    datasetAdmission: "pending-gpt7",
+    trainingReady: false,
+    datasetSplitAssigned: false,
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authorization = request.headers.get("authorization");
@@ -17,6 +32,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const candidateId = String(body.candidateId ?? "");
     const action = String(body.action ?? "");
+
     if (!candidateId || !action) {
       return NextResponse.json(
         { error: "candidateId_and_action_required" },
@@ -68,26 +84,19 @@ export async function POST(request: NextRequest) {
         const handoff = await prepareGpt7Handoff(supabase, candidateId);
         return NextResponse.json({
           state: data,
-          handoff: {
-            id: handoff.handoffId,
-            state: handoff.handoffState,
-            contractVersion: handoff.contractVersion,
-            datasetAdmission: handoff.datasetAdmission,
-            trainingReady: handoff.trainingReady,
-            datasetSplitAssigned: handoff.datasetSplitAssigned,
-          },
+          handoff: githubHandoffResponse(handoff),
         });
       } catch (handoffError) {
         const message =
           handoffError instanceof Error
             ? handoffError.message
-            : "gpt7_handoff_build_failed";
+            : "gpt7_github_export_failed";
 
         return NextResponse.json(
           {
             state: data,
             handoff: {
-              state: "build-required",
+              state: "github-export-required",
               datasetAdmission: "pending-gpt7",
               trainingReady: false,
               datasetSplitAssigned: false,
@@ -103,14 +112,7 @@ export async function POST(request: NextRequest) {
       const handoff = await prepareGpt7Handoff(supabase, candidateId);
       return NextResponse.json({
         state: "owner-approved",
-        handoff: {
-          id: handoff.handoffId,
-          state: handoff.handoffState,
-          contractVersion: handoff.contractVersion,
-          datasetAdmission: handoff.datasetAdmission,
-          trainingReady: handoff.trainingReady,
-          datasetSplitAssigned: handoff.datasetSplitAssigned,
-        },
+        handoff: githubHandoffResponse(handoff),
       });
     }
 
