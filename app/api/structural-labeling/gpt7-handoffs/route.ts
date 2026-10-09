@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "../../../../../lib/structural-labeling/server";
+import { requireAuthenticatedUser } from "../../../../lib/structural-labeling/server";
 
 export async function GET(request: NextRequest) {
   try {
