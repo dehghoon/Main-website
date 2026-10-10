@@ -65,18 +65,21 @@ async function uploadLargeDrawing(file: File): Promise<UploadResult> {
 
   if (uploadError) throw new Error(uploadError.message);
 
-  return labelingApi<UploadResult>("/api/structural-labeling/upload/direct", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "complete",
-      filename: file.name,
-      mimeType: file.type,
-      byteSize: file.size,
-      sha256,
-      storagePath: init.storagePath,
-    }),
-  });
+  return labelingApi<UploadResult>(
+    "/api/structural-labeling/upload/direct",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "complete",
+        filename: file.name,
+        mimeType: file.type,
+        byteSize: file.size,
+        sha256,
+        storagePath: init.storagePath,
+      }),
+    },
+  );
 }
 
 async function uploadSmallDrawing(file: File): Promise<UploadResult> {
@@ -101,14 +104,12 @@ export default function UploadDrawing({
   const totalSize = useMemo(
     () => files.reduce((sum, file) => sum + file.size, 0),
     [files],
-   );
+  );
 
   function addFiles(nextFiles: File[]) {
     setFiles((current) => {
       const seen = new Set(
-        current.map(
-          (file) => `${file.name}:${file.size}:${file.lastModified}`,
-        ),
+        current.map((file) => `${file.name}:${file.size}:${file.lastModified}`),
       );
       const merged = [...current];
       for (const file of nextFiles) {
@@ -141,7 +142,6 @@ export default function UploadDrawing({
     try {
       for (const file of files) {
         validateFile(file);
-
         const useDirectUpload =
           file.size > STRUCTURAL_LABELING_DIRECT_UPLOAD_THRESHOLD_BYTES;
 
@@ -176,9 +176,7 @@ export default function UploadDrawing({
       setFiles([]);
       onDone();
     } catch (error) {
-      onMessage(
-        error instanceof Error ? error.message : "Upload failed",
-      );
+      onMessage(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setBusy(false);
     }
@@ -187,7 +185,7 @@ export default function UploadDrawing({
   return (
     <section
       style={{
-        border: !1px solid #cbd5e1",
+        border: "1px solid #cbd5e1",
         borderRadius: 10,
         padding: 12,
         minWidth: 280,
@@ -205,7 +203,7 @@ export default function UploadDrawing({
       >
         <label
           style={{
-            border: !1px solid #222",
+            border: "1px solid #222",
             borderRadius: 8,
             padding: "10px 14px",
             cursor: busy ? "not-allowed" : "pointer",
@@ -231,15 +229,11 @@ export default function UploadDrawing({
           disabled={busy || files.length === 0}
           onClick={() => void uploadSelected()}
         >
-          {busy ? "Uploading…" : `Upload selected (${files.length})`}
+          {busy ? "Uploading..." : `Upload selected (${files.length})`}
         </button>
 
         {files.length > 0 && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setFiles([])}
-          >
+          <button type="button" disabled={busy} onClick={() => setFiles([])}>
             Clear selection
           </button>
         )}
@@ -248,9 +242,7 @@ export default function UploadDrawing({
       {files.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <strong>Selected drawings</strong>
-          <div
-            style={{ marginTop: 6, display: "grid", gap: 6 }}
-          >
+          <div style={{ marginTop: 6, display: "grid", gap: 6 }}>
             {files.map((file, index) => (
               <div
                 key={`${file.name}:${file.size}:${file.lastModified}`}
@@ -259,7 +251,7 @@ export default function UploadDrawing({
                   gap: 8,
                   alignItems: "center",
                   justifyContent: "space-between",
-                  border: !1px solid #e2e8f0",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 8,
                   padding: "7px 9px",
                 }}
