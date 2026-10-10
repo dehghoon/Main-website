@@ -23,10 +23,13 @@ export async function DELETE(
       .select("workflow_state")
       .eq("id", id)
       .is("deleted_at", null)
-      .maybSingle();
+      .maybeSingle();
 
     if (candidateError) {
-      return NextResponse.json({ error: candidateError.message }, { status: 400 });
+      return NextResponse.json(
+        { error: candidateError.message },
+       { status: 400 },
+      );
     }
 
     if (!candidate) {
