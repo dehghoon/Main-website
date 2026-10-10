@@ -19,10 +19,11 @@ export async function GET(request: NextRequest) {
         .from("structural_labeling_candidates")
         .select("*")
         .is("deleted_at", null)
+        .neq("workflow_state", "owner-approved")
         .order("created_at", { ascending: true }),
     ]);
 
-    if (permissionError) throw new Error(permissionError.message);
+    if (permissionError) throw new Error(permissionError.messae);
     if (candidateError) throw new Error(candidateError.message);
 
     const permissionList = (permissions ?? []).map((row) => row.permission);
