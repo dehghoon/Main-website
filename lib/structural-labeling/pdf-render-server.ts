@@ -14,9 +14,6 @@ async function installPdfJsFakeWorker() {
   const target = globalThis as unknown as Record<string, unknown>;
   if (target.pdfjsWorker) return;
 
-  // PDF.js disables real Web Workers in Node and falls back to a main-thread worker.
-  // Preloading the worker module keeps Next.js/Vercel from having to resolve a dynamic
-  // pdf.worker.mjs path from a bundled .~ext/server/chunks module at runtime.
   const worker = await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
   target.pdfjsWorker = worker;
 }
@@ -54,4 +51,26 @@ export async function renderPdfPageToPng(
     }
 
     const page = await document.getPage(pageIndex + 1);
-    const viewport = page.getViewport({ scale: PDF_RENDER_SCALE );
+    const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
+    const widthPx = Math.max(1, Math.ceil(viewport.width));
+    const heightPx = Math.max(1, Math.ceil(viewport.height));
+    const canvas = createCanvas(widthPx, heightPx);
+    const context = canvas.getContext("2d");
+
+    await page.render({
+      canvasContext: context as never,
+      viewport,
+      canvas: canvas as never,
+    }).promise;
+
+    return {
+      png: new Uint8Array(canvas.toBuffer("image/png")),
+      widthPx,
+      heightPx,
+      scale: PDF_RENDER_SCALE,
+      pageIndex,
+    };
+  } finally {
+    await loadingTask.destroy();
+  }
+}
