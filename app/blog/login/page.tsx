@@ -18,10 +18,17 @@ function mapAuthError(message: string) {
   return message;
 }
 
+function safeReturnTo(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  if (value.startsWith("/blog/login")) return "/";
+  return value;
+}
+
 export default function EmployeeWorkspacePage() {
   const router = useRouter();
   const [forTimesheet, setForTimesheet] = useState(false);
-  const [mode, setMode] = useState<|"login" | "signup">("login");
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,20 +38,32 @@ export default function EmployeeWorkspacePage() {
   const [confirmationPending, setConfirmationPending] = useState(false);
 
   useEffect(() => {
-    const wantsTimesheet =
-      new URLSearchParams(window.location.search).get("next") === "timesheet";
+    const params = new URLSearchParams(window.location.search);
+    const wantsTimesheet = params.get("next") === "timesheet";
+    const requestedReturnTo = safeReturnTo(params.get("returnTo"));
     setForTimesheet(wantsTimesheet);
+    setReturnTo(requestedReturnTo);
+
     const supabase = getSupabase();
     if (!supabase) return;
+
     void supabase.auth.getSession().then(({ data }) => {
       if (!data.session) return;
-      if (wantsTimesheet) void continueToDestination(true);
-      else router.replace("/blog/dashboard");
+      if (wantsTimesheet) {
+        void continueToDestination(true, requestedReturnTo);
+      } else if (requestedReturnTo) {
+        router.replace(requestedReturnTo);
+      } else {
+        router.replace("/blog/dashboard");
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
-  async function continueToDestination(forceTimesheet = forTimesheet) {
+  async function continueToDestination(
+    forceTimesheet = forTimesheet,
+    requestedReturnTo = returnTo,
+  ) {
     const supabase = getSupabase();
     if (forceTimesheet && supabase) {
       const { data } = await supabase.auth.getSession();
@@ -59,7 +78,18 @@ export default function EmployeeWorkspacePage() {
         return;
       }
     }
-    router.push("/blog/dashboard");
+
+    router.push(requestedReturnTo ?? "/blog/dashboard");
+  }
+
+  function confirmationRedirectUrl() {
+    const url = new URL("/blog/login", window.location.origin);
+    if (forTimesheet) {
+      url.searchParams.set("next", "timesheet");
+    } else if (returnTo) {
+      url.searchParams.set("returnTo", returnTo);
+    }
+    return url.toString();
   }
 
   async function submit(event: FormEvent) {
@@ -81,7 +111,7 @@ export default function EmployeeWorkspacePage() {
           password,
           options: {
             data: { full_name: name.trim() },
-            emailRedirectTo: `${window.location.origin}/blog/login`,
+            emailRedirectTo: confirmationRedirectUrl(),
           },
         });
 
@@ -138,7 +168,7 @@ export default function EmployeeWorkspacePage() {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: normalizedEmail,
-        options: { emailRedirectTo: `${window.location.origin}/blog/login` },
+        options: { emailRedirectTo: confirmationRedirectUrl() },
       });
       if (error) return setMessage(mapAuthError(error.message));
       setConfirmationPending(true);
@@ -181,27 +211,27 @@ export default function EmployeeWorkspacePage() {
         </div>
 
         <form className="authForm" onSubmit={submit}>
-         {mode === "signup" && (
+          {mode === "signup" && (
             <label>
               Full name
-              <input value={name} onChange={(e) => setName(e.target.value)} required disabled={busy} />
+              <input value={name} onChange={(event) => setName(event.target.value)} required disabled={busy} />
             </label>
           )}
 
           <label>
             Company email
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={busy} />
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={busy} />
           </label>
 
           <label>
             Password
-            <input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={busy} />
+            <input type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required disabled={busy} />
           </label>
 
           {mode === "signup" && (
             <label>
               Confirm password
-              <input type="password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} required disabled={busy} />
+              <input type="password" minLength={8} value={confirm} onChange={(event) => setConfirm(event.target.value)} required disabled={busy} />
             </label>
           )}
 
@@ -223,10 +253,11 @@ export default function EmployeeWorkspacePage() {
         <p style={{ marginTop: 20 }}>
           {forTimesheet ? (
             <a href="/">Back to LinkoTech</a>
+          ) : returnTo ? (
+            <a href={returnTo}>Back to previous page</a>
           ) : (
             <>
-              <a href="/blog/login?next=timesheet">Open Timesheet</a> · {" "}
-              <a href="/blog">Back to Blog</a>
+              <a href="/blog/login?next=timesheet">Open Timesheet</a> · <a href="/blog">Back to Blog</a>
             </>
           )}
         </p>
