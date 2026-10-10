@@ -1,7 +1,13 @@
-import { isLabelClass, type Annotation, type TransformMetadata, validateBBox } from "./contract.ts";
+import {
+  isLabelClass,
+  type Annotation,
+  type TransformMetadata,
+  validateBBox,
+  validateOrientedBBox,
+} from "./contract.ts";
 import { validateRoundTrip } from "./coordinates.ts";
 
-function formatBBoxValidationError(error: string): string {
+function formatValidationError(error: string): string {
   switch (error) {
     case "bbox-must-have-positive-area":
       return "bbox must have positive area";
@@ -9,6 +15,14 @@ function formatBBoxValidationError(error: string): string {
       return "bbox must be within effective page bounds";
     case "bbox-and-page-values-must-be-finite":
       return "bbox and page values must be finite";
+    case "oriented-bbox-values-must-be-finite":
+      return "oriented bbox values must be finite";
+    case "oriented-bbox-must-have-positive-area":
+      return "oriented bbox must have positive area";
+    case "oriented-bbox-must-be-within-effective-page-bounds":
+      return "oriented bbox must be within effective page bounds";
+    case "bbox-must-enclose-oriented-bbox":
+      return "bbox must tightly enclose oriented bbox";
     default:
       return error;
   }
@@ -45,8 +59,13 @@ export function validateAnnotations(annotations: Annotation[], transform: Transf
     if (!isLabelClass(annotation.class)) {
       errors.push(`invalid class: ${String(annotation.class)}`);
     }
-    if (annotation.annotation_spec_version !== "v0.2") {
-      errors.push("annotation_spec_version must be v0.2");
+
+    if (!["v0.2", "v0.3"].includes(annotation.annotation_spec_version)) {
+      errors.push("annotation_spec_version must be v0.2 or v0.3");
+    }
+
+    if (annotation.oriented_bbox && annotation.annotation_spec_version !== "v0.3") {
+      errors.push("oriented_bbox requires annotation_spec_version v0.3");
     }
 
     errors.push(
@@ -54,8 +73,19 @@ export function validateAnnotations(annotations: Annotation[], transform: Transf
         annotation.bbox,
         transform.effective_page_width_pt,
         transform.effective_page_height_pt,
-      ).map(formatBBoxValidationError),
+      ).map(formatValidationError),
     );
+
+    if (annotation.oriented_bbox) {
+      errors.push(
+        ...validateOrientedBBox(
+          annotation.oriented_bbox,
+          annotation.bbox,
+          transform.effective_page_width_pt,
+          transform.effective_page_height_pt,
+        ).map(formatValidationError),
+      );
+    }
   }
 
   return errors;
