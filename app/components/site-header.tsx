@@ -11,14 +11,44 @@ const SNOW_LOAD_URL = "https://snow.linkoteq.com/";
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const EMPLOYEE_TIMESHEET_URL = "/blog/login?next=timesheet";
 
+type SessionUser = {
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+};
+
+function displayNameFor(user: SessionUser | null | undefined) {
+  if (!user) return "";
+  const metadata = user.user_metadata ?? {};
+  const fullName = typeof metadata.full_name === "string" ? metadata.full_name.trim() : "";
+  const name = typeof metadata.name === "string" ? metadata.name.trim() : "";
+  if (fullName) return fullName;
+  if (name) return name;
+  if (user.email) return user.email.split("@")[0];
+  return "User";
+}
+
 export default function SiteHeader() {
   const [employeeSignedIn, setEmployeeSignedIn] = useState(false);
+  const [employeeName, setEmployeeName] = useState("");
+  const [returnTo, setReturnTo] = useState("/");
 
   useEffect(() => {
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    setReturnTo(current.startsWith("/blog/login") ? "/" : current);
+
     const supabase = getSupabase();
     if (!supabase) return;
-    void supabase.auth.getSession().then(({ data }) => setEmployeeSignedIn(Boolean(data.session)));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setEmployeeSignedIn(Boolean(session)));
+
+    const applyUser = (user: SessionUser | null | undefined) => {
+      setEmployeeSignedIn(Boolean(user));
+      setEmployeeName(displayNameFor(user));
+    };
+
+    void supabase.auth.getSession().then(({ data }) => applyUser(data.session?.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      applyUser(session?.user);
+    });
+
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -26,8 +56,11 @@ export default function SiteHeader() {
     const supabase = getSupabase();
     if (supabase) await supabase.auth.signOut();
     setEmployeeSignedIn(false);
-    window.location.href = "/";
+    setEmployeeName("");
+    window.location.reload();
   }
+
+  const employeeLoginUrl = `/blog/login?returnTo=${encodeURIComponent(returnTo)}`;
 
   return (
     <header className="globalHeader">
@@ -55,7 +88,7 @@ export default function SiteHeader() {
           </div>
           <a href="/pricing">Pricing</a>
           <div className="navMenu">
-            <button className="navMenuBtton" type="button">Calculators <ChevronDown size={14} /></button>
+            <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
               <a href={MODEL_3D_URL}><Layers3 size={16} /> 3D Structural Model</a>
               <a href={W_SECTION_URL}><Building2 size={16} /> W-Section</a>
@@ -65,12 +98,15 @@ export default function SiteHeader() {
         </nav>
 
         {employeeSignedIn ? (
-          <button className="navCta" type="button" onClick={signOut}>Sign Out</button>
+          <div className="signedInSummary">
+            <button className="navCta" type="button" onClick={signOut}>Sign Out</button>
+            <span className="signedInGreeting">Hello {employeeName}</span>
+          </div>
         ) : (
           <div className="navMenu signInMenu">
             <button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={14} /></button>
             <div className="navDropdown signInDropdown">
-              <a href="/blog/login">Employee Workspace</a>
+              <a href={employeeLoginUrl}>Employee Workspace</a>
               <a href="/customer-login">Client Workspace</a>
             </div>
           </div>
