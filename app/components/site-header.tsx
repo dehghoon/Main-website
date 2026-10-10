@@ -99,7 +99,7 @@ export default function SiteHeader() {
 
         {employeeSignedIn ? (
           <div className="signedInSummary">
-            <button className="navCta" type="button" onClick={signOut}>Sign Out</button>
+            <button className="navCta" type="button" onClick={signOut}>Sign Out</button><br />
             <span className="signedInGreeting">Hello {employeeName}</span>
           </div>
         ) : (
