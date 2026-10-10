@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: true }),
     ]);
 
-    if (permissionError) throw new Error(permissionError.messae);
+    if (permissionError) throw new Error(permissionError.message);
     if (candidateError) throw new Error(candidateError.message);
 
     const permissionList = (permissions ?? []).map((row) => row.permission);
@@ -53,9 +53,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "request_failed";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("authentication_required") ? 401 : 403 },
-    );
+    return NextResponse.json({ error: message }, { status: message.includes("authentication_required") ? 401 : 403 });
   }
 }
