@@ -163,8 +163,14 @@ export default function RegionKitWorkspace() {
 
   const refreshQueue = useCallback(async () => {
     const body = await labelingApi("/api/structural-labeling/candidates");
+    const nextCandidates = (body.candidates ?? []) as Candidate[];
     setPermissions(body.permissions ?? []);
-    setCandidates(body.candidates ?? []);
+    setCandidates(nextCandidates);
+    setSelectedId((current) =>
+      current && nextCandidates.some((candidate) => candidate.id === current)
+        ? current
+        : nextCandidates[0]?.id ?? null,
+    );
   }, []);
 
   const refreshDetail = useCallback(async (id: string) => {
@@ -296,7 +302,7 @@ export default function RegionKitWorkspace() {
 
   const state = selected?.workflow_state;
   const employeeCanLabel = has("labeling.annotate");
-  const ownerCanReview = has("labeling.owner_review") && !employeeCanLabel;
+  const ownerCanReview = has("labeling.owner_review");
 
   return (
     <main style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 20px 80px" }}>
@@ -370,6 +376,26 @@ export default function RegionKitWorkspace() {
                 <strong>Transform:</strong>{" "}
                 {transform?.transform_validation_state ?? "missing"}
               </p>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "12px 0 4px" }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.open(REGIONKIT_URL, "_blank", "noopener,noreferrer")
+                  }
+                >
+                  Open RegionKit
+                </button>
+                {state === "labeling-in-progress" && employeeCanLabel && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void transition("submit-owner-qa")}
+                  >
+                    Submit for Visual QA
+                  </button>
+                )}
+              </div>
 
               {(state === "suitable-for-labeling" ||
                 state === "revision-required") &&
