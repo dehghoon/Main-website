@@ -1,4 +1,4 @@
-import pinnedRules from "../../contracts/gpt7/manual-labeling-intake-validation-rules-v0.1.json" with { type: "json" };
+import pinnedRules from "../../contracts/gpt7/manual-labeling-intake-validation-rules-v0.2.json" with { type: "json" };
 import {
   GPT7_BOUNDARY,
   MANUAL_LABELING_CONTRACT,
@@ -8,8 +8,9 @@ import {
 import { assertAnnotationsValid, validateTransformMetadata } from "./validation.ts";
 
 type PinnedRules = typeof pinnedRules;
+
 export type Gpt7IntakePackage = {
-  schema_version: "manual-labeling-intake-v0.1";
+  schema_version: "manual-labeling-intake-v0.2";
   candidate_id: string;
   source_id: string;
   page_id: string;
@@ -39,6 +40,7 @@ export type Gpt7IntakePackage = {
   dataset_split_assigned: false;
   boundary: typeof GPT7_BOUNDARY;
 };
+
 export const PINNED_GPT7_RULES: PinnedRules = pinnedRules;
 
 export function buildGpt7IntakePackage(input: {
@@ -56,11 +58,17 @@ export function buildGpt7IntakePackage(input: {
       throw new Error(`missing_required_candidate_field:${key}`);
     }
   }
-  if (candidate.workflow_state !== "owner-approved") throw new Error("owner_approval_required");
+
+  if (candidate.workflow_state !== "owner-approved") {
+    throw new Error("owner_approval_required");
+  }
   if (!new RegExp(pinnedRules.sha256_pattern).test(String(candidate.source_sha256))) {
     throw new Error("valid_source_hash_required");
   }
-  if (source.preserved_artifact !== true) throw new Error("preserved_source_artifact_required");
+  if (source.preserved_artifact !== true) {
+    throw new Error("preserved_source_artifact_required");
+  }
+
   assertAnnotationsValid(annotations, transform);
 
   const pkg: Gpt7IntakePackage = {
@@ -94,38 +102,103 @@ export function buildGpt7IntakePackage(input: {
     dataset_split_assigned: false,
     boundary: GPT7_BOUNDARY,
   };
+
   const errors = validateGpt7IntakePackage(pkg);
-  if (errors.length) throw new Error(`pinned_contract_validation_failed:${errors.join(",")}`);
+  if (errors.length) {
+    throw new Error(`pinned_contract_validation_failed:${errors.join(",")}`);
+  }
   return pkg;
 }
 
 export function validateGpt7IntakePackage(value: Gpt7IntakePackage): string[] {
   const errors: string[] = [];
   const rules = pinnedRules;
-  if (rules.contract !== value.schema_version || rules.status !== "active") errors.push("contract");
-  for (const field of rules.required_ids) if (!value[field as keyof Gpt7IntakePackage]) errors.push(`required_id:${field}`);
-  if (!new RegExp(rules.sha256_pattern).test(value.source_sha256)) errors.push("source_sha256");
-  if (value.coordinate_space !== rules.coordinate.space || value.unit !== rules.coordinate.unit) errors.push("coordinate");
-  if (value.transform.transform_validation_state !== rules.transform.validated_state) errors.push("transform_validation_state");
-  if (!rules.transform.rotation.includes(value.transform.page_rotation_deg)) errors.push("rotation");
-  for (const field of rules.transform.fields) if (!(field in value.transform)) errors.push(`transform_field:${field}`);
-  if (value.transform.raster_to_source_page_affine.length !== rules.transform.affine_length) errors.push("raster_affine");
-  if (value.transform.source_page_to_raster_affine.length !== rules.transform.affine_length) errors.push("inverse_affine");
-  if (!rules.active_classes.every((label) => ["column", "beam", "wall"].includes(label))) errors.push("class_rules");
-  if (value.annotations.some((annotation) => !rules.active_classes.includes(annotation.class))) errors.push("annotation_class");
-  if (value.annotations.some((annotation) => annotation.annotation_spec_version !== rules.annotation_spec_version)) errors.push("annotation_spec");
-  if (value.observed_evidence.gpt6_proposal_observed_gt !== rules.gpt6_proposal_observed_gt) errors.push("gpt6_evidence");
-  if (value.observed_evidence.synthetic_overlay_observed_gt !== rules.synthetic_overlay_observed_gt) errors.push("synthetic_evidence");
-  if (value.duplicate_candidates_preserved !== rules.duplicate_candidates_preserved) errors.push("duplicates");
-  if (value.project_group_preserved !== rules.project_group_preserved) errors.push("project_group");
-  if (rules.owner_approval_implies_admission !== false || value.dataset_admission !== "pending-gpt7") errors.push("dataset_admission");
-  if (rules.admission_implies_training_ready !== false || value.training_ready !== false) errors.push("training_ready");
-  if (rules.boundary.enablesTraining !== false || value.boundary.enablesTraining !== false) errors.push("enablesTraining");
-  if (value.dataset_split_assigned !== false) errors.push("dataset_split");
-  if (rules.transform.pixel_only_admissible !== false) errors.push("pixel_rule");
+
+  if (rules.contract !== value.schema_version || rules.status !== "active") {
+    errors.push("contract");
+  }
+  for (const field of rules.required_ids) {
+    if (!value[field as keyof Gpt7IntakePackage]) errors.push(`required_id:${field}`);
+  }
+  if (!new RegExp(rules.sha256_pattern).test(value.source_sha256)) {
+    errors.push("source_sha256");
+  }
+  if (value.coordinate_space !== rules.coordinate.space || value.unit !== rules.coordinate.unit) {
+    errors.push("coordinate");
+  }
+  if (value.transform.transform_validation_state !== rules.transform.validated_state) {
+    errors.push("transform_validation_state");
+  }
+  if (!rules.transform.rotation.includes(value.transform.page_rotation_deg)) {
+    errors.push("rotation");
+  }
+  for (const field of rules.transform.fields) {
+    if (!(field in value.transform)) errors.push(`transform_field:${field}`);
+  }
+  if (value.transform.raster_to_source_page_affine.length !== rules.transform.affine_length) {
+    errors.push("raster_affine");
+  }
+  if (value.transform.source_page_to_raster_affine.length !== rules.transform.affine_length) {
+    errors.push("inverse_affine");
+  }
+  if (!rules.active_classes.every((label) => ["column", "beam", "wall"].includes(label))) {
+    errors.push("class_rules");
+  }
+  if (value.annotations.some((annotation) => !rules.active_classes.includes(annotation.class))) {
+    errors.push("annotation_class");
+  }
+  if (
+    value.annotations.some(
+      (annotation) => !rules.annotation_spec_versions.includes(annotation.annotation_spec_version),
+    )
+  ) {
+    errors.push("annotation_spec");
+  }
+  if (
+    value.annotations.some(
+      (annotation) =>
+        annotation.oriented_bbox &&
+        annotation.annotation_spec_version !== rules.oriented_bbox.requires_annotation_spec_version,
+    )
+  ) {
+    errors.push("oriented_bbox_spec");
+  }
+  if (value.observed_evidence.gpt6_proposal_observed_gt !== rules.gpt6_proposal_observed_gt) {
+    errors.push("gpt6_evidence");
+  }
+  if (value.observed_evidence.synthetic_overlay_observed_gt !== rules.synthetic_overlay_observed_gt) {
+    errors.push("synthetic_evidence");
+  }
+  if (value.duplicate_candidates_preserved !== rules.duplicate_candidates_preserved) {
+    errors.push("duplicates");
+  }
+  if (value.project_group_preserved !== rules.project_group_preserved) {
+    errors.push("project_group");
+  }
+  if (rules.owner_approval_implies_admission !== false || value.dataset_admission !== "pending-gpt7") {
+    errors.push("dataset_admission");
+  }
+  if (rules.admission_implies_training_ready !== false || value.training_ready !== false) {
+    errors.push("training_ready");
+  }
+  if (rules.boundary.enablesTraining !== false || value.boundary.enablesTraining !== false) {
+    errors.push("enablesTraining");
+  }
+  if (value.dataset_split_assigned !== false) {
+    errors.push("dataset_split");
+  }
+  if (rules.transform.pixel_only_admissible !== false) {
+    errors.push("pixel_rule");
+  }
+
   const transformErrors = validateTransformMetadata(value.transform);
   errors.push(...transformErrors.map((error) => `transform:${error}`));
-  try { assertAnnotationsValid(value.annotations, value.transform); }
-  catch (error) { errors.push(error instanceof Error ? error.message : "annotation_validation"); }
+
+  try {
+    assertAnnotationsValid(value.annotations, value.transform);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : "annotation_validation");
+  }
+
   return errors;
 }
