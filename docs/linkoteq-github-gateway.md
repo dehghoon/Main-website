@@ -31,3 +31,18 @@ Set these in the Vercel project's Environment Variables before deployment. Do no
 ## Integration status
 
 This commit adds the server route only. It does not provision Vercel secrets, deploy to production, register a ChatGPT tool/plugin, or connect migrated GPTs automatically. Those require separate configuration and validation.
+
+## Workflow dispatch (opt-in)
+
+`POST /api/linkoteq/github/actions/dispatch` with the same Bearer authentication.
+
+JSON body: `{"repo":"dehghoon/Main-website","workflow":"example.yml","ref":"main"}`.
+
+Required additional environment variable:
+- `LINKOTEQ_GITHUB_DISPATCH_ALLOWLIST`: comma-separated exact `owner/repo:workflow.yml:branch` tuples. **Empty/missing denies all dispatches.** Do not use wildcards. Example (only after review): `dehghoon/Main-website:example.yml:main`.
+
+GitHub token must have **Actions: Read and write** permission for dispatch. A workflow must declare `workflow_dispatch` and be available on the default branch to be manually dispatched.
+
+The endpoint accepts no arbitrary workflow inputs. Add reviewed per-workflow input schemas before enabling inputs. Dispatch returns acceptance, not completion; poll the read-only runs endpoint for results.
+
+**Important:** Workflow code can have broad repository and cloud permissions; review each workflow and its secrets before allowlisting. Require human approval for workflows that deploy to production, mutate data, or access privileged secrets. Add rate limiting, audit logging and per-plugin identities before broad multi-plugin production use. Do not deploy/enable merely because this code exists.
