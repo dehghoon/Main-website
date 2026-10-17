@@ -19,7 +19,7 @@ function config() {
   return {
     token: requireEnv("GPT7_GITHUB_TOKEN"),
     owner: process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon",
-    repo : process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection",
+    repo: process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection",
     branch: process.env.GPT7_GITHUB_BRANCH?.trim() || "main",
     apiBase: "https://api.github.com",
   };
@@ -29,7 +29,7 @@ async function githubRequest<T extends GithubJson>(
   url: string,
   init: RequestInit,
   token: string,
-(: Promise<T> {
+): Promise<T> {
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -86,7 +86,7 @@ export async function commitGpt7AnnotatedPreview(
   const manifestPath = `${exportPath}/manifest.json`;
 
   const ref = await githubRequest<{ object: { sha: string } }>(
-    ${apiBase}/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`,
+    `${apiBase}/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`,
     { method: "GET" },
     token,
   );
@@ -109,6 +109,7 @@ export async function commitGpt7AnnotatedPreview(
     Buffer.from(manifestResponse.content.replace(/\s/g, ""), "base64").toString("utf8"),
   ) as Record<string, unknown>;
   const existing = Array.isArray(manifest.preview_files) ? manifest.preview_files : [];
+
   manifest.preview_files = [
     ...existing.filter((item) => {
       if (!item || typeof item !== "object") return true;
