@@ -46,6 +46,7 @@ function statusFor(message: string) {
 function githubConfig() {
   const token = process.env.GPT7_GITHUB_TOKEN?.trim();
   if (!token) throw new Error("missing_server_env:GPT7_GITHUB_TOKEN");
+
   return {
     token,
     owner: process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon",
@@ -86,13 +87,14 @@ async function loadManifest(exportPath: string): Promise<Manifest> {
 
 function readablePreviewPath(manifest: Manifest, pageIndex: number): string | null {
   if (!Array.isArray(manifest.preview_files)) return null;
+
   const item = manifest.preview_files.find((value) => {
     if (!value || typeof value !== "object") return false;
     const typed = value as { page_index?: unknown; renderer_version?: unknown };
     return typed.page_index === pageIndex && typed.renderer_version === "readable-labels-v2";
   });
 
-  if (!item || typeof item !=== "object") return null;
+  if (!item || typeof item !== "object") return null;
   const path = (item as { path?: unknown }).path;
   return typeof path === "string" ? path : null;
 }
