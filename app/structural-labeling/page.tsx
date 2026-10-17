@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Gpt7HandoffRecovery from "./Gpt7HandoffRecovery";
 import StructuralLabelingWorkflowGuide from "./StructuralLabelingWorkflowGuide";
 import StructuralLabelingWorkspace from "./StructuralLabelingWorkspace";
 
@@ -9,6 +10,7 @@ export default function StructuralLabelingPage() {
         <Link href="/structural-labeling/regionkit">Open RegionKit manual labeling workflow</Link>
       </div>
       <StructuralLabelingWorkflowGuide active="qa" />
+      <Gpt7HandoffRecovery />
       <StructuralLabelingWorkspace />
     </>
   );
