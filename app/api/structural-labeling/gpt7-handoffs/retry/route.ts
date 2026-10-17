@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       .from("structural_labeling_candidates")
       .select("id,original_filename,page_index,workflow_state")
       .eq("workflow_state", "owner-approved")
+      .is("gpt7_exported_at", null)
       .limit(50);
 
     if (error) throw new Error(error.message);
