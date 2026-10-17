@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       manifestPath: handoff.manifestPath,
     });
   } catch (error) {
-    const messae = error instanceof Error ? error.message : "gpt7_retry_failed";
+    const message = error instanceof Error ? error.message : "gpt7_retry_failed";
     return NextResponse.json({ error: message }, { status: statusFor(message) });
   }
 }
