@@ -121,13 +121,13 @@ export async function commitGpt7AnnotatedPreview(
       path: previewPath,
       mime_type: "image/png",
       purpose: "human-qa-only",
-      renderer_version: "readable-labels-v2",
+      renderer_version: "bitmap-labels-v4",
     },
   ];
 
   const previewBlob = await githubRequest<{ sha: string }>(
     `${apiBase}/repos/${owner}/${repo}/git/blobs`,
-    {
+   {
       method: "POST",
       body: JSON.stringify({
         content: Buffer.from(input.previewPng).toString("base64"),
