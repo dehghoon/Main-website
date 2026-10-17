@@ -10,6 +10,15 @@ type ApprovedCandidate = {
   workflow_state: string;
 };
 
+type RecoveryListResponse = {
+  candidates: ApprovedCandidate[];
+};
+
+type RecoveryRetryResponse = {
+  commitSha: string;
+  exportPath: string;
+};
+
 export default function Gpt7HandoffRecovery() {
   const [candidates, setCandidates] = useState<ApprovedCandidate[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -17,7 +26,9 @@ export default function Gpt7HandoffRecovery() {
 
   async function load() {
     try {
-      const body = await labelingApi("/api/structural-labeling/gpt7-handoffs/retry");
+      const body = await labelingApi<RecoveryListResponse>(
+        "/api/structural-labeling/gpt7-handoffs/retry",
+      );
       setCandidates(body.candidates ?? []);
     } catch (error) {
       const text = error instanceof Error ? error.message : "";
@@ -35,11 +46,14 @@ export default function Gpt7HandoffRecovery() {
     setBusyId(candidateId);
     setMessage("Retrying GPT-7 handoff...");
     try {
-      const body = await labelingApi("/api/structural-labeling/gpt7-handoffs/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ candidateId }),
-      });
+      const body = await labelingApi<RecoveryRetryResponse>(
+        "/api/structural-labeling/gpt7-handoffs/retry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ candidateId }),
+        },
+      );
       setMessage(
         `GPT-7 handoff complete. Commit: ${body.commitSha}. Export: ${body.exportPath}`,
       );
