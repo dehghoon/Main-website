@@ -110,11 +110,11 @@ export async function GET(request: NextRequest) {
       .order("gpt7_exported_at", { ascending: false })
       .limit(12);
 
-    if (error) throw new Error(error.messae);
+    if (error) throw new Error(error.message);
     return NextResponse.json({ candidates: data ?? [] });
   } catch (error) {
     const message =
-      error instanceof Error ? error.messae : "gpt7_preview_candidates_failed";
+      error instanceof Error ? error.message : "gpt7_preview_candidates_failed";
     return NextResponse.json({ error: message }, { status: statusFor(message) });
   }
 }
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (candidateError || !candidate) {
-      throw new Error(candidateError?.messae ?? "candidate_not_found");
+      throw new Error(candidateError?.message ?? "candidate_not_found");
     }
     if (candidate.workflow_state !== "owner-approved" || !candidate.gpt7_exported_at) {
       throw new Error("owner_approval_required");
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (revisionError || !revision) {
-      throw new Error(revisionError?.messae ?? "annotation_revision_required");
+      throw new Error(revisionError?.message ?? "annotation_revision_required");
     }
 
     const sourceImage = await loadGpt7Image(yoloImagePath);
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.messae : "gpt7_preview_generation_failed";
+      error instanceof Error ? error.message : "gpt7_preview_generation_failed";
     return NextResponse.json({ error: message }, { status: statusFor(message) });
   }
 }
