@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Gpt7HandoffRecovery from "./Gpt7HandoffRecovery";
+import Gpt7PreviewSync from "./Gpt7PreviewSync";
 import StructuralLabelingWorkflowGuide from "./StructuralLabelingWorkflowGuide";
 import StructuralLabelingWorkspace from "./StructuralLabelingWorkspace";
 
@@ -11,6 +12,7 @@ export default function StructuralLabelingPage() {
       </div>
       <StructuralLabelingWorkflowGuide active="qa" />
       <Gpt7HandoffRecovery />
+      <Gpt7PreviewSync />
       <StructuralLabelingWorkspace />
     </>
   );
