@@ -7,7 +7,8 @@ const pdfRuntimeFiles = [
 ];
 
 const nextConfig = {
-  serverExternalPackages: ["@napi-rs/canvas"],
+  // Bundle the @napi-rs/canvas JavaScript wrapper into server functions.
+  // The platform-specific native binaries remain explicitly traced.
   outputFileTracingIncludes: {
     "/*": pdfRuntimeFiles,
   },
