@@ -4,7 +4,6 @@ import {
   validateGpt7IntakePackage,
   type Gpt7IntakePackage,
 } from "./gpt7";
-import { renderPdfPageToPng } from "./pdf-render-server";
 import type { Annotation, TransformMetadata } from "./contract";
 
 type CandidateRow = Record<string, unknown> & {
@@ -69,6 +68,7 @@ function safeSegment(value: string): string {
 function sourceFilename(source: SourceRow): string {
   const original = safeSegment(source.original_filename || "source");
   if (original.includes(".")) return original;
+
   const ext =
     source.mime_type === "application/pdf"
       ? ".pdf"
@@ -79,6 +79,7 @@ function sourceFilename(source: SourceRow): string {
           : source.mime_type === "image/webp"
             ? ".webp"
             : "";
+
   return `${original}${ext}`;
 }
 
@@ -136,6 +137,7 @@ async function commitGithubBundle(input: {
     { method: "GET" },
     input.token,
   );
+
   const parentCommit = await githubJson<{ tree: { sha: string } }>(
     `${apiBase}/repos/${input.owner}/${input.repo}/git/commits/${ref.object.sha}`,
     { method: "GET" },
@@ -207,11 +209,7 @@ export async function prepareGpt7Handoff(
     { data: revision, error: revisionError },
     { data: audit, error: auditError },
   ] = await Promise.all([
-    supabase
-      .from("structural_labeling_candidates")
-      .select("*")
-      .eq("id", candidateId)
-      .single(),
+    supabase.from("structural_labeling_candidates").select("*").eq("id", candidateId).single(),
     supabase
       .from("structural_labeling_annotation_revisions")
       .select("annotations,transform_metadata")
@@ -246,7 +244,7 @@ export async function prepareGpt7Handoff(
     .single();
 
   if (sourceError || !source) {
-    throw new Error(sourceError?.messae ??? "source_not_found");
+    throw new Error(sourceError?.message ?? "source_not_found");
   }
 
   const typedSource = source as SourceRow;
@@ -276,9 +274,11 @@ export async function prepareGpt7Handoff(
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
   const owner = process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon";
-  const repo = process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
+  const repo =
+    process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
+
   const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
   const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
@@ -306,10 +306,10 @@ export async function prepareGpt7Handoff(
 
   if (typedSource.mime_type === "application/pdf") {
     const pageIndex = typedCandidate.page_index ?? 0;
-    const rendered =
-      preRenderedPdfPage && preRenderedPdfPage.pageIndex === pageIndex
-        ? preRenderedPdfPage
-        : await renderPdfPageToPng(sourceBytes, pageIndex);
+
+    if (!preRenderedPdfPage || preRenderedPdfPage.pageIndex !== pageIndex) {
+      throw new Error("pre_rendered_pdf_page_required");
+    }
 
     yoloImagePath =
       `${exportPath}/rendered/page-${String(pageIndex + 1).padStart(4, "0")}.png`;
@@ -317,15 +317,15 @@ export async function prepareGpt7Handoff(
     renderedImage = {
       path: yoloImagePath,
       page_index: pageIndex,
-      width_px: rendered.widthPx,
-      height_px: rendered.heightPx,
-      render_scale: rendered.scale,
+      width_px: preRenderedPdfPage.widthPx,
+      height_px: preRenderedPdfPage.heightPx,
+      render_scale: preRenderedPdfPage.scale,
       mime_type: "image/png",
     };
 
     files.push({
       path: yoloImagePath,
-      content: Buffer.from(rendered.png).toString("base64"),
+      content: Buffer.from(preRenderedPdfPage.png).toString("base64"),
       encoding: "base64",
     });
   }
