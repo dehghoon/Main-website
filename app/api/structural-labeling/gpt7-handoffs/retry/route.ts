@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "../../../../../lib/structural-labeling/server";
 import { prepareGpt7Handoff } from "../../../../../lib/structural-labeling/gpt7-handoff-server";
 
-async function requireOwnerReviewPermission(supabase: any) {
-  const { data, error } = await supabase.rpc("platform_my_permissions");
+async function requireOwnerReviewPermission(supabase: any, userId: string) {
+  const { error: ensureError } = await supabase.rpc(
+    "ensure_structural_labeling_owner_review",
+  );
+  if (ensureError) throw new Error(ensureError.message);
+
+  const { data, error } = await supabase
+    .from("structural_labeling_permissions")
+    .select("permission")
+    .eq("user_id", userId)
+    .eq("permission", "labeling.owner_review")
+   .maybeSingle();
+
   if (error) throw new Error(error.message);
-  const permissions = Array.isArray(data) ? data : [];
-  if (!permissions.includes("labeling.owner_review")) {
+  if (!data) {
     throw new Error("labeling_owner_review_permission_required");
   }
 }
@@ -20,10 +30,10 @@ function statusFor(message: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { supabase } = await requireAuthenticatedUser(
+    const { supabase, user } = await requireAuthenticatedUser(
       request.headers.get("authorization"),
     );
-    await requireOwnerReviewPermission(supabase);
+    await requireOwnerReviewPermission(supabase, user.id);
 
     const { data, error } = await supabase
       .from("structural_labeling_candidates")
@@ -44,10 +54,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { supabase } = await requireAuthenticatedUser(
+    const { supabase, user } = await requireAuthenticatedUser(
       request.headers.get("authorization"),
     );
-    await requireOwnerReviewPermission(supabase);
+    await requireOwnerReviewPermission(supabase, user.id);
 
     const body = await request.json();
     const candidateId = String(body.candidateId ?? "").trim();
