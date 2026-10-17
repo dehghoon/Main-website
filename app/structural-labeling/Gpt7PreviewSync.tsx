@@ -79,7 +79,7 @@ export default function Gpt7PreviewSync() {
       } catch (error) {
         if (!cancelled) {
           const message = error instanceof Error ? error.message : "";
-          if (!message.includes("labeling_owner_review_permission_required") {
+          if (!message.includes("labeling_owner_review_permission_required")) {
             setStatus(`Annotated preview sync failed: ${message}`);
           }
         }
@@ -109,7 +109,7 @@ export default function Gpt7PreviewSync() {
         <p role="status" aria-live="polite">
           {status}
         </p>
-      )}
+     )}
       {paths.length > 0 && (
         <ul>
           {paths.map((path) => (
