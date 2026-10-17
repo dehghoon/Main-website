@@ -92,10 +92,17 @@ async function renderCandidatePdfPage(
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(viewport.width));
     canvas.height = Math.max(1, Math.round(viewport.height));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("PDF recovery render canvas unavailable");
 
-    await page.render({ canvasContext: context, viewport, canvas }).promise;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("PDF recovery render canvas unavailable");
+    }
+
+    await page.render({
+      canvasContext: context,
+      viewport,
+      canvas,
+    }).promise;
 
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((value) => {
@@ -104,7 +111,12 @@ async function renderCandidatePdfPage(
       }, "image/png");
     });
 
-    return { blob, widthPx: canvas.width, heightPx: canvas.height, scale: renderScale };
+    return {
+      blob,
+      widthPx: canvas.width,
+      heightPx: canvas.height,
+      scale: renderScale,
+    };
   } finally {
     await loadingTask.destroy();
   }
@@ -117,11 +129,15 @@ export default function Gpt7HandoffRecovery() {
 
   async function load() {
     try {
-      const body = await labelingApi<RecoveryListResponse>("/api/structural-labeling/gpt7-handoffs/retry");
+      const body = await labelingApi<RecoveryListResponse>(
+        "/api/structural-labeling/gpt7-handoffs/retry",
+      );
       setCandidates(body.candidates ?? []);
     } catch (error) {
       const text = error instanceof Error ? error.message : "";
-      if (!text.includes("labeling_owner_review_permission_required")) setMessage(text);
+      if (!text.includes("labeling_owner_review_permission_required")) {
+        setMessage(text);
+      }
     }
   }
 
@@ -144,7 +160,9 @@ export default function Gpt7HandoffRecovery() {
       );
 
       if (!isRenderInitResponse(start)) {
-        setMessage(`GPT-7 handoff complete. Commit: ${start.commitSha}. Export: ${start.exportPath}`);
+        setMessage(
+          `GPT-7 handoff complete. Commit: ${start.commitSha}. Export: ${start.exportPath}`,
+        );
         await load();
         return;
       }
@@ -153,7 +171,9 @@ export default function Gpt7HandoffRecovery() {
       const rendered = await renderCandidatePdfPage(candidateId, start);
 
       const supabase = getSupabase();
-      if (!supabase) throw new Error("Supabase is not configured");
+      if (!supabase) {
+        throw new Error("Supabase is not configured");
+      }
 
       const renderFile = new File(
         [rendered.blob],
@@ -168,7 +188,10 @@ export default function Gpt7HandoffRecovery() {
           contentType: "image/png",
           upsert: false,
         });
-      if (uploadError) throw new Error(uploadError.message);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
 
       setMessage("Completing GPT-7 handoff...");
       const body = await labelingApi<RecoveryRetryResponse>(
@@ -187,10 +210,14 @@ export default function Gpt7HandoffRecovery() {
         },
       );
 
-      setMessage(`GPT-7 handoff complete. Commit: ${body.commitSha}. Export: ${body.exportPath}`);
+      setMessage(
+        `GPT-7 handoff complete. Commit: ${body.commitSha}. Export: ${body.exportPath}`,
+      );
       await load();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "GPT-7 handoff retry failed");
+      setMessage(
+        error instanceof Error ? error.message : "GPT-7 handoff retry failed",
+      );
     } finally {
       setBusyId(null);
     }
@@ -199,21 +226,51 @@ export default function Gpt7HandoffRecovery() {
   if (!candidates.length && !message) return null;
 
   return (
-    <section style={{ maxWidth: 1440, margin: "16px auto 0", padding: "14px 20px", border: "1px solid #cbd5e1", borderRadius: 8 }}>
+    <section
+      style={{
+        maxWidth: 1440,
+        margin: "16px auto 0",
+        padding: "14px 20px",
+        border: "1px solid #cbd5e1",
+        borderRadius: 8,
+      }}
+    >
       <h2>GPT-7 Handoff Recovery</h2>
-      <p>Owner-approved candidates can be exported again without repeating Owner QA approval. PDF pages are rendered in the browser and staged privately before the server completes the GitHub handoff.</p>
+      <p>
+        Owner-approved candidates can be exported again without repeating Owner QA approval.
+        PDF pages are rendered in the browser and staged privately before the server completes
+        the GitHub handoff.
+      </p>
+
       {candidates.map((candidate) => (
-        <div key={candidate.id} style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+        <div
+          key={candidate.id}
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: 8,
+          }}
+        >
           <span>
             {candidate.original_filename || candidate.id}
             {candidate.page_index != null ? ` · page ${candidate.page_index + 1}` : ""}
           </span>
-          <button disabled={busyId !== null} onClick={() => void retry(candidate.id)}>
+          <button
+            disabled={busyId !== null}
+            onClick={() => void retry(candidate.id)}
+          >
             {busyId === candidate.id ? "Retrying..." : "Retry GPT-7 handoff"}
           </button>
         </div>
       )i}
-      {message && <p role="status" aria-live="polite">{message}</p>}
+
+      {message && (
+        <p role="status" aria-live="polite">
+          {message}
+        </p>
+      )}
     </section>
   );
 }
