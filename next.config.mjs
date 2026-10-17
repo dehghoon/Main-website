@@ -1,22 +1,12 @@
 /** @type {import("next").NextConfig} */
-const pdfRuntimeFiles = [
-  "./node_modules/@napi-rs/canvas/**/*",
-  "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
-  "./node_modules/@napi-rs/canvas-linux-x64-musl/**/*",
-  "./node_modules/pdfjs-dist/**/*",
-];
-
 const nextConfig = {
-  outputFileTracingIncludes: {
-    "/*": pdfRuntimeFiles,
-  },
   webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push({
-        "@napi-rs/canvas-linux-x64-gnu": "commonjs @napi-rs/canvas-linux-x64-gnu",
-        "@napi-rs/canvas-linux-x64-musl": "commonjs @napi-rs/canvas-linux-x64-musl",
-      });
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "pdfjs-dist/legacy/build/pdf.mjs": "pdfjs-dist/build/pdf.mjs",
+        "pdfjs-dist/legacy/build/pdf.worker.min.mjs": "pdfjs-dist/build/pdf.worker.min.mjs",
+      };
     }
     return config;
   },
