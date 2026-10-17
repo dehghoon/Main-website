@@ -49,13 +49,10 @@ export default function Gpt7PreviewSync() {
                 body: JSON.stringify({ candidateId: candidate.id }),
               },
             );
-            results.push(result.previewPath);
+            if (result.previewPath) results.push(result.previewPath);
           } catch (error) {
             const message = error instanceof Error ? error.message : "";
-            if (
-              message.includes("gpt7_manifest_load_failed:404") ||
-              message.includes("candidate_not_found")
-            ) {
+            if (message.includes("404") || message.includes("candidate_not_found")) {
               skipped.push(candidate.id);
               continue;
             }
@@ -82,7 +79,7 @@ export default function Gpt7PreviewSync() {
       } catch (error) {
         if (!cancelled) {
           const message = error instanceof Error ? error.message : "";
-          if (!message.includes("labeling_owner_review_permission_required")) {
+          if (!message.includes("labeling_owner_review_permission_required") {
             setStatus(`Annotated preview sync failed: ${message}`);
           }
         }
