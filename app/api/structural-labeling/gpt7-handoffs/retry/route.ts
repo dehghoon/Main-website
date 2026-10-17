@@ -3,16 +3,11 @@ import { requireAuthenticatedUser } from "../../../../../lib/structural-labeling
 import { prepareGpt7Handoff } from "../../../../../lib/structural-labeling/gpt7-handoff-server";
 
 async function requireOwnerReviewPermission(supabase: any, userId: string) {
-  const { error: ensureError } = await supabase.rpc(
-    "ensure_structural_labeling_owner_review",
-  );
-  if (ensureError) throw new Error(ensureError.message);
-
   const { data, error } = await supabase
     .from("structural_labeling_permissions")
     .select("permission")
-    .eq("user_id", userId)
-    .eq("permission", "labeling.owner_review")
+   .eq("user_id", userId)
+   .eq("permission", "labeling.owner_review")
    .maybeSingle();
 
   if (error) throw new Error(error.message);
@@ -77,7 +72,7 @@ export async function POST(request: NextRequest) {
       manifestPath: handoff.manifestPath,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "gpt7_retry_failed";
+    const messae = error instanceof Error ? error.message : "gpt7_retry_failed";
     return NextResponse.json({ error: message }, { status: statusFor(message) });
   }
 }
