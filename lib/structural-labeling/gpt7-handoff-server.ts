@@ -37,6 +37,14 @@ type GithubFile = {
   encoding: "utf-8" | "base64";
 };
 
+export type PreRenderedPdfPage = {
+  png: Uint8Array;
+  widthPx: number;
+  heightPx: number;
+  scale: number;
+  pageIndex: number;
+};
+
 export type Gpt7HandoffResult = {
   repository: string;
   commitSha: string;
@@ -61,7 +69,6 @@ function safeSegment(value: string): string {
 function sourceFilename(source: SourceRow): string {
   const original = safeSegment(source.original_filename || "source");
   if (original.includes(".")) return original;
-
   const ext =
     source.mime_type === "application/pdf"
       ? ".pdf"
@@ -72,7 +79,6 @@ function sourceFilename(source: SourceRow): string {
           : source.mime_type === "image/webp"
             ? ".webp"
             : "";
-
   return `${original}${ext}`;
 }
 
@@ -94,9 +100,7 @@ async function githubJson<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(
-      `github_export_failed:${response.status}:${text.slice(0, 500)}`,
-    );
+    throw new Error(`github_export_failed:${response.status}:${text.slice(0, 500)}`);
   }
 
   return (await response.json()) as T;
@@ -131,13 +135,11 @@ async function commitGithubBundle(input: {
   message: string;
 }): Promise<string> {
   const apiBase = "https://api.github.com";
-
   const ref = await githubJson<{ object: { sha: string } }>(
     `${apiBase}/repos/${input.owner}/${input.repo}/git/ref/heads/${encodeURIComponent(input.branch)}`,
     { method: "GET" },
     input.token,
   );
-
   const parentCommit = await githubJson<{ tree: { sha: string } }>(
     `${apiBase}/repos/${input.owner}/${input.repo}/git/commits/${ref.object.sha}`,
     { method: "GET" },
@@ -202,6 +204,7 @@ async function commitGithubBundle(input: {
 export async function prepareGpt7Handoff(
   supabase: SupabaseClient,
   candidateId: string,
+  preRenderedPdfPage?: PreRenderedPdfPage | null,
 ): Promise<Gpt7HandoffResult> {
   const [
     { data: candidate, error: candidateError },
@@ -228,7 +231,7 @@ export async function prepareGpt7Handoff(
   ]);
 
   if (candidateError || !candidate) {
-    throw new Error(candidateError?.message ?? "candidate_not_found");
+    throw new Error(candidateError?.messae ?? "candidate_not_found");
   }
   if (revisionError || !revision) {
     throw new Error(revisionError?.message ?? "annotation_revision_required");
@@ -242,18 +245,18 @@ export async function prepareGpt7Handoff(
 
   const { data: source, error: sourceError } = await supabase
     .from("structural_labeling_sources")
-    .select("*")
+   .select("*")
     .eq("source_id", typedCandidate.source_id)
-    .single();
+   .single();
 
   if (sourceError || !source) {
-    throw new Error(sourceError?.message ?? "source_not_found");
+    throw new Error(sourceError?.messae ?? "source_not_found");
   }
 
   const typedSource = source as SourceRow;
   const { data: sourceBlob, error: downloadError } = await supabase.storage
     .from("structural-labeling-sources")
-    .download(typedSource.storage_path);
+   .download(typedSource.storage_path);
 
   if (downloadError || !sourceBlob) {
     throw new Error(downloadError?.message ?? "source_download_failed");
@@ -261,7 +264,6 @@ export async function prepareGpt7Handoff(
 
   const sourceBytes = new Uint8Array(await sourceBlob.arrayBuffer());
   const typedRevision = revision as RevisionRow;
-
   const pkg = buildGpt7IntakePackage({
     candidate: typedCandidate,
     source: typedSource,
@@ -273,9 +275,7 @@ export async function prepareGpt7Handoff(
 
   const validationErrors = validateGpt7IntakePackage(pkg);
   if (validationErrors.length > 0) {
-    throw new Error(
-      `pinned_contract_validation_failed:${validationErrors.join(",")}`,
-    );
+    throw new Error(`pinned_contract_validation_failed:${validationErrors.join(",")}`);
   }
 
   const token = requireEnv("GPT7_GITHUB_TOKEN");
@@ -284,10 +284,8 @@ export async function prepareGpt7Handoff(
     process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
-
   const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
-  const originalSourcePath =
-    `${exportPath}/original/${sourceFilename(typedSource)}`;
+  const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
   const manifestPath = `${exportPath}/manifest.json`;
 
@@ -313,7 +311,11 @@ export async function prepareGpt7Handoff(
 
   if (typedSource.mime_type === "application/pdf") {
     const pageIndex = typedCandidate.page_index ?? 0;
-    const rendered = await renderPdfPageToPng(sourceBytes, pageIndex);
+    const rendered =
+      preRenderedPdfPage && preRenderedPdfPage.pageIndex === pageIndex
+        ? preRenderedPdfPage
+        : await renderPdfPageToPng(sourceBytes, pageIndex);
+
     yoloImagePath =
       `${exportPath}/rendered/page-${String(pageIndex + 1).padStart(4, "0")}.png`;
 
