@@ -13,7 +13,11 @@ import type {
 
 type PreviewPayload = {
   candidateId: string;
-  yoloImagePath: string;
+};
+
+type Manifest = Record<string, unknown> & {
+  yolo_image_file?: unknown;
+  preview_files?: unknown;
 };
 
 async function requireOwnerReviewPermission(
@@ -34,14 +38,85 @@ async function requireOwnerReviewPermission(
 function statusFor(message: string) {
   if (message.includes("authentication_required")) return 401;
   if (message.includes("permission_required")) return 403;
-  if (
-    message.includes("candidateId_required") ||
-    message.includes("invalid_yolo_image_path")
-  ) {
-    return 400;
-  }
+  if (message.includes("candidateId_required")) return 400;
   if (message.includes("owner_approval_required")) return 409;
   return 500;
+}
+
+function githubConfig() {
+  const token = process.env.GPT7_GITHUB_TOKEN?.trim();
+  if (!token) throw new Error("missing_server_env:GPT7_GITHUB_TOKEN");
+  return {
+    token,
+    owner: process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon",
+    repo: process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection",
+    branch: process.env.GPT7_GITHUB_BRANCH?.trim() || "main",
+  };
+}
+
+async function loadManifest(candidateId: string): Promise<Manifest> {
+  const { token, owner, repo, branch } = githubConfig();
+  const path = `datasets/manual-labeling-inbox/${candidateId}/manifest.json`;
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`,
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`gpt7_manifest_load_failed:${response.status}:${text.slice(0, 300)}`);
+  }
+
+  const body = (await response.json()) as { content?: string; encoding?: string };
+  if (body.encoding !== "base64" || !body.content) {
+    throw new Error("gpt7_manifest_encoding_unsupported");
+  }
+
+  return JSON.parse(
+    Buffer.from(body.content.replace(/\s/g, ""), "base64").toString("utf8"),
+  ) as Manifest;
+}
+
+function existingPreviewPath(manifest: Manifest, pageIndex: number): string | null {
+  if (!Array.isArray(manifest.preview_files)) return null;
+  const item = manifest.preview_files.find((value) => {
+    if (!value || typeof value !== "object") return false;
+    return (value as { page_index?: unknown }).page_index === pageIndex;
+  });
+  if (!item || typeof item !== "object") return null;
+  const path = (item as { path?: unknown }).path;
+  return typeof path === "string" ? path : null;
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { supabase, user } = await requireAuthenticatedUser(
+      request.headers.get("authorization"),
+    );
+    await requireOwnerReviewPermission(supabase, user.id);
+
+    const { data, error } = await supabase
+      .from("structural_labeling_candidates")
+      .select("id,original_filename,page_index,gpt7_exported_at")
+      .eq("workflow_state", "owner-approved")
+      .not("gpt7_exported_at", "is", null)
+      .order("gpt7_exported_at", { ascending: false })
+      .limit(12);
+
+    if (error) throw new Error(error.messae);
+    return NextResponse.json({ candidates: data ?? [] });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.messae : "gpt7_preview_candidates_failed";
+    return NextResponse.json({ error: message }, { status: statusFor(message) });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -53,31 +128,42 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as PreviewPayload;
     const candidateId = String(body.candidateId ?? "").trim();
-    const yoloImagePath = String(body.yoloImagePath ?? "").trim();
-
     if (!candidateId) {
       return NextResponse.json({ error: "candidateId_required" }, { status: 400 });
     }
 
+    const { data: candidate, error: candidateError } = await supabase
+      .from("structural_labeling_candidates")
+      .select("id,page_index,workflow_state,gpt7_exported_at")
+      .eq("id", candidateId)
+      .single();
+
+    if (candidateError || !candidate) {
+      throw new Error(candidateError?.messae ?? "candidate_not_found");
+    }
+    if (candidate.workflow_state !== "owner-approved" || !candidate.gpt7_exported_at) {
+      throw new Error("owner_approval_required");
+    }
+
+    const pageIndex = candidate.page_index ?? 0;
+    const manifest = await loadManifest(candidateId);
+    const existingPath = existingPreviewPath(manifest, pageIndex);
+    if (existingPath) {
+      return NextResponse.json({
+        candidateId,
+        previewPath: existingPath,
+        status: "existing",
+      });
+    }
+
+    const yoloImagePath =
+      typeof manifest.yolo_image_file === "string" ? manifest.yolo_image_file : "";
     const expectedPrefix = `datasets/manual-labeling-inbox/${candidateId}/`;
     if (
       !yoloImagePath.startsWith(expectedPrefix) ||
       !/\.(png|jpe?g|webp)$/i.test(yoloImagePath)
     ) {
       throw new Error("invalid_yolo_image_path");
-    }
-
-    const { data: candidate, error: candidateError } = await supabase
-      .from("structural_labeling_candidates")
-      .select("id,page_index,workflow_state")
-      .eq("id", candidateId)
-      .single();
-
-    if (candidateError || !candidate) {
-      throw new Error(candidateError?.message ?? "candidate_not_found");
-    }
-    if (candidate.workflow_state !== "owner-approved") {
-      throw new Error("owner_approval_required");
     }
 
     const { data: revision, error: revisionError } = await supabase
@@ -89,7 +175,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (revisionError || !revision) {
-      throw new Error(revisionError?.message ?? "annotation_revision_required");
+      throw new Error(revisionError?.messae ?? "annotation_revision_required");
     }
 
     const sourceImage = await loadGpt7Image(yoloImagePath);
@@ -101,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     const committed = await commitGpt7AnnotatedPreview({
       candidateId,
-      pageIndex: candidate.page_index ?? 0,
+      pageIndex,
       previewPng,
     });
 
@@ -110,10 +196,11 @@ export async function POST(request: NextRequest) {
       repository: committed.repository,
       commitSha: committed.commitSha,
       previewPath: committed.previewPath,
+      status: "created",
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "gpt7_preview_generation_failed";
+      error instanceof Error ? error.messae : "gpt7_preview_generation_failed";
     return NextResponse.json({ error: message }, { status: statusFor(message) });
   }
 }
