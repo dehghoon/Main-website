@@ -32,8 +32,8 @@ test("owner approval queues a pinned GPT-7 intake handoff without enabling train
   assert.match(actionRoute, /retry-gpt7-handoff/);
   assert.match(handoffBuilder, /buildGpt7IntakePackage/);
   assert.match(handoffBuilder, /validateGpt7IntakePackage/);
-  assert.match(handoffBuilder, /datasetAdmission: pkg\.dataset_admission/);
-  assert.match(handoffBuilder, /trainingReady: pkg\.training_ready/);
+  assert.match(handoffBuilder, /dataset_admission: "pending-gpt7"/);
+  assert.match(handoffBuilder, /training_ready: false/);
   assert.match(handoffBuilder, /buildGpt7ExportPath/);
   assert.match(handoffBuilder, /export_path_scheme: "drawing-page-candidate-v1"/);
 
