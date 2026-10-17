@@ -7,10 +7,18 @@ const pdfRuntimeFiles = [
 ];
 
 const nextConfig = {
-  // Bundle the @napi-rs/canvas JavaScript wrapper into server functions.
-  // The platform-specific native binaries remain explicitly traced.
   outputFileTracingIncludes: {
     "/*": pdfRuntimeFiles,
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        "@napi-rs/canvas-linux-x64-gnu": "commonjs @napi-rs/canvas-linux-x64-gnu",
+        "@napi-rs/canvas-linux-x64-musl": "commonjs @napi-rs/canvas-linux-x64-musl",
+      });
+    }
+    return config;
   },
 };
 
