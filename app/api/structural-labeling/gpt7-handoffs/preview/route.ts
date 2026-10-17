@@ -54,9 +54,9 @@ function githubConfig() {
   };
 }
 
-async function loadManifest(candidateId: string): Promise<Manifest> {
+async function loadManifest(exportPath: string): Promise<Manifest> {
   const { token, owner, repo, branch } = githubConfig();
-  const path = `datasets/manual-labeling-inbox/${candidateId}/manifest.json`;
+  const path = `${exportPath}/manifest.json`;
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`,
     {
@@ -84,13 +84,15 @@ async function loadManifest(candidateId: string): Promise<Manifest> {
   ) as Manifest;
 }
 
-function existingPreviewPath(manifest: Manifest, pageIndex: number): string | null {
+function readablePreviewPath(manifest: Manifest, pageIndex: number): string | null {
   if (!Array.isArray(manifest.preview_files)) return null;
   const item = manifest.preview_files.find((value) => {
     if (!value || typeof value !== "object") return false;
-    return (value as { page_index?: unknown }).page_index === pageIndex;
+    const typed = value as { page_index?: unknown; renderer_version?: unknown };
+    return typed.page_index === pageIndex && typed.renderer_version === "readable-labels-v2";
   });
-  if (!item || typeof item !== "object") return null;
+
+  if (!item || typeof item !=== "object") return null;
   const path = (item as { path?: unknown }).path;
   return typeof path === "string" ? path : null;
 }
@@ -104,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("structural_labeling_candidates")
-      .select("id,original_filename,page_index,gpt7_exported_at")
+      .select("id,original_filename,page_index,gpt7_exported_at,gpt7_export_path")
       .eq("workflow_state", "owner-approved")
       .not("gpt7_exported_at", "is", null)
       .order("gpt7_exported_at", { ascending: false })
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     const { data: candidate, error: candidateError } = await supabase
       .from("structural_labeling_candidates")
-      .select("id,page_index,workflow_state,gpt7_exported_at")
+      .select("id,page_index,workflow_state,gpt7_exported_at,gpt7_export_path")
       .eq("id", candidateId)
       .single();
 
@@ -146,8 +148,12 @@ export async function POST(request: NextRequest) {
     }
 
     const pageIndex = candidate.page_index ?? 0;
-    const manifest = await loadManifest(candidateId);
-    const existingPath = existingPreviewPath(manifest, pageIndex);
+    const exportPath =
+      String(candidate.gpt7_export_path ?? "").trim() ||
+      `datasets/manual-labeling-inbox/${candidateId}`;
+    const manifest = await loadManifest(exportPath);
+    const existingPath = readablePreviewPath(manifest, pageIndex);
+
     if (existingPath) {
       return NextResponse.json({
         candidateId,
@@ -158,7 +164,7 @@ export async function POST(request: NextRequest) {
 
     const yoloImagePath =
       typeof manifest.yolo_image_file === "string" ? manifest.yolo_image_file : "";
-    const expectedPrefix = `datasets/manual-labeling-inbox/${candidateId}/`;
+    const expectedPrefix = `${exportPath}/`;
     if (
       !yoloImagePath.startsWith(expectedPrefix) ||
       !/\.(png|jpe?g|webp)$/i.test(yoloImagePath)
@@ -189,6 +195,7 @@ export async function POST(request: NextRequest) {
       candidateId,
       pageIndex,
       previewPng,
+      exportPath,
     });
 
     return NextResponse.json({
