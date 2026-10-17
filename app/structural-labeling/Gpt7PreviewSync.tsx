@@ -34,26 +34,50 @@ export default function Gpt7PreviewSync() {
         if (cancelled || !list.candidates.length) return;
 
         const results: string[] = [];
+        const skipped: string[] = [];
         setStatus("Checking annotated GPT-7 previews...");
 
         for (const candidate of list.candidates) {
           if (cancelled) return;
-          const result = await labelingApi<PreviewResult>(
-            "/api/structural-labeling/gpt7-handoffs/preview",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ candidateId: candidate.id }),
-            },
-          );
-          results.push(result.previewPath);
+
+          try {
+            const result = await labelingApi<PreviewResult>(
+              "/api/structural-labeling/gpt7-handoffs/preview",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ candidateId: candidate.id }),
+              },
+            );
+            results.push(result.previewPath);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "";
+            if (
+              message.includes("gpt7_manifest_load_failed:404") ||
+              message.includes("candidate_not_found")
+            ) {
+              skipped.push(candidate.id);
+              continue;
+            }
+            throw error;
+          }
         }
 
         if (!cancelled) {
           setPaths(results);
-          setStatus(
-            results.length ? "Annotated GPT-7 previews are synchronized." : "",
-          );
+          if (results.length) {
+            setStatus(
+              skipped.length
+                ? `Annotated GPT-7 previews are synchronized. Skipped ${skipped.length} stale export record(s).`
+                : "Annotated GPT-7 previews are synchronized.",
+            );
+          } else if (skipped.length) {
+            setStatus(
+              `No preview was generated. Skipped ${skipped.length} stale export record(s) whose GPT-7 handoff no longer exists.`,
+            );
+          } else {
+            setStatus("");
+          }
         }
       } catch (error) {
         if (!cancelled) {
