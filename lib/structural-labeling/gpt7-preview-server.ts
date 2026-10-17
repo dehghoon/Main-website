@@ -121,6 +121,7 @@ async function githubRequest<T extends GithubJson>(
   return (await response.json()) as T;
 }
 
+// Use GitHub raw media responses so large raster files are returned as bytes instead of Contents API metadata.
 export async function loadGpt7Image(path: string): Promise<Uint8Array> {
   const token = requireEnv("GPT7_GITHUB_TOKEN");
   const owner = process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon";
@@ -128,14 +129,25 @@ export async function loadGpt7Image(path: string): Promise<Uint8Array> {
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const apiBase = "https://api.github.com";
 
-  const file = await githubRequest<{ content: string; encoding: string }>(
+  const response = await fetch(
     `${apiBase}/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`,
-    { method: "GET" },
-    token,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/vnd.github.raw+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      cache: "no-store",
+    },
   );
 
-  if (file.encoding !== "base64") throw new Error("gpt7_preview_source_encoding_unsupported");
-  return new Uint8Array(Buffer.from(file.content.replace(/\s/g, ""), "base64"));
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`gpt7_preview_source_load_failed:${response.status}:${text.slice(0, 500)}`);
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 export async function commitGpt7AnnotatedPreview(
