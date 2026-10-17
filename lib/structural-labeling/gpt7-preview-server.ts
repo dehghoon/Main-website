@@ -1,3 +1,13 @@
+import sharp from "sharp";
+import { applyAffine } from "./coordinates";
+import {
+  orientedBBoxCorners,
+  type Annotation,
+  type LabelClass,
+  type Point2D,
+  type TransformMetadata,
+} from "./contract";
+
 type PreviewCommitInput = {
   candidateId: string;
   pageIndex: number;
@@ -6,10 +16,85 @@ type PreviewCommitInput = {
 
 type GithubJson = Record<string, unknown>;
 
+const PREVIEW_COLORS: Record<LabelClass, string> = {
+  column: "#2563eb",
+  beam: "#d97706",
+  wall: "#dc2626",
+};
+
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`missing_server_env:${name}`);
   return value;
+}
+
+function annotationCorners(annotation: Annotation): Point2D[] {
+  if (annotation.oriented_bbox) return [...orientedBBoxCorners(annotation.oriented_bbox)];
+  const box = annotation.bbox;
+  return [
+    { x: box.xmin, y: box.ymin },
+    { x: box.xmax, y: box.ymin },
+    { x: box.xmax, y: box.ymax },
+    { x: box.xmin, y: box.ymax },
+  ];
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+export async function renderAnnotatedPreviewPng(input: {
+  image: Uint8Array;
+  annotations: Annotation[];
+  transform: TransformMetadata;
+}): Promise<Uint8Array> {
+  const metadata = await sharp(input.image).metadata();
+  const width = metadata.width ?? input.transform.raster_width_px;
+  const height = metadata.height ?? input.transform.raster_height_px;
+  if (!width || !height) throw new Error("preview_image_dimensions_missing");
+
+  const sx = width / input.transform.raster_width_px;
+  const sy = height / input.transform.raster_height_px;
+  const strokeWidth = Math.max(2, Math.round(Math.min(width, height) / 700));
+  const fontSize = Math.max(14, Math.round(Math.min(width, height) / 55));
+
+  const overlay = input.annotations
+    .map((annotation) => {
+      const mapped = annotationCorners(annotation).map((point) => {
+        const raster = applyAffine(input.transform.source_page_to_raster_affine, point);
+        return { x: raster.x * sx, y: raster.y * sy };
+      });
+      const center = {
+        x: mapped.reduce((sum, point) => sum + point.x, 0) / mapped.length,
+        y: mapped.reduce((sum, point) => sum + point.y, 0) / mapped.length,
+      };
+      const color = PREVIEW_COLORS[annotation.class];
+      const points = mapped.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+      const label = escapeXml(annotation.class);
+      return [
+        `<polygon points="${points}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`,
+        `<text x="${center.x.toFixed(2)}" y="${center.y.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"`,
+        ` font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" fill="${color}"`,
+        ` stroke="#ffffff" stroke-width="${Math.max(2, Math.round(strokeWidth * 0.9))}" paint-order="stroke">${label}</text>`,
+      ].join("");
+    })
+    .join("");
+
+  const svg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${overlay}</svg>`,
+  );
+
+  const result = await sharp(input.image)
+    .composite([{ input: svg, top: 0, left: 0 }])
+    .png()
+    .toBuffer();
+
+  return new Uint8Array(result);
 }
 
 async function githubRequest<T extends GithubJson>(
@@ -34,6 +119,23 @@ async function githubRequest<T extends GithubJson>(
   }
 
   return (await response.json()) as T;
+}
+
+export async function loadGpt7Image(path: string): Promise<Uint8Array> {
+  const token = requireEnv("GPT7_GITHUB_TOKEN");
+  const owner = process.env.GPT7_GITHUB_OWNER?.trim() || "dehghoon";
+  const repo = process.env.GPT7_GITHUB_REPO?.trim() || "linkoteq-structural-detection";
+  const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
+  const apiBase = "https://api.github.com";
+
+  const file = await githubRequest<{ content: string; encoding: string }>(
+    `${apiBase}/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`,
+    { method: "GET" },
+    token,
+  );
+
+  if (file.encoding !== "base64") throw new Error("gpt7_preview_source_encoding_unsupported");
+  return new Uint8Array(Buffer.from(file.content.replace(/\s/g, ""), "base64"));
 }
 
 export async function commitGpt7AnnotatedPreview(
@@ -66,7 +168,7 @@ export async function commitGpt7AnnotatedPreview(
     `${apiBase}/repos/${owner}/${repo}/contents/${manifestPath}?ref=${encodeURIComponent(branch)}`,
     { method: "GET" },
     token,
-   );
+  );
 
   if (manifestResponse.encoding !== "base64") {
     throw new Error("gpt7_manifest_encoding_unsupported");
