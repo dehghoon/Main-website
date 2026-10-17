@@ -5,6 +5,7 @@ import {
   type Gpt7IntakePackage,
 } from "./gpt7";
 import type { Annotation, TransformMetadata } from "./contract";
+import { buildGpt7ExportPath } from "./gpt7-export-path";
 
 type CandidateRow = Record<string, unknown> & {
   id: string;
@@ -137,7 +138,6 @@ async function commitGithubBundle(input: {
     { method: "GET" },
     input.token,
   );
-
   const parentCommit = await githubJson<{ tree: { sha: string } }>(
     `${apiBase}/repos/${input.owner}/${input.repo}/git/commits/${ref.object.sha}`,
     { method: "GET" },
@@ -279,7 +279,11 @@ export async function prepareGpt7Handoff(
   const branch = process.env.GPT7_GITHUB_BRANCH?.trim() || "main";
   const repository = `${owner}/${repo}`;
 
-  const exportPath = `datasets/manual-labeling-inbox/${candidateId}`;
+  const exportPath = buildGpt7ExportPath({
+    originalFilename: typedSource.original_filename || typedCandidate.original_filename,
+    pageIndex: typedCandidate.page_index,
+    candidateId,
+  });
   const originalSourcePath = `${exportPath}/original/${sourceFilename(typedSource)}`;
   const annotationsPath = `${exportPath}/annotations.json`;
   const manifestPath = `${exportPath}/manifest.json`;
@@ -306,7 +310,6 @@ export async function prepareGpt7Handoff(
 
   if (typedSource.mime_type === "application/pdf") {
     const pageIndex = typedCandidate.page_index ?? 0;
-
     if (!preRenderedPdfPage || preRenderedPdfPage.pageIndex !== pageIndex) {
       throw new Error("pre_rendered_pdf_page_required");
     }
@@ -348,6 +351,7 @@ export async function prepareGpt7Handoff(
 
   const manifest = {
     handoff_version: "github-manual-labeling-v2",
+    export_path_scheme: "drawing-page-candidate-v1",
     source_repository: "dehghoon/Main-website",
     destination_repository: repository,
     candidate_id: pkg.candidate_id,
