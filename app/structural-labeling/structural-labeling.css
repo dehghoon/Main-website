@@ -151,3 +151,75 @@
     padding: 10px;
   }
 }
+
+
+/* Responsive annotation work area: keep controls usable without clipping the drawing. */
+.structural-labeling-shell .structural-annotation-workspace {
+  min-width: 0;
+  max-width: 100%;
+}
+.structural-labeling-shell .structural-annotation-toolbar {
+  position: relative !important;
+  top: auto !important;
+  gap: 8px 10px !important;
+  padding: 12px !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+}
+.structural-labeling-shell .structural-annotation-toolbar button,
+.structural-labeling-shell .structural-annotation-toolbar input,
+.structural-labeling-shell .structural-annotation-toolbar label {
+  flex-shrink: 0;
+}
+.structural-labeling-shell .structural-annotation-toolbar input[type="range"] {
+  max-width: 110px;
+}
+.structural-labeling-shell .structural-annotation-viewport {
+  height: clamp(360px, 65dvh, 920px) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overscroll-behavior: contain;
+}
+.structural-labeling-shell .structural-focus-toggle {
+  font-weight: 700;
+  border: 1px solid #2563eb;
+  border-radius: 7px;
+  padding: 8px 12px;
+}
+.structural-labeling-shell .structural-annotation-workspace.is-focused {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100% !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  overflow: auto;
+  padding: 12px clamp(10px, 2vw, 28px);
+  box-sizing: border-box;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.structural-labeling-shell .structural-annotation-workspace.is-focused .structural-annotation-toolbar {
+  position: sticky !important;
+  top: 0 !important;
+  flex: 0 0 auto;
+  z-index: 25;
+}
+.structural-labeling-shell .structural-annotation-workspace.is-focused .structural-annotation-viewport {
+  flex: 1 1 auto;
+  height: auto !important;
+  min-height: 260px !important;
+  max-height: none !important;
+}
+@media (max-width: 640px) {
+  .structural-labeling-shell .structural-annotation-toolbar {
+    padding: 8px !important;
+  }
+  .structural-labeling-shell .structural-annotation-viewport {
+    height: clamp(320px, 55dvh, 650px) !important;
+  }
+  .structural-labeling-shell .structural-annotation-workspace.is-focused {
+    padding: 8px;
+  }
+}
