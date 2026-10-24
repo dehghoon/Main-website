@@ -51,7 +51,7 @@ export default function EnhancedAnnotationEditor({candidate,revisions,canEdit,on
    <button disabled={!canEdit||!selected} onClick={del}>Delete selected</button>
    <label>Box line <input type="range" min={1} max={8} value={line} onChange={e=>setLine(+e.target.value)}/>{line}px</label>
    <label>Label font <input type="range" min={8} max={24} value={font} onChange={e=>setFont(+e.target.value)}/>{font}px</label>
-   <button onClick={()=>setZoom(z=>Math.max(10,z-10))}>−</button><input aria-label="Zoom percentage" type="range" min={10} max={150} step={10} value={zoom} onChange={e=>setZoom(+e.target.value)}/><strong>{zoom}%</strong><button onClick={()=>setZoom(z=>Math.min(150,z+10))}>+</button>
+   <button onClick={()=>setZoom(z=>Math.max(10,z-10))}>−</button><input aria-label="Zoom percentage" type="range" min={10} max={500} step={10} value={zoom} onChange={e=>setZoom(+e.target.value)}/><strong>{zoom}%</strong><button onClick={()=>setZoom(z=>Math.min(500,z+10))}>+</button>
    <button disabled={!canEdit||!hist.length} onClick={undo}>Undo</button>{canEdit&&<button onClick={()=>void save()}>Save revision</button>}
   </div>
   <p>{rotate?"Rotation enabled: select a label box and drag its circular rotation handle.":tool==="select"?"Select mode: click a label box, then delete it if needed.":"Draw mode: choose a class and drag a box."} Line width and font size are display-only.</p>
