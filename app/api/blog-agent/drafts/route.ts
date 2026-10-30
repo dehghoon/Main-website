@@ -21,6 +21,7 @@ function safeImage(value: unknown): string | null {
   return url.toString();
 }
 export async function POST(req: NextRequest) {
+  if (process.env.BLOG_AGENT_ENABLED !== "true") return NextResponse.json({ error: "Integration disabled" }, { status: 503 });
   if (!authenticated(req)) return fail("Unauthorized", 401);
   const length = Number(req.headers.get("content-length") || 0);
   if (length > MAX_BYTES) return fail("Payload too large", 413);
