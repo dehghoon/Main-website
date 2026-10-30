@@ -13,6 +13,7 @@ const rows = [
   ["Smart Drawing IFC export", "—", "✓", "✓"],
   ["Calculation exports", "View only", "100 / calculator / month", "Unlimited"],
   ["Smart AI drawing exports", "View only", "100 / month", "Unlimited"],
+  ["ETABS / SAP2000 / STAAD model imports", "5 / month", "Unlimited", "Unlimited"],
   ["Company user access", "—", "—", "Unlimited company users"],
 ];
 
