@@ -27,7 +27,18 @@ export default function ArticleClient(){
  const encodedShareUrl=encodeURIComponent(shareUrl); const socialText=encodeURIComponent(`${socialCopy}\n\n${shareUrl}`); const titleText=encodeURIComponent(article.title);
  async function copyLink(){await navigator.clipboard.writeText(canonicalUrl);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
  async function copySocial(){await navigator.clipboard.writeText(socialPayload);setCopied("Social media post copied");setTimeout(()=>setCopied(""),1800);}
- async function openWithCopy(destination:string,message:string){await navigator.clipboard.writeText(socialPayload);setCopied(message);window.open(destination,"_blank","noopener,noreferrer");setTimeout(()=>setCopied(""),3000);}
+ async function openWithCopy(destination:string,message:string){
+  // Open synchronously in the user gesture before any async clipboard request.
+  // Mobile browsers otherwise block the popup after clipboard permission prompts.
+  const opened=window.open(destination,"_blank");
+  if(opened)opened.opener=null;
+  let copied=false;
+  try{
+   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(socialPayload);copied=true;}
+  }catch{/* Clipboard access is optional; navigation must still work. */}
+  setCopied(!opened?"Popup blocked. Allow popups or use the destination link.":copied?message:"Destination opened. Copy the post with the Copy button before publishing.");
+  setTimeout(()=>setCopied(""),5000);
+ }
  async function shareLinkedIn(){await openWithCopy(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,"Post copied — paste it into LinkedIn");}
  async function shareFacebook(){await openWithCopy(`https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,"Post copied — choose the Facebook destination available to your account");}
  function normalizeDestination(kind:DestinationKind,value:string){
