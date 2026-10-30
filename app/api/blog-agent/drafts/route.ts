@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { toSafeBlogHtml } from "@/lib/blog-agent-content";
+import { generateBlogCover } from "@/lib/blog-agent-cover";
 
 export const runtime = "nodejs";
 const MAX_BYTES = 150_000;
@@ -51,12 +52,31 @@ export async function POST(req: NextRequest) {
   const { data: existing, error: readError } = await supabase.from("blog_posts").select("id,status,slug").eq("slug", slug).maybeSingle();
   if (readError) return fail("Database lookup failed", 502);
   if (existing) return NextResponse.json({ id: existing.id, status: existing.status, slug: existing.slug, duplicate: true });
+  // A cover is mandatory for new agent drafts. Generate and upload one if absent.
+  // Storage errors fail closed: never create an image-less new draft.
+  if (!image) {
+    try {
+      const png = generateBlogCover(title);
+      const path = `agent/${slug}-cover.png`;
+      const { error: uploadError } = await supabase.storage.from("blog-media").upload(path, png, {
+        contentType: "image/png", upsert: false, cacheControl: "3600",
+      });
+      if (uploadError && !/already exists|duplicate/i.test(uploadError.message)) {
+        return fail("Cover image upload failed", 502);
+      }
+      const { data: publicImage } = supabase.storage.from("blog-media").getPublicUrl(path);
+      image = safeImage(publicImage.publicUrl);
+    } catch {
+      return fail("Cover image generation failed", 502);
+    }
+  }
+
   const payload = {
     title, body: safeBody, slug, author_id: authorId, status: "draft", published_at: null,
     excerpt: text("excerpt", 1000), seo_title: text("seo_title", 180),
     seo_description: text("seo_description", 400), linkedin_copy: text("social_media_copy", 4000),
-    cover_image_url: image, cover_image_alt: text("image_alt", 300),
-    cover_image_title: text("image_title", 300), cover_image_caption: text("image_caption", 1000),
+    cover_image_url: image, cover_image_alt: text("image_alt", 300) || title + " — Linkoteq engineering cover",
+    cover_image_title: text("image_title", 300) || title, cover_image_caption: text("image_caption", 1000),
     cover_image_meta: text("image_meta", 1000),
     tags: Array.isArray(input.tags) ? input.tags.filter((x): x is string => typeof x === "string").slice(0, 12).map(x => x.slice(0, 60)) : [],
   };
