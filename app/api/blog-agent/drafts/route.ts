@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { toSafeBlogHtml } from "@/lib/blog-agent-content";
 
 export const runtime = "nodejs";
 const MAX_BYTES = 150_000;
@@ -40,10 +41,8 @@ export async function POST(req: NextRequest) {
   const body = typeof input.body_html === "string" ? input.body_html.trim() : "";
   const externalId = typeof input.external_id === "string" ? input.external_id.trim() : "";
   if (!title || title.length > 180 || !body || body.length > 100_000 || !/^[a-zA-Z0-9_-]{8,100}$/.test(externalId)) return fail("Invalid title, body or external_id", 400);
-  // This API intentionally accepts plain text only. Never store caller-provided HTML.
-  // Escape first, then generate the limited HTML markup that the blog renderer expects.
-  if (/[<>]/.test(body)) return fail("Only plain text article bodies are accepted", 400);
-  const safeBody = body.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/\u0027/g, "&#39;").split(/\n\s*\n/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  let safeBody: string;
+  try { safeBody = toSafeBlogHtml(body); } catch { return fail("Only plain text article bodies are accepted", 400); }
   let image: string | null;
   try { image = safeImage(input.cover_image_url); } catch { return fail("Image must use an approved HTTPS host", 400); }
   const text = (name: string, max: number) => typeof input[name] === "string" ? (input[name] as string).slice(0, max).trim() || null : null;
