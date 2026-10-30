@@ -1,3 +1,5 @@
+> COMPATIBILITY COPY: maintained role guidance has moved to [knowledge/gpt5/GPT5_PLUGIN_MIGRATION_TRACKING.md](https://github.com/dehghoon/linkoteq-structural-core/blob/main/knowledge/gpt5/GPT5_PLUGIN_MIGRATION_TRACKING.md). Read that canonical file before work. The complete pre-migration text below is retained for history and must not override it. Project implementation and evidence remain in this repository.
+
 # GPT-5 Plugin Migration Tracking
 
 Status: preparation in progress. No plugin migration, security approval, deployment or production readiness is claimed.

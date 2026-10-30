@@ -1,3 +1,5 @@
+> COMPATIBILITY COPY: maintained role guidance has moved to [knowledge/gpt5/THREAT_MODEL.md](https://github.com/dehghoon/linkoteq-structural-core/blob/main/knowledge/gpt5/THREAT_MODEL.md). Read that canonical file before work. The complete pre-migration text below is retained for history and must not override it. Project implementation and evidence remain in this repository.
+
 # Linkoteq Main Website Threat Model
 
 ## Assets

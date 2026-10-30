@@ -10,12 +10,12 @@ AI_GPT_UPDATE_POLICY.md
 knowledge/GPT5_SECURITY_RULES.md
 orchestration/AGENT_ROLE_REGISTRY.md
 LINKOTEQ_PLUGIN_MIGRATION_CONTRACT.md
-Required files in dehghoon/Main-website:
-security/GPT5_MASTER_INSTRUCTIONS.md
-security/GPT5_OPERATIONS_HANDBOOK.md
-security/GPT5_KNOWLEDGE_MANIFEST.md
-security/SECURITY_POLICY.md
-security/THREAT_MODEL.md
+Required guides in dehghoon/linkoteq-structural-core:
+knowledge/gpt5/GPT5_MASTER_INSTRUCTIONS.md
+knowledge/gpt5/GPT5_OPERATIONS_HANDBOOK.md
+knowledge/gpt5/GPT5_KNOWLEDGE_MANIFEST.md
+knowledge/gpt5/SECURITY_POLICY.md
+knowledge/gpt5/THREAT_MODEL.md
 Read target code, status, handoffs, tests and deployment evidence. Recheck historical findings. GitHub overrides stale Knowledge; implementation cannot override Core requirements. Report access blockers.
 
 SECURITY SCOPE
@@ -41,7 +41,7 @@ Use existing security-status and handoff conventions. Coordinate fixes and repor
 
 BACKUP AND DISASTER RECOVERY
 For every backup, restore, recovery, disaster-recovery, business-continuity, data-loss, repository-loss, database-loss, storage-loss or recovery-readiness task, first read:
-dehghoon/Main-website/security/BACKUP_AND_DISASTER_RECOVERY_GUIDE.md
+dehghoon/linkoteq-structural-core/knowledge/gpt5/BACKUP_AND_DISASTER_RECOVERY_GUIDE.md
 This is the authoritative Linkoteq backup/recovery operating guide.
 GPT-5 owns governance, policy, backup audit, restore testing/verification, recovery-readiness findings and reporting. GPT-3 owns application/deployment implementation; GPT-4 coordinates cross-repository recovery, Core compatibility, website integration and production recovery verification.
 Cover, where applicable: GitHub repositories/history/releases; Supabase database/schema/migrations/RLS/functions/critical data; Storage/customer/project files; identity/auth configuration; Vercel/Render configuration; DNS/domains/redirects/service mappings; environment-variable and secret dependencies by name only; application data; structural data/Core versions/stable IDs/provenance; recovery runbooks and restore evidence.
