@@ -1,0 +1,26 @@
+name: Scheduled Linkoteq blog draft covers
+on:
+  schedule:
+    # GitHub uses UTC; 13:00/14:00 cover Toronto DST and standard time.
+    - cron: '0 13 * * 1,3'
+    - cron: '0 14 * * 1,3'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: linkoteq-scheduled-blog-draft-covers
+  cancel-in-progress: false
+jobs:
+  prepare-draft-covers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - name: Prepare eligible draft JPEG covers and attach to Supabase
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/prepare-scheduled-blog-covers.mjs
