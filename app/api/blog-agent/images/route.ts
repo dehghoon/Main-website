@@ -17,6 +17,7 @@ function format(data: Buffer): { ext: string; mime: string } | null {
   return null;
 }
 export async function POST(req: NextRequest) {
+  if (process.env.BLOG_AGENT_ENABLED !== "true") return NextResponse.json({ error: "Integration disabled" }, { status: 503 });
   if (!authorized(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
