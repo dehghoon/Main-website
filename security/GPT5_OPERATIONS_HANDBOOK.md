@@ -231,3 +231,30 @@ Security status may be:
 - `PRODUCTION_SECURITY_VERIFIED`
 
 Only GPT-5/GPT-4 verification evidence may support the final status, and production verification must remain separate from code/CI evidence.
+
+
+## Plugin runtime acceptance
+Read `GPT5_PLUGIN_MIGRATION_TRACKING.md` and the Core plugin migration contract. Preserve the original GPT/plugin identity, instructions, audience, assets and rollback evidence. Compare the inventory before and after migration. Do not delete/recreate an existing plugin.
+
+Verify current Core, master instructions, handbook, manifest, security policy, threat model and backup guide through actual direct GitHub tools in the migrated host. Record repository, path, exact commit and result. Distinguish available tools, successful reads, authorized writes, saved release and behavior. Do not write merely to test connectivity. Prepare full diffs and follow required approval/concurrency/readback controls for real changes.
+
+## Review and retest handoffs
+Coordinate GPT-6 reconstruction and GPT-7 detection reviews through GPT-4. Record trust boundaries, upload/data/model access, employee/QA/dataset-admission separation and exact reviewed revisions. Record each fix revision and retest evidence. A self-implemented fix is not independently reviewed merely because the same agent retests it. Disclose that limitation and request independent review.
+
+Issue scoped `pass`, `conditional` or `block` decisions. Track authorized risk acceptance separately, with owner, rationale, controls, scope and expiry. Unresolved high/critical findings block affected release absent permitted explicit acceptance.
+
+## Backup and recovery operations
+Before all backup/recovery work, read and follow `BACKUP_AND_DISASTER_RECOVERY_GUIDE.md`. Use its inventory, disaster scenarios, restore runbooks, evidence fields and readiness gates without replacing them with a shorter checklist. Report approved RPO/RTO or `DEFINE_REQUIRED`; identify asset owners and missing provider evidence. Use isolated non-production restore tests unless explicitly approved otherwise. Preserve canonical engineering data and approved calculation logic.
+
+
+## Mandatory authentication, access and quota regression matrix
+For each protected calculator, AI drawing, importer, export, upload and project endpoint, GPT-5 owns verification of:
+- Anonymous, expired, revoked and tampered sessions; authenticated identity alone must not grant a protected capability.
+- Starter/Pro/Company and employee roles; cross-user/cross-company object access; forged plan, role, owner, company or quota fields; self-promotion into employee or unlimited access.
+- Direct API calls, alternate routes/formats, queued jobs, storage/download URLs and replay that bypass UI gates. Recheck authorization at job execution and artifact delivery as applicable.
+- Exact approved quota scope (user/company/calculator/product), accounting unit, reset timezone/period, and trusted source of plan/billing state. Missing definitions are DEFINE_REQUIRED; do not invent commercial limits.
+- Zero, limit-minus-one, exact-limit and over-limit requests. Concurrent requests must not exceed the approved limit: verify atomic reservation/consumption and isolation across application instances.
+- Retries, duplicate/idempotency keys, failed/cancelled jobs, reservation expiry and refunds: no double charging and no free repeated successful work. Confirm approved charging rules.
+- Changing route, export format, calculator identifier, device, session or API host must not reset or evade a shared quota. Separate intentionally distinct quotas according to approved policy.
+- Month/reset boundaries, stale entitlement caches, downgrade/cancellation, webhook replay/signature validation where billing exists, and audited trusted employee exceptions.
+Record expected/actual outcomes, exact code revision, environment and evidence. Denied work must not generate an unauthorized artifact or execute the protected costly operation. Rate limiting does not replace subscription quota accounting. Use isolated synthetic accounts and safe concurrency. These requirements are test obligations, not evidence that production passed.

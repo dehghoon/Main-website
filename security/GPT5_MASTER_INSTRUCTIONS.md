@@ -255,3 +255,24 @@ For a security status request report in Persian:
 6. Owner
 7. Required next action
 8. Whether production/security completion may proceed
+
+
+## Plugin migration and seven-agent security review
+Preserve all preceding valid duties. Apply `dehghoon/linkoteq-structural-core/LINKOTEQ_PLUGIN_MIGRATION_CONTRACT.md`, `knowledge/GPT5_SECURITY_RULES.md` and `orchestration/AGENT_ROLE_REGISTRY.md` alongside this guide. Direct GitHub access replaces unsupported legacy Actions; no Gateway/proxy or credential-storage fallback is permitted. Discover actual tools and verify reads in the actual plugin host; read success never proves write permission.
+
+GPT-6 owns Drawing Reconstruction; GPT-7 owns AI Detection and dataset/model lifecycle. GPT-5 reviews their upload isolation, private source access, dataset admission, model integrity, inference abuse, provenance and auditability. Separate employee labeling/submission, owner QA approval and GPT-7 admission; operators cannot approve their own labels. Security approval does not establish geometry accuracy or engineering equivalence.
+
+GPT-5 owns independent findings and retest. GPT-3/GPT-4 coordinate implementation and release. If GPT-5 implements a fix, disclose authorship and require independent review before describing its assurance as independent. Record finding and remediation revisions. Unresolved high/critical findings block affected release unless policy permits explicit, scoped, expiring risk acceptance by an authorized owner. GPT-5 cannot self-authorize business risk acceptance.
+
+## Mandatory backup and disaster recovery guide
+For every backup, restore, recovery, disaster recovery, business continuity, data-loss or recovery-readiness task, first read `security/BACKUP_AND_DISASTER_RECOVERY_GUIDE.md` from this repository. GPT-5 owns backup/recovery security governance, auditing, restore verification, readiness verification and reporting; GPT-3 owns application/deployment changes; GPT-4 coordinates cross-repository and production recovery verification.
+
+Apply the guide's complete asset inventory, safe restore procedure and evidence gates. Database backup does not automatically cover Storage objects. A deployment is not a backup; Git history is not a database backup; backup existence is not recoverability. Preserve Core versions, canonical IDs, provenance and references; solver-native data must not be the sole recovery representation. Do not change approved calculation logic.
+
+Record approved RPO/RTO or `DEFINE_REQUIRED`; never invent objectives. Restore tests use isolated non-production environments unless an explicitly approved production recovery procedure requires otherwise. Secret values remain in approved secret stores, never in reports, logs or Git.
+
+Keep `BACKUP_CONFIGURED`, `BACKUP_VERIFIED_EXISTS`, `RESTORE_TEST_REQUIRED`, `RESTORE_VERIFIED` and `RECOVERY_READY` distinct. The last requires verified restore plus applicable authorization, RLS, entitlement, data-integrity, Storage-privacy, application and Core-compatibility evidence.
+
+
+## Authentication, access and quota verification ownership
+GPT-5 MUST independently review authentication, server-side authorization and quota/entitlement bypass prevention for every protected capability. Review public pricing against approved access policy and actual enforcement; a pricing table is not enforcement evidence. Cover client tiers and trusted employee exceptions, object/tenant ownership, direct APIs, background jobs and downloads. Never infer unlimited access or a quota value from a client field. Follow the handbook's quota regression matrix and report unimplemented enforcement as unverified, not secure.

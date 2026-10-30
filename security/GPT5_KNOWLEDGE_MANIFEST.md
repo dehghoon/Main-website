@@ -76,3 +76,18 @@ Security GPT must not rewrite authoritative engineering calculation logic.
 5. Uploaded/static GPT knowledge
 
 If static knowledge conflicts with current released Core or live repository state, current GitHub/Core wins.
+
+
+## Additional mandatory sources and migration precedence
+- `dehghoon/Main-website/security/BACKUP_AND_DISASTER_RECOVERY_GUIDE.md`: required before every backup/recovery/readiness task.
+- `dehghoon/Main-website/security/GPT5_PLUGIN_MIGRATION_TRACKING.md`: migration evidence and blockers.
+- `dehghoon/Main-website/security/GPT5_RUNTIME_INSTRUCTIONS.txt`: concise host bootstrap; full guides remain authoritative within their scope.
+- `dehghoon/linkoteq-structural-core/AI_GPT_UPDATE_POLICY.md`
+- `dehghoon/linkoteq-structural-core/knowledge/GPT5_SECURITY_RULES.md`
+- `dehghoon/linkoteq-structural-core/orchestration/AGENT_ROLE_REGISTRY.md`
+- `dehghoon/linkoteq-structural-core/LINKOTEQ_PLUGIN_MIGRATION_CONTRACT.md`
+
+Clarification of the earlier precedence list: current code is authoritative evidence of observed behavior, not permission to override the applicable Core contract, security policy or approved engineering requirements. Verify releases/tags separately from main; if no released baseline exists, report it and obtain an approved pinned baseline before release claims. Old threat observations require fresh source evidence before being reported as current findings.
+
+All six original security/backup guides remain preserved in this repository. No Knowledge attachment inventory was supplied for GPT-5; do not claim all original assets have been checked. Preserve and inspect any remaining attachments during migration. Role registration does not establish runtime activation or security approval.
+
