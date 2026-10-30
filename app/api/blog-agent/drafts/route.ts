@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { toSafeBlogHtml } from "@/lib/blog-agent-content";
 
 export const runtime = "nodejs";
 const MAX_BYTES = 150_000;
@@ -40,8 +41,8 @@ export async function POST(req: NextRequest) {
   const body = typeof input.body_html === "string" ? input.body_html.trim() : "";
   const externalId = typeof input.external_id === "string" ? input.external_id.trim() : "";
   if (!title || title.length > 180 || !body || body.length > 100_000 || !/^[a-zA-Z0-9_-]{8,100}$/.test(externalId)) return fail("Invalid title, body or external_id", 400);
-  // HTML is treated as untrusted. Renderers must sanitize before display.
-  if (/<script\b|\bon\w+\s*=|javascript:|<iframe\b/i.test(body)) return fail("Unsafe HTML", 400);
+  let safeBody: string;
+  try { safeBody = toSafeBlogHtml(body); } catch { return fail("Only plain text article bodies are accepted", 400); }
   let image: string | null;
   try { image = safeImage(input.cover_image_url); } catch { return fail("Image must use an approved HTTPS host", 400); }
   const text = (name: string, max: number) => typeof input[name] === "string" ? (input[name] as string).slice(0, max).trim() || null : null;
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
   if (readError) return fail("Database lookup failed", 502);
   if (existing) return NextResponse.json({ id: existing.id, status: existing.status, slug: existing.slug, duplicate: true });
   const payload = {
-    title, body, slug, author_id: authorId, status: "draft", published_at: null,
+    title, body: safeBody, slug, author_id: authorId, status: "draft", published_at: null,
     excerpt: text("excerpt", 1000), seo_title: text("seo_title", 180),
     seo_description: text("seo_description", 400), linkedin_copy: text("social_media_copy", 4000),
     cover_image_url: image, cover_image_alt: text("image_alt", 300),

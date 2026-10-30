@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test:labeling": "node --experimental-strip-types --test tests/structural-labeling.test.ts tests/structural-labeling-milestone2.test.ts tests/structural-labeling-visual-qa.test.ts tests/structural-labeling-permission-admin.test.ts tests/structural-labeling-owner-bootstrap.test.ts tests/structural-labeling-gpt7-handoff.test.ts",
     "typecheck": "tsc --noEmit",
-    "import:labeling": "node scripts/import-structural-labeling-candidates.mjs"
+    "import:labeling": "node scripts/import-structural-labeling-candidates.mjs",
+    "test:blog-agent": "node --experimental-strip-types --test tests/blog-agent-content.test.ts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",
