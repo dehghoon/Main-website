@@ -20,3 +20,7 @@ Returns draft id/status/slug. Repeating `external_id` returns the existing recor
 - Test invalid/expired tokens, cross-tenant access, replay/concurrent submissions, slug collisions, large payloads, unauthorized image URLs, and publication permission boundaries.
 - Public image URLs are references only. **No image upload exists yet.** Build a separate signed-upload flow with MIME/type/size verification, image optimization, and malware screening before claiming automated Media Studio upload.
 - No API credentials are stored in the repo. Keep the branch unmerged until security review and end-to-end staging verification.
+
+## Candidate image upload endpoint
+
+POST `/api/blog-agent/images` with the same bearer token and raw JPEG, PNG or WebP bytes (maximum 3 MiB). The endpoint checks declared MIME and magic bytes and uploads under a random path in the existing `blog-media` bucket. The response contains a public `image_url` suitable for the draft endpoint. The caller must resize/compress the image to the intended social/blog dimensions, typically 1200×630, before uploading. The API does not yet resize or decode images. Do not enable production use until image decoding, dimensions, rate limits, abuse scanning, authorization scope, and integration tests are complete. Storage bucket and public-read configuration must be verified in staging. No upload or draft has been attempted against production.
