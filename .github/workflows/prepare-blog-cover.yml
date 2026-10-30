@@ -1,0 +1,61 @@
+name: Prepare Linkoteq blog cover
+on:
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: Existing Supabase draft UUID
+        required: true
+        type: string
+      slug:
+        description: URL-safe article slug
+        required: true
+        type: string
+      title:
+        description: Article title
+        required: true
+        type: string
+      subtitle:
+        description: Short cover subtitle
+        required: false
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: linkoteq-blog-cover-${{ inputs.post_id }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Generate original vector cover
+        env:
+          SLUG: ${{ inputs.slug }}
+          TITLE: ${{ inputs.title }}
+          SUBTITLE: ${{ inputs.subtitle }}
+        run: node scripts/generate-blog-cover.mjs --slug "$SLUG" --title "$TITLE" --subtitle "$SUBTITLE"
+      - name: Render social JPEG
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: node scripts/render-blog-cover-jpeg.mjs "$SLUG"
+      - name: Commit covers
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "public/blog/covers/$SLUG.svg" "public/blog/covers/$SLUG.jpg"
+          git commit -m "assets(blog): prepare cover for $SLUG"
+          git push
+      - name: Upload JPEG to Supabase and attach to draft
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          POST_ID: ${{ inputs.post_id }}
+          SLUG: ${{ inputs.slug }}
+        run: node scripts/upload-blog-cover.mjs
