@@ -16,7 +16,7 @@ const DESTINATION_LABELS:Record<DestinationKind,string>={
 };
 
 export default function ArticleClient(){
- const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(null); const [status,setStatus]=useState("Loading article…"); const [copied,setCopied]=useState("");
+ const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(null); const [status,setStatus]=useState("Loading article…"); const [copied,setCopied]=useState(""); const [activeDestination,setActiveDestination]=useState<DestinationKind|null>(null); const [destinationInput,setDestinationInput]=useState("");
  useEffect(()=>{const s=getSupabase();if(!s)return setStatus("Article service is unavailable.");void s.from("blog_posts").select("title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy").eq("slug",params.slug).eq("status","published").single().then(({data,error})=>{if(error||!data)setStatus("Article not found.");else{setArticle(data as Article);setStatus("");}});},[params.slug]);
  if(!article)return <main className="publicArticle"><p>{status}</p></main>;
  const canonicalUrl=`https://www.linkoteq.com/blog/${params.slug}`;
@@ -45,15 +45,14 @@ export default function ArticleClient(){
   const raw=value.trim(); if(!raw)return null;
   try{const u=new URL(raw);const host=u.hostname.replace(/^www\./,"");const needsLinkedIn=kind.startsWith("linkedin");const ok=needsLinkedIn?host==="linkedin.com":host==="facebook.com"||host==="m.facebook.com";return ok?u.toString():null;}catch{return null;}
  }
- async function shareToDestination(kind:DestinationKind){
-  const key=`linkotech-share-${kind}`;
-  const saved=typeof window!=="undefined"?localStorage.getItem(key)||"":"";
-  const entered=window.prompt(`${DESTINATION_LABELS[kind]}\n\nPaste the exact Page, Company, or Group URL you can post to. This is saved only on this device.`,saved);
-  if(entered===null)return;
-  const destination=normalizeDestination(kind,entered);
-  if(!destination){setCopied(`Please enter a valid ${kind.startsWith("linkedin")?"LinkedIn":"Facebook"} URL.`);setTimeout(()=>setCopied(""),2600);return;}
-  localStorage.setItem(key,destination);
-  await openWithCopy(destination,"Post copied — destination opened. Start a post there and paste the approved marketing copy.");
+ function selectDestination(kind:DestinationKind){
+  setActiveDestination(kind);
+  try{setDestinationInput(localStorage.getItem(`linkotech-share-${kind}`)||"");}catch{setDestinationInput("");}
+ }
+ const validatedDestination=activeDestination?normalizeDestination(activeDestination,destinationInput):null;
+ function rememberDestination(){
+  if(!activeDestination||!validatedDestination)return;
+  try{localStorage.setItem(`linkotech-share-${activeDestination}`,validatedDestination);}catch{/* Browser storage can be disabled. */}
  }
  async function shareInstagram(){await navigator.clipboard.writeText(socialPayload);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
  return <main className="publicArticle">
@@ -73,8 +72,15 @@ export default function ArticleClient(){
     </div>
     <div className="socialCopyBar"><div><strong>{article.title}</strong><p>{socialCopy}</p><span>{canonicalUrl}</span></div><button type="button" onClick={copySocial}>Copy</button></div>
 
-    <div className="shareDestinationGroup"><strong>LinkedIn</strong><div className="shareButtons shareButtonsPrimary"><button type="button" className="linkedinShare" onClick={shareLinkedIn}>Profile</button><button type="button" onClick={()=>shareToDestination("linkedin-page")}>Page / Company</button><button type="button" onClick={()=>shareToDestination("linkedin-group")}>Group</button></div><small>For Page / Company or Group, paste the destination URL once; it is remembered on this device.</small></div>
-    <div className="shareDestinationGroup"><strong>Facebook</strong><div className="shareButtons shareButtonsPrimary"><button type="button" onClick={shareFacebook}>Profile / Share Dialog</button><button type="button" onClick={()=>shareToDestination("facebook-page")}>Page</button><button type="button" onClick={()=>shareToDestination("facebook-group")}>Group</button></div><small>Page and Group buttons open the exact destination you enter, avoiding broken generic Facebook URLs.</small></div>
+    <div className="shareDestinationGroup"><strong>LinkedIn</strong><div className="shareButtons shareButtonsPrimary"><button type="button" className="linkedinShare" onClick={shareLinkedIn}>Profile</button><button type="button" onClick={()=>selectDestination("linkedin-page")}>Page / Company</button><button type="button" onClick={()=>selectDestination("linkedin-group")}>Group</button></div><small>Select a destination, enter its URL in the field below, then tap Open destination page.</small></div>
+    <div className="shareDestinationGroup"><strong>Facebook</strong><div className="shareButtons shareButtonsPrimary"><button type="button" onClick={shareFacebook}>Profile / Share Dialog</button><button type="button" onClick={()=>selectDestination("facebook-page")}>Page</button><button type="button" onClick={()=>selectDestination("facebook-group")}>Group</button></div><small>Select Page or Group, then open its URL using the direct link below.</small></div>
+
+    {activeDestination&&<div className="shareDestinationGroup" style={{padding:"12px",border:"1px solid #cbd5e1",borderRadius:"10px",marginTop:"12px"}}>
+      <label htmlFor="socialDestinationUrl"><strong>{DESTINATION_LABELS[activeDestination]}</strong></label>
+      <input id="socialDestinationUrl" type="url" inputMode="url" autoComplete="url" placeholder="https://www.linkedin.com/company/..." value={destinationInput} onChange={e=>setDestinationInput(e.target.value)} style={{display:"block",width:"100%",padding:"12px",margin:"10px 0",border:"1px solid #94a3b8",borderRadius:"8px"}}/>
+      {validatedDestination?<a href={validatedDestination} onClick={rememberDestination} style={{display:"inline-block",padding:"12px 18px",borderRadius:"8px",background:"#0b1d30",color:"white",textDecoration:"none"}}>Open destination page</a>:<p>Enter a complete, valid LinkedIn or Facebook page URL.</p>}
+      <p><small>This opens the destination in the current tab to avoid mobile popup blocking. Copy the approved post text above first, then paste it into a new post on that page. Opening a page does not publish a post.</small></p>
+    </div>}
 
     <div className="shareButtons shareButtonsPrimary"><a href={`https://twitter.com/intent/tweet?text=${socialText}`} target="_blank" rel="noreferrer">X</a><a href={`https://t.me/share/url?url=${encodedShareUrl}&text=${encodeURIComponent(socialCopy)}`} target="_blank" rel="noreferrer">Telegram</a></div>
     <div className="shareButtons shareButtonsSecondary"><a href={`https://www.reddit.com/submit?url=${encodedShareUrl}&title=${titleText}`} target="_blank" rel="noreferrer">Reddit</a><a href={`mailto:?subject=${titleText}&body=${socialText}`}>Email</a><button type="button" onClick={shareInstagram}>Instagram Caption</button><button type="button" onClick={copyLink}>Copy Link</button></div>
