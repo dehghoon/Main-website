@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-package-lock --no-audit --no-fund
-      - name: Prepare eligible draft JPEG covers and attach to Supabase
+      - name: Create evidence-backed article draft for review\n        env:\n          SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}\n          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}\n          GITHUB_TOKEN: \${{ github.token }}\n        run: node scripts/prepare-scheduled-blog-draft.mjs\n      - name: Prepare eligible draft JPEG covers and attach to Supabase
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/prepare-scheduled-blog-covers.mjs
