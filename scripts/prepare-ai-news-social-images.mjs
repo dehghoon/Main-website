@@ -9,7 +9,7 @@ const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
 const headers={apikey:key,authorization:"Bearer "+key};
 const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Toronto",weekday:"short",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
 const local=t=>parts.find(x=>x.type===t)?.value;
-if(process.env.GITHUB_EVENT_NAME==="schedule"&&(!["Tue","Thu","Sat"].includes(local("weekday"))||local("hour")!=="10")){console.log("Not 10:00 Toronto Tuesday/Thursday/Saturday; skipping");process.exit(0);}
+if(process.env.GITHUB_EVENT_NAME==="schedule"&&(!["Tue","Thu","Sat"].includes(local("weekday"))||!["10","11"].includes(local("hour")))){console.log("Outside Toronto image-processing backup window; skipping");process.exit(0);}
 const q=await fetch(project+"/rest/v1/ai_news_social_assets?image_status=eq.pending&image_url=is.null&scheduled_at=lte."+encodeURIComponent(new Date().toISOString())+"&select=id,slug,title,subtitle,source_url&order=scheduled_at.asc&limit=15",{headers});
 if(!q.ok)throw Error("Queue lookup HTTP "+q.status);
 const jobs=await q.json();let ready=0,failed=0;
