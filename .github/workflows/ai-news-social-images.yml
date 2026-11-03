@@ -13,14 +13,14 @@ concurrency:
 jobs:
   prepare-images:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --no-package-lock --no-audit --no-fund
-      - name: Generate and verify queued news JPEGs
+      - name: Generate contextual AI news carousel images and verify JPEGs
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/prepare-ai-news-social-images.mjs
