@@ -5,6 +5,10 @@ on:
     # Extra UTC hour is skipped outside 10:00-11:59 Toronto
     - cron: '7,37 14,15,16 * * 2,4,6'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/prepare-ai-news-social-images.mjs"
 permissions:
   contents: read
 concurrency:
