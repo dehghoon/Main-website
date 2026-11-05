@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Reuse the SAME authenticated OpenAI image generation path as blog-cover-generate.
-// This workflow prepares media only; the social publisher handles posting after review.
+// Render original editorial illustrations locally, without an image API charge.
+// This workflow prepares media; the separate social publisher handles posting.
 import {createCanvas} from "@napi-rs/canvas";
 const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -112,7 +112,7 @@ for(const a of jobs){
    if(bytes.length<1024||bytes.length>8*1024*1024)throw Error("Rendered slide invalid");
    const storagePath="ai-news/"+a.id+"/slide-final-"+(i+1)+".jpg";
    await request("/storage/v1/object/blog-media/"+storagePath,{method:"POST",
-    headers:{"content-type":"image/jpeg","cache-control":"3600","x-upsert":"false"},body:bytes});
+    headers:{"content-type":"image/jpeg","cache-control":"3600","x-upsert":"true"},body:bytes});
    const url=project+"/storage/v1/object/public/blog-media/"+storagePath;
    const verify=await fetch(url);
    if(!verify.ok||!verify.headers.get("content-type")?.includes("image/jpeg"))throw Error("Slide public URL unavailable");
@@ -128,7 +128,7 @@ for(const a of jobs){
   generated++;console.log(JSON.stringify({asset:a.id,status:"ready_pending_creative_review",slides:urls.length}));
  }catch(e){
   failed++;console.error(JSON.stringify({asset:a.id,status:"failed",error:String(e.message).slice(0,240)}));
-  // Failed assets are never published; repair must reconcile any partial uploads.
+  // A failed asset is never published; upsert allows safe recovery of partial slides.
   await request("/rest/v1/ai_news_social_assets?id=eq."+encodeURIComponent(a.id)+"&image_status=eq.pending",{
    method:"PATCH",headers:{"content-type":"application/json"},
    body:JSON.stringify({image_status:"failed",image_error:String(e.message).slice(0,280)})
