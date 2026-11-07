@@ -48,10 +48,10 @@ function selectScene(slide,asset){
 async function renderSlide(slide,idx,asset){
  const scene=selectScene(slide,asset);
  const heading=lines(slide.headline,28,3);
- const detail=lines(slide.detail,54,3);
+ const detail=lines(slide.detail,54,2);
  const hue=parseInt(createHash("sha256").update(String(asset.slug)+":"+scene.name+":"+idx).digest("hex").slice(0,2),16)%30;
  const art='<g fill="none" stroke="#8ce7fa" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">'+scene.art+'</g>';
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(990+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(Math.max(1045,875+heading.length*63+15)+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
  const image=await loadImage(Buffer.from(svg));
  const canvas=createCanvas(1200,1200);canvas.getContext("2d").drawImage(image,0,0);
  const bytes=canvas.toBuffer("image/jpeg",90);
