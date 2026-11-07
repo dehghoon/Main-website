@@ -21,7 +21,7 @@ let generated=0,blocked=0,failed=0;
 const esc=s=>String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 function lines(value,max=31,limit=4){
  const out=[];let line="";
- for(const word of String(value||"").trim().split(/\\s+/)){
+ for(const word of String(value||"").trim().split(/\s+/)){
   if(word.length>max)throw Error("Text needs editorial shortening");
   if((line+" "+word).trim().length>max&&line){out.push(line);line=word}else line=(line+" "+word).trim();
  }
@@ -39,19 +39,37 @@ const scenes=[
  {re:/engineer|inspect|human|verify|review|approval|check/,name:"review",art:'<rect x="280" y="125" width="610" height="540" rx="20"/><path d="M390 280H770M390 370H770M390 460H650M390 550L450 600L600 430"/>'},
  {re:/drawing|blueprint|plan|clash|document|design|model|building/,name:"drawing",art:'<path d="M245 650V260L560 105L875 260V650M560 105V650M245 260L560 410L875 260M245 450L560 600L875 450"/>'}
 ];
-function selectScene(slide,asset){
- const topic=[slide.visual,slide.headline,slide.detail,asset.title].join(" ").toLowerCase();
- const selected=scenes.find(x=>x.re.test(topic));
+function selectScene(slide,asset,idx){
+ // Match the *specific slide*, not the global article title. A recurring word
+ // like "camera" must not force all five slides to reuse one illustration.
+ const title=String(slide.headline||"").toLowerCase();
+ const detail=String(slide.detail||"").toLowerCase();
+ const visual=String(slide.visual||"").toLowerCase();
+ const role=[
+  /camera|cctv|earthcam|site|construction/,
+  /photo|log|document|drawing|blueprint|review/,
+  /ai|data|software|dashboard|integration|procore|detect/,
+  /safety|hazard|risk|engineer|inspect|verify|excavat/,
+  /engineer|review|human|check|team|approval/
+ ][idx];
+ const candidates=[
+  role?.test(title+" "+detail) ? ["camera","drawing","digital","safety","review"][idx] : null,
+  ...scenes.filter(x=>x.re.test(title+" "+detail)).map(x=>x.name),
+  ...scenes.filter(x=>x.re.test(visual)).map(x=>x.name)
+ ].filter(Boolean);
+ const selected=scenes.find(x=>x.name===(candidates[0]||""));
  if(!selected)throw Error("No contextual SVG scene for visual brief: "+String(slide.visual).slice(0,90));
  return selected;
 }
 async function renderSlide(slide,idx,asset){
- const scene=selectScene(slide,asset);
+ const scene=selectScene(slide,asset,idx);
  const heading=lines(slide.headline,28,3);
- const detail=lines(slide.detail,54,2);
+ const detail=lines(slide.detail,48,2);
+ const detailStart=Math.max(1030,875+heading.length*63+12);
+ if(detailStart+(detail.length-1)*39>1125)throw Error("Slide copy exceeds safe text area");
  const hue=parseInt(createHash("sha256").update(String(asset.slug)+":"+scene.name+":"+idx).digest("hex").slice(0,2),16)%30;
  const art='<g fill="none" stroke="#8ce7fa" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">'+scene.art+'</g>';
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(Math.max(1045,875+heading.length*63+15)+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(detailStart+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
  const image=await loadImage(Buffer.from(svg));
  const canvas=createCanvas(1200,1200);canvas.getContext("2d").drawImage(image,0,0);
  const bytes=canvas.toBuffer("image/jpeg",90);
@@ -92,7 +110,7 @@ for(const a of jobs){
    if(!verify.ok||!verify.headers.get("content-type")?.includes("image/jpeg"))throw Error("Slide public URL unavailable");
    urls.push(url);
   }
-  if(new Set(sceneNames).size<2)throw Error("Carousel visual diversity check failed");
+  if(new Set(sceneNames).size<3)throw Error("Carousel visual diversity check failed: fewer than 3 distinct visual scenes");
   const collage=renderCollage(rendered);
   const collagePath="ai-news/"+a.id+"/collage-final.jpg";
   await request("/storage/v1/object/blog-media/"+collagePath,{method:"POST",
@@ -101,12 +119,6 @@ for(const a of jobs){
   const collageCheck=await fetch(collageUrl);
   if(!collageCheck.ok||!collageCheck.headers.get("content-type")?.includes("image/jpeg"))throw Error("Collage public URL unavailable");
   const cover=urls[0];
-  const updated=await request("/rest/v1/ai_news_social_assets?id=eq."+encodeURIComponent(a.id)+
-   "&image_status=eq.pending&image_url=is.null",{
-   method:"PATCH",headers:{"content-type":"application/json",prefer:"return=representation"},
-   body:JSON.stringify({image_status:"ready",image_url:cover,carousel_urls:urls,updated_at:new Date().toISOString()})
-  });
-  if((await updated.json()).length!==1)throw Error("Queue changed");
   // Attach the complete carousel to Instagram, and the readable collage to Facebook/LinkedIn.
   // Only pending publications are touched: never republish or modify existing successful posts.
   for(const platform of ["instagram","facebook","linkedin"]){
@@ -116,6 +128,12 @@ for(const a of jobs){
     body:JSON.stringify({media_urls:platform==="instagram"?urls:[collageUrl]})
    });
   }
+  const updated=await request("/rest/v1/ai_news_social_assets?id=eq."+encodeURIComponent(a.id)+
+   "&image_status=eq.pending&image_url=is.null",{
+   method:"PATCH",headers:{"content-type":"application/json",prefer:"return=representation"},
+   body:JSON.stringify({image_status:"ready",image_url:cover,carousel_urls:urls,updated_at:new Date().toISOString()})
+  });
+  if((await updated.json()).length!==1)throw Error("Queue changed");
   generated++;console.log(JSON.stringify({asset:a.id,status:"ready_pending_creative_review",slides:urls.length,collage:true,scenes:sceneNames}));
  }catch(e){
   failed++;console.error(JSON.stringify({asset:a.id,status:"failed",error:String(e.message).slice(0,240)}));
