@@ -40,7 +40,7 @@ const scenes=[
  {re:/drawing|blueprint|plan|clash|document|design|model|building/,name:"drawing",art:'<path d="M245 650V260L560 105L875 260V650M560 105V650M245 260L560 410L875 260M245 450L560 600L875 450"/>'}
 ];
 function selectScene(slide,asset){
- const topic=[slide.visual,slide.headline,slide.detail,asset.title].join(" ").toLowerCase();
+ const topic=[slide.visual,slide.headline,slide.detail].join(" ").toLowerCase();
  const selected=scenes.find(x=>x.re.test(topic));
  if(!selected)throw Error("No contextual SVG scene for visual brief: "+String(slide.visual).slice(0,90));
  return selected;
@@ -48,10 +48,12 @@ function selectScene(slide,asset){
 async function renderSlide(slide,idx,asset){
  const scene=selectScene(slide,asset);
  const heading=lines(slide.headline,28,3);
- const detail=lines(slide.detail,54,2);
+ const detail=lines(slide.detail,48,2);
+ const detailStart=Math.max(1030,875+heading.length*63+12);
+ if(detailStart+(detail.length-1)*39>1125)throw Error("Slide copy exceeds safe text area");
  const hue=parseInt(createHash("sha256").update(String(asset.slug)+":"+scene.name+":"+idx).digest("hex").slice(0,2),16)%30;
  const art='<g fill="none" stroke="#8ce7fa" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">'+scene.art+'</g>';
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(Math.max(1045,875+heading.length*63+15)+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(detailStart+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
  const image=await loadImage(Buffer.from(svg));
  const canvas=createCanvas(1200,1200);canvas.getContext("2d").drawImage(image,0,0);
  const bytes=canvas.toBuffer("image/jpeg",90);
@@ -92,7 +94,7 @@ for(const a of jobs){
    if(!verify.ok||!verify.headers.get("content-type")?.includes("image/jpeg"))throw Error("Slide public URL unavailable");
    urls.push(url);
   }
-  if(new Set(sceneNames).size<2)throw Error("Carousel visual diversity check failed");
+  if(new Set(sceneNames).size<3)throw Error("Carousel visual diversity check failed: fewer than 3 distinct visual scenes");
   const collage=renderCollage(rendered);
   const collagePath="ai-news/"+a.id+"/collage-final.jpg";
   await request("/storage/v1/object/blog-media/"+collagePath,{method:"POST",
