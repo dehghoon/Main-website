@@ -21,7 +21,7 @@ let generated=0,blocked=0,failed=0;
 const esc=s=>String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 function lines(value,max=31,limit=4){
  const out=[];let line="";
- for(const word of String(value||"").trim().split(/\\s+/)){
+ for(const word of String(value||"").trim().split(/\s+/)){
   if(word.length>max)throw Error("Text needs editorial shortening");
   if((line+" "+word).trim().length>max&&line){out.push(line);line=word}else line=(line+" "+word).trim();
  }
