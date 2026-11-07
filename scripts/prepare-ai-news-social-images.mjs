@@ -6,11 +6,6 @@ const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!key)throw Error("Missing SUPABASE_SERVICE_ROLE_KEY");
 const headers={apikey:key,authorization:"Bearer "+key};
-const local=new Intl.DateTimeFormat("en-US",{timeZone:"America/Toronto",weekday:"short",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
-const part=t=>local.find(x=>x.type===t)?.value;
-if(process.env.GITHUB_EVENT_NAME==="schedule"&&(!["Tue","Thu","Sat"].includes(part("weekday"))||!["10","11"].includes(part("hour")))){
- console.log("Outside Toronto image processing window");process.exit(0);
-}
 const request=async(path,options={})=>{
  const r=await fetch(project+path,{...options,headers:{...headers,...options.headers}});
  if(!r.ok)throw Error("Supabase HTTP "+r.status+" at "+path.split("?")[0]);
