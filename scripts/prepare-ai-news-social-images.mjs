@@ -39,14 +39,30 @@ const scenes=[
  {re:/engineer|inspect|human|verify|review|approval|check/,name:"review",art:'<rect x="280" y="125" width="610" height="540" rx="20"/><path d="M390 280H770M390 370H770M390 460H650M390 550L450 600L600 430"/>'},
  {re:/drawing|blueprint|plan|clash|document|design|model|building/,name:"drawing",art:'<path d="M245 650V260L560 105L875 260V650M560 105V650M245 260L560 410L875 260M245 450L560 600L875 450"/>'}
 ];
-function selectScene(slide,asset){
- const topic=[slide.visual,slide.headline,slide.detail].join(" ").toLowerCase();
- const selected=scenes.find(x=>x.re.test(topic));
+function selectScene(slide,asset,idx){
+ // Match the *specific slide*, not the global article title. A recurring word
+ // like "camera" must not force all five slides to reuse one illustration.
+ const title=String(slide.headline||"").toLowerCase();
+ const detail=String(slide.detail||"").toLowerCase();
+ const visual=String(slide.visual||"").toLowerCase();
+ const role=[
+  /camera|cctv|earthcam|site|construction/,
+  /photo|log|document|drawing|blueprint|review/,
+  /ai|data|software|dashboard|integration|procore|detect/,
+  /safety|hazard|risk|engineer|inspect|verify|excavat/,
+  /engineer|review|human|check|team|approval/
+ ][idx];
+ const candidates=[
+  role?.test(title+" "+detail) ? ["camera","drawing","digital","safety","review"][idx] : null,
+  ...scenes.filter(x=>x.re.test(title+" "+detail)).map(x=>x.name),
+  ...scenes.filter(x=>x.re.test(visual)).map(x=>x.name)
+ ].filter(Boolean);
+ const selected=scenes.find(x=>x.name===(candidates[0]||""));
  if(!selected)throw Error("No contextual SVG scene for visual brief: "+String(slide.visual).slice(0,90));
  return selected;
 }
 async function renderSlide(slide,idx,asset){
- const scene=selectScene(slide,asset);
+ const scene=selectScene(slide,asset,idx);
  const heading=lines(slide.headline,28,3);
  const detail=lines(slide.detail,48,2);
  const detailStart=Math.max(1030,875+heading.length*63+12);
@@ -103,12 +119,6 @@ for(const a of jobs){
   const collageCheck=await fetch(collageUrl);
   if(!collageCheck.ok||!collageCheck.headers.get("content-type")?.includes("image/jpeg"))throw Error("Collage public URL unavailable");
   const cover=urls[0];
-  const updated=await request("/rest/v1/ai_news_social_assets?id=eq."+encodeURIComponent(a.id)+
-   "&image_status=eq.pending&image_url=is.null",{
-   method:"PATCH",headers:{"content-type":"application/json",prefer:"return=representation"},
-   body:JSON.stringify({image_status:"ready",image_url:cover,carousel_urls:urls,updated_at:new Date().toISOString()})
-  });
-  if((await updated.json()).length!==1)throw Error("Queue changed");
   // Attach the complete carousel to Instagram, and the readable collage to Facebook/LinkedIn.
   // Only pending publications are touched: never republish or modify existing successful posts.
   for(const platform of ["instagram","facebook","linkedin"]){
@@ -118,6 +128,12 @@ for(const a of jobs){
     body:JSON.stringify({media_urls:platform==="instagram"?urls:[collageUrl]})
    });
   }
+  const updated=await request("/rest/v1/ai_news_social_assets?id=eq."+encodeURIComponent(a.id)+
+   "&image_status=eq.pending&image_url=is.null",{
+   method:"PATCH",headers:{"content-type":"application/json",prefer:"return=representation"},
+   body:JSON.stringify({image_status:"ready",image_url:cover,carousel_urls:urls,updated_at:new Date().toISOString()})
+  });
+  if((await updated.json()).length!==1)throw Error("Queue changed");
   generated++;console.log(JSON.stringify({asset:a.id,status:"ready_pending_creative_review",slides:urls.length,collage:true,scenes:sceneNames}));
  }catch(e){
   failed++;console.error(JSON.stringify({asset:a.id,status:"failed",error:String(e.message).slice(0,240)}));
