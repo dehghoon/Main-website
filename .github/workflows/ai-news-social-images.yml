@@ -1,9 +1,9 @@
 name: Prepare AI engineering social news images
 on:
   schedule:
-    # Toronto 10:07, 10:37, 11:07, 11:37; both DST offsets
-    # Extra UTC hour is skipped outside 10:00-11:59 Toronto
-    - cron: '7,37 14,15,16 * * 2,4,6'
+    # Retry overdue image jobs every 30 minutes.
+    # Publishing dates remain controlled by Supabase.
+    - cron: '*/30 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
