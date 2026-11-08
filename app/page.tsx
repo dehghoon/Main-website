@@ -57,6 +57,7 @@ export default function Home() {
       </header>
 
       <ThreeDModelShowcase />
+      <aside role="note" style={{maxWidth:1180,margin:"18px auto",padding:"14px 22px",border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Early development:</strong> LinkoTech engineering tools are evolving. Some workflows, including the 3D Structural Model, may be experimental or incomplete. Confirm current functionality before using results for professional engineering decisions. <a href="/contact" style={{textDecoration:"underline"}}>Ask about early access or provide feedback</a>.</aside>
 
       <section className="hero" id="top">
         <div className="heroCopy">
