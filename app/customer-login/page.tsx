@@ -143,7 +143,7 @@ export default function ClientWorkspacePage() {
         <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, after your submission is verified and the Pro tools are officially completed and launched. Your two-month period will not begin while the Pro tools are incomplete. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
         <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
         <p>After completing the questionnaire, request verification here. Verification reserves eligibility only. Your two free months start after official Pro product launch and activation, not on questionnaire completion.</p>
-        {rewardStatus ? <p role="status">Reward status: <strong>{rewardStatus}</strong></p> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
+        {rewardStatus ? <p role="status">Reward status: <strong>{rewardStatus === "verified" ? "Reserved — starts after official Pro launch" : rewardStatus === "granted" ? "Activated" : rewardStatus === "pending" ? "Pending verification" : rewardStatus}</strong></p> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
       </div>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
     </> : <>
