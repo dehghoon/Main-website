@@ -53,7 +53,7 @@ export default function Home() {
           <div className="navMenu"><button className="navMenuButton" type="button">Contact <ChevronDown size={15} /></button><div className="navDropdown"><a href="/contact">Contact Us</a><a href={CUSTOMER_DISCOVERY_URL}><UsersRound size={16} /> Customer Discovery</a><a href="/contact/support"><LifeBuoy size={16} /> Support</a></div></div>
           <a href="/pricing">Pricing</a>
         </nav>
-        <div className="navMenu signInMenu"><button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={15} /></button><div className="navDropdown signInDropdown"><a href={TIMESHEET_URL}>Employee Login</a><a href="/customer-login">Customer Login</a></div></div>
+        <div className="navMenu signInMenu"><button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={15} /></button><div className="navDropdown signInDropdown"><a href={TIMESHEET_URL}>Employee Login</a><a href="/customer-login">Customer Login</a><a href="/admin/access-manager">Access Manager</a></div></div>
       </header>
 
       <ThreeDModelShowcase />
