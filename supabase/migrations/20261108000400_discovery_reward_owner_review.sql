@@ -36,14 +36,14 @@ revoke all on function public.owner_review_discovery_reward(uuid,text,text) from
 grant execute on function public.owner_review_discovery_reward(uuid,text,text) to authenticated;
 
 create or replace function public.owner_list_discovery_rewards()
-returns table(user_id uuid,status text,requested_at timestamptz,verified_at timestamptz,granted_at timestamptz,expires_at timestamptz)
+returns table(user_id uuid,customer_email text,status text,requested_at timestamptz,verified_at timestamptz,granted_at timestamptz,expires_at timestamptz)
 language plpgsql stable security definer set search_path=''
 as $$
 begin
  if auth.uid() is null or not exists(select 1 from auth.users where id=auth.uid() and lower(email)='dehghani.pmp@gmail.com' and email_confirmed_at is not null)
  then raise exception 'owner_required';end if;
- return query select r.user_id,r.status,r.requested_at,r.verified_at,r.granted_at,r.expires_at
- from public.customer_discovery_rewards r order by r.requested_at desc;
+ return query select r.user_id,u.email::text,r.status,r.requested_at,r.verified_at,r.granted_at,r.expires_at
+ from public.customer_discovery_rewards r join auth.users u on u.id=r.user_id order by r.requested_at desc;
 end $$;
 revoke all on function public.owner_list_discovery_rewards() from public,anon;
 grant execute on function public.owner_list_discovery_rewards() to authenticated;
