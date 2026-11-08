@@ -21,9 +21,13 @@ export async function POST(request: NextRequest) {
  const starts=date(body.startsAt),expires=date(body.expiresAt);
  if(action==="grant"&&(!starts||!expires||starts>=expires))return NextResponse.json({error:"invalid_dates"},{status:400});
  if(action==="extend"&&!expires)return NextResponse.json({error:"invalid_expiry"},{status:400});
- const {data,error}=await db.rpc("owner_manage_customer_trial",{
+ const isBeta=body.accessType==="beta";
+ if(isBeta && (typeof body.toolKey!=="string"||!/^[a-z0-9][a-z0-9_-]{0,99}$/i.test(body.toolKey)||action==="extend"))
+  return NextResponse.json({error:"invalid_beta_request"},{status:400});
+ const {data,error}=await db.rpc(isBeta?"owner_manage_customer_beta":"owner_manage_customer_trial",{
  p_customer_id:body.customerId,p_starts_at:starts,p_expires_at:expires,
- p_action:action,p_grant_id:typeof body.grantId==="string"?body.grantId:null
+ p_action:action,p_grant_id:typeof body.grantId==="string"?body.grantId:null,
+ ...(isBeta?{p_tool_key:body.toolKey}:{})
  });
  if(error)return NextResponse.json({error:"trial_change_rejected",detail:error.message},{status:409,headers:{"Cache-Control":"no-store"}});
  return NextResponse.json({grantId:data},{headers:{"Cache-Control":"private, no-store"}});
