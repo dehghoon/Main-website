@@ -113,7 +113,7 @@ export default function ClientWorkspacePage() {
     if (data.user?.id !== userId) { setMessage("Sign in again to request this offer."); setBusy(false); return; }
     const { error } = await client.from("customer_discovery_rewards").insert({ user_id: userId });
     if (error) setMessage("Could not submit the reward request. Please contact support.");
-    else { setRewardStatus("pending"); setMessage("Your reward request is pending verification. Pro access is not active yet."); }
+    else { setRewardStatus("pending"); setMessage("Your reward request is pending verification. The two-month Pro period will start only after the Pro tools officially launch and your reward is activated."); }
     setBusy(false);
   }
 
@@ -140,9 +140,9 @@ export default function ClientWorkspacePage() {
       </div>}
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Customer Discovery reward</h2>
-        <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, subject to submission verification and activation. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
+        <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, after your submission is verified and the Pro tools are officially completed and launched. Your two-month period will not begin while the Pro tools are incomplete. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
         <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
-        <p>After completing the questionnaire, request verification here. The Pro reward starts only after a verified administrator grants it.</p>
+        <p>After completing the questionnaire, request verification here. Verification reserves eligibility only. Your two free months start after official Pro product launch and activation, not on questionnaire completion.</p>
         {rewardStatus ? <p role="status">Reward status: <strong>{rewardStatus}</strong></p> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
       </div>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
