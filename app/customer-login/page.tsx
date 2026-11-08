@@ -30,6 +30,7 @@ export default function ClientWorkspacePage() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
+  const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
 
   useEffect(() => {
     const client = supabaseClient();
@@ -38,9 +39,12 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setBetaChoice(null); setRewardStatus(null); return; }
-      const reward = await client!.from("customer_discovery_rewards").select("status").eq("user_id", id).maybeSingle();
-      if (mounted && !reward.error) setRewardStatus(reward.data?.status ?? null);
+      if (!id) { setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      const reward = await client!.from("customer_discovery_rewards").select("status,granted_at,expires_at").eq("user_id", id).maybeSingle();
+      if (mounted && !reward.error) {
+        setRewardStatus(reward.data?.status ?? null);
+        setRewardDates({start:reward.data?.granted_at ?? null,end:reward.data?.expires_at ?? null});
+      }
       const { data, error } = await client!.from("client_beta_preferences")
         .select("beta_opt_in").eq("user_id", id).maybeSingle();
       if (!mounted) return;
@@ -143,7 +147,7 @@ export default function ClientWorkspacePage() {
         <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, after your submission is verified and the Pro tools are officially completed and launched. Your two-month period will not begin while the Pro tools are incomplete. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
         <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
         <p>After completing the questionnaire, request verification here. Verification reserves eligibility only. Your two free months start after official Pro product launch and activation, not on questionnaire completion.</p>
-        {rewardStatus ? <p role="status">Reward status: <strong>{rewardStatus === "verified" ? "Reserved — starts after official Pro launch" : rewardStatus === "granted" ? "Activated" : rewardStatus === "pending" ? "Pending verification" : rewardStatus}</strong></p> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
+        {rewardStatus ? <div role="status"><p>Reward status: <strong>{rewardStatus === "verified" ? "Reserved — starts after official Pro launch" : rewardStatus === "granted" ? "Activated" : rewardStatus === "pending" ? "Pending verification" : rewardStatus}</strong></p>{rewardStatus === "granted" && rewardDates.start && rewardDates.end && <p>Free Pro period: {new Date(rewardDates.start).toLocaleDateString()} to {new Date(rewardDates.end).toLocaleDateString()}.</p>}</div> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
       </div>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
     </> : <>
