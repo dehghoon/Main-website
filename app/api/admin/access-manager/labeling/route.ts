@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requireAuthenticatedUser } from "../../../../lib/structural-labeling/server";
+import { requireAuthenticatedUser } from "../../../../../lib/structural-labeling/server";
 
 export const dynamic = "force-dynamic";
 const OWNER_EMAIL = "dehghani.pmp@gmail.com";
