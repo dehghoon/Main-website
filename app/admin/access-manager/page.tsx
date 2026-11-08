@@ -17,6 +17,8 @@ export default function AccessManager() {
  const [labelingLoading,setLabelingLoading]=useState(false);
  const [catalog,setCatalog]=useState<{permission:string;area:string;label:string;description:string|null}[]>([]);
  const [catalogMessage,setCatalogMessage]=useState("");
+ const [timesheetProfiles,setTimesheetProfiles]=useState<{id:string;full_name:string;email:string;role:string}[]>([]);
+ const [timesheetMessage,setTimesheetMessage]=useState("");
  useEffect(()=>{let live=true;async function check(){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key){if(live)setState("error");return;}
@@ -34,6 +36,13 @@ export default function AccessManager() {
   if(!live)return;if(!response.ok){setError("Unable to load survey responses.");return;}setData(await response.json());setError("");}
   void load();return()=>{live=false};
  },[state,token,page,section]);
+ async function loadTimesheet() {
+  if(!token)return;setTimesheetMessage("");
+  try {const r=await fetch("/api/admin/access-manager/timesheet",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+   if(!r.ok)throw new Error("Timesheet role inspection unavailable ("+r.status+").");
+   const body=await r.json();setTimesheetProfiles(body.profiles??[]);
+  }catch(e){setTimesheetMessage(e instanceof Error?e.message:"Unable to load Timesheet roles.");}
+ }
  async function loadCatalog() {
   if(!token)return;setCatalogMessage("");
   try{const r=await fetch("/api/admin/access-manager/catalog",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
@@ -63,7 +72,7 @@ export default function AccessManager() {
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
  {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();}}>{s}</button>)}</nav>
+ {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();}}>{s}</button>)}</nav>
  {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
@@ -77,6 +86,7 @@ export default function AccessManager() {
  <button type="button" onClick={()=>void loadCatalog()}>Refresh permission catalog</button>
  {catalogMessage&&<p role="alert">{catalogMessage}</p>}
  {section==="Employees"&&<><h3>Employee access requests</h3><AccessRequestsPanel /></>}
+ {section==="Timesheet"&&<><h3>Existing Timesheet roles (read-only)</h3><p>Owner is a platform role, not a Timesheet database role. Role changes are disabled until database-level authorization is verified.</p><button type="button" onClick={()=>void loadTimesheet()}>Refresh Timesheet users</button>{timesheetMessage&&<p role="alert">{timesheetMessage}</p>}{timesheetProfiles.map(p=><p key={p.id}>{p.full_name} · {p.email} — <strong>{p.role}</strong></p>)}</>}
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
  </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  {section==="Pro Rewards"&&<p>Verified rewards must remain reserved until the official Pro launch. Do not start the two-month period early.</p>}</section>}</>}
