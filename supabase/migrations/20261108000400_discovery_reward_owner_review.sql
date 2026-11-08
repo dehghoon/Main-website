@@ -19,6 +19,7 @@ begin
  if v_actor is null or not exists(select 1 from auth.users where id=v_actor and lower(email)='dehghani.pmp@gmail.com' and email_confirmed_at is not null)
  then raise exception 'owner_required';end if;
  if p_decision not in ('verify','reject','activate') then raise exception 'invalid_decision';end if;
+ if p_decision='verify' and (p_reason is null or length(trim(p_reason))<10) then raise exception 'survey_verification_note_required';end if;
  select status into v_before from public.customer_discovery_rewards where user_id=p_user_id for update;
  if v_before is null then raise exception 'reward_request_not_found';end if;
  if p_decision='verify' and v_before='pending' then v_after:='verified';
