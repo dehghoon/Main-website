@@ -142,12 +142,12 @@ export default function ClientWorkspacePage() {
     {userId ? <>
       <p>You are signed in. Verified, generally available tools will appear here as they become available.</p>
       {(showWelcome || betaChoice === null) && <div role="group" aria-label="Experimental tool preference">
-        <h2>Would you like experimental access?</h2>
+        <h2>Would you like early access to tools still under development?</h2>
         <p><strong>Warning: These tools are still being developed and may not work properly.</strong> Some features may be missing, results may be incorrect, and availability may be interrupted. Use them only for evaluation and feedback, never for engineering decisions or production work. Opting in only records your interest; it does not grant access.</p>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, request experimental access</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide incomplete tools</button></div>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, request in-development tool access</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide in-development tools</button></div>
       </div>}
       {betaChoice !== null && <div>
-        <p><strong>Experimental access preference:</strong> {betaChoice ? "Requested" : "Hidden"}</p>
+        <p><strong>In-development tool access preference:</strong> {betaChoice ? "Requested" : "Hidden"}</p>
         {betaChoice && <div role="note" style={{border:"1px solid #b7791f",borderRadius:10,padding:14,margin:"12px 0"}}>
           <strong>Important: Experimental tools are unfinished and may not work correctly.</strong>
           <p>These tools are under active development. Features may be missing, calculations or outputs may be incorrect, and the service may be interrupted. They are provided for evaluation and feedback only, not for professional engineering, safety-critical decisions, or production work. Independently verify all results. Your feedback helps us improve them.</p>
@@ -156,6 +156,8 @@ export default function ClientWorkspacePage() {
         <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
       </div>}
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
+        <h2>Completed tools — trial access</h2>
+        <p>Trials of completed, released tools are separate from early access to unfinished tools. Choosing not to try unfinished tools does not prevent you from requesting a trial of completed tools. Completed-tool trials require their own Owner approval and product entitlement; no tool is unlocked merely by selecting an interest preference.</p>
         <h2>Customer Discovery reward</h2>
         <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, after your submission is verified and the Pro tools are officially completed and launched. Your two-month period will not begin while the Pro tools are incomplete. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
         <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
