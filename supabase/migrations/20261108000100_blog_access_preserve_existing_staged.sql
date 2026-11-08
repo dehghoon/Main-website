@@ -25,7 +25,9 @@ as $$
  );
 $$;
 revoke all on function public.blog_has_access(text) from public, anon;
-grant execute on function public.blog_has_access(text) to authenticated;
+-- The public SELECT policy may evaluate this helper for anonymous readers.
+-- It only inspects auth.uid() and returns false for anonymous requests.
+grant execute on function public.blog_has_access(text) to anon, authenticated;
 
 drop policy if exists "employees can create blog posts" on public.blog_posts;
 create policy "blog create permission" on public.blog_posts
