@@ -24,6 +24,8 @@ export default function AccessManager() {
  const [grantMessage,setGrantMessage]=useState("");
  const [grantBusy,setGrantBusy]=useState(false);
  const [trialCustomer,setTrialCustomer]=useState("");
+ const [trialType,setTrialType]=useState<"released"|"beta">("released");
+ const [trialTool,setTrialTool]=useState("");
  const [trialGrant,setTrialGrant]=useState("");
  const [trialStart,setTrialStart]=useState("");
  const [trialExpiry,setTrialExpiry]=useState("");
@@ -32,7 +34,7 @@ export default function AccessManager() {
  async function manageTrial(action:"grant"|"extend"|"revoke"){
   setTrialBusy(true);setTrialMessage("");
   try{
-   const response=await fetch("/api/admin/access-manager/customer-trials",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({action,customerId:trialCustomer,grantId:trialGrant||null,startsAt:trialStart?new Date(trialStart).toISOString():null,expiresAt:trialExpiry?new Date(trialExpiry).toISOString():null})});
+   const response=await fetch("/api/admin/access-manager/customer-trials",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({action,accessType:trialType,toolKey:trialTool,customerId:trialCustomer,grantId:trialGrant||null,startsAt:trialStart?new Date(trialStart).toISOString():null,expiresAt:trialExpiry?new Date(trialExpiry).toISOString():null})});
    const result=await response.json();
    if(!response.ok)throw new Error(result.error||"Request rejected");
    setTrialGrant(result.grantId);setTrialMessage("Trial "+action+" recorded; product access requires server-side entitlement enforcement.");
@@ -128,13 +130,15 @@ export default function AccessManager() {
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
  </section>:section==="Beta Access"?<section><h2>Customer trial access</h2>
  <p>Owner-only trial grants. Use the customer's authenticated user ID. Trial access starts and expires at the specified time; product backends must check the entitlement on every protected operation.</p>
+ <label>Access type <select value={trialType} onChange={e=>setTrialType(e.target.value as "released"|"beta")}><option value="released">Completed tool trial</option><option value="beta">Unfinished tool beta access</option></select></label>
+ {trialType==="beta"&&<label>Unfinished tool key <input value={trialTool} onChange={e=>setTrialTool(e.target.value)} placeholder="tool identifier"/></label>}
  <label>Customer user ID <input value={trialCustomer} onChange={e=>setTrialCustomer(e.target.value)} placeholder="Customer UUID"/></label>
  <label>Existing grant ID (for extend/revoke) <input value={trialGrant} onChange={e=>setTrialGrant(e.target.value)} placeholder="Trial UUID"/></label>
  <label>Starts at <input type="datetime-local" value={trialStart} onChange={e=>setTrialStart(e.target.value)}/></label>
  <label>Expires at <input type="datetime-local" value={trialExpiry} onChange={e=>setTrialExpiry(e.target.value)}/></label>
  <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:12}}>
  <button disabled={trialBusy||!trialCustomer||!trialStart||!trialExpiry} onClick={()=>void manageTrial("grant")}>Grant trial</button>
- <button disabled={trialBusy||!trialCustomer||!trialGrant||!trialExpiry} onClick={()=>void manageTrial("extend")}>Extend trial</button>
+ {trialType==="released"&&<button disabled={trialBusy||!trialCustomer||!trialGrant||!trialExpiry} onClick={()=>void manageTrial("extend")}>Extend trial</button>}
  <button disabled={trialBusy||!trialCustomer||!trialGrant} onClick={()=>void manageTrial("revoke")}>Revoke trial</button></div>
  {trialMessage&&<p role="status">{trialMessage}</p>}
  <p>Requires the staged customer-trial database migration; not available in production until migration and security tests pass.</p>
