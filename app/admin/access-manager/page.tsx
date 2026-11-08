@@ -100,7 +100,7 @@ export default function AccessManager() {
  <p>Existing active permission catalog (read-only). Grant and revoke actions remain controlled by the original module until verified integration is complete.</p>
  <button type="button" onClick={()=>void loadCatalog()}>Refresh permission catalog</button>
  {catalogMessage&&<p role="alert">{catalogMessage}</p>}
- {section==="Employees"&&<><h3>Employee access requests</h3><AccessRequestsPanel /></>}
+ {section==="Employees"&&<><h3>Employee access requests</h3><AccessRequestsPanel />
  <h3>Owner permission grant / revoke</h3><p>Uses the existing audited platform permission function. Only registered employee accounts and active catalog permissions are eligible.</p>
  <label>Employee email <input type="email" value={grantEmail} onChange={e=>setGrantEmail(e.target.value)} placeholder="employee@example.com"/></label>
  <label>Permission <select value={grantPermission} onChange={e=>setGrantPermission(e.target.value)}><option value="">Choose permission</option>{catalog.map(p=><option key={p.permission} value={p.permission}>{p.area}: {p.label}</option>)}</select></label>
