@@ -14,6 +14,8 @@ export default function AccessManager() {
  const [labeling,setLabeling]=useState<{email:string;permissions:string[]}[]>([]);
  const [labelingMessage,setLabelingMessage]=useState("");
  const [labelingLoading,setLabelingLoading]=useState(false);
+ const [catalog,setCatalog]=useState<{permission:string;area:string;label:string;description:string|null}[]>([]);
+ const [catalogMessage,setCatalogMessage]=useState("");
  useEffect(()=>{let live=true;async function check(){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key){if(live)setState("error");return;}
@@ -31,6 +33,13 @@ export default function AccessManager() {
   if(!live)return;if(!response.ok){setError("Unable to load survey responses.");return;}setData(await response.json());setError("");}
   void load();return()=>{live=false};
  },[state,token,page,section]);
+ async function loadCatalog() {
+  if(!token)return;setCatalogMessage("");
+  try{const r=await fetch("/api/admin/access-manager/catalog",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+   if(!r.ok)throw new Error("Permission catalog unavailable ("+r.status+").");
+   const body=await r.json();setCatalog(body.catalog??[]);
+  }catch(e){setCatalogMessage(e instanceof Error?e.message:"Unable to load catalog.");}
+ }
  async function loadLabeling() {
   if(!token)return;setLabelingLoading(true);setLabelingMessage("");
   try {const r=await fetch("/api/admin/access-manager/labeling",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
@@ -53,7 +62,7 @@ export default function AccessManager() {
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
  {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);if(s==="Labeling")void loadLabeling();}}>{s}</button>)}</nav>
+ {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();}}>{s}</button>)}</nav>
  {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
@@ -62,6 +71,12 @@ export default function AccessManager() {
  </section>:section==="Labeling"?<section><h2>Labeling permissions</h2><p>Owner-managed employee permissions. Changes use the existing audited Labeling RPC.</p><button type="button" disabled={labelingLoading} onClick={()=>void loadLabeling()}>Refresh employees</button>{labelingMessage&&<p role="alert">{labelingMessage}</p>}
  {labeling.map(employee=><article key={employee.email} style={{border:"1px solid #ccd8e0",padding:14,marginTop:12,borderRadius:10}}><strong>{employee.email}</strong><div style={{display:"flex",flexWrap:"wrap",gap:12,marginTop:12}}>
  {(["labeling.workspace","labeling.upload","labeling.annotate","labeling.submit"] as const).map(permission=><label key={permission} style={{display:"flex",alignItems:"center",gap:6}}><input type="checkbox" disabled={labelingLoading} checked={employee.permissions?.includes(permission)??false} onChange={e=>void setLabelingPermission(employee.email,permission,e.target.checked)}/>{permission}</label>)}</div></article>)}
+ </section>:section==="Employees"||section==="Timesheet"||section==="Weblog"?<section><h2>{section} permissions</h2>
+ <p>Existing active permission catalog (read-only). Grant and revoke actions remain controlled by the original module until verified integration is complete.</p>
+ <button type="button" onClick={()=>void loadCatalog()}>Refresh permission catalog</button>
+ {catalogMessage&&<p role="alert">{catalogMessage}</p>}
+ {section==="Employees"&&<p><a href="/owner/access-requests">Open existing Employee Access Requests</a> — the current approval workflow remains authoritative.</p>}
+ {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
  </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  {section==="Pro Rewards"&&<p>Verified rewards must remain reserved until the official Pro launch. Do not start the two-month period early.</p>}</section>}</>}
  </section></main>;
