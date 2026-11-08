@@ -19,6 +19,10 @@ export default function AccessManager() {
  const [catalogMessage,setCatalogMessage]=useState("");
  const [timesheetProfiles,setTimesheetProfiles]=useState<{id:string;full_name:string;email:string;role:string}[]>([]);
  const [timesheetMessage,setTimesheetMessage]=useState("");
+ const [grantEmail,setGrantEmail]=useState("");
+ const [grantPermission,setGrantPermission]=useState("");
+ const [grantMessage,setGrantMessage]=useState("");
+ const [grantBusy,setGrantBusy]=useState(false);
  useEffect(()=>{let live=true;async function check(){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key){if(live)setState("error");return;}
@@ -36,6 +40,17 @@ export default function AccessManager() {
   if(!live)return;if(!response.ok){setError("Unable to load survey responses.");return;}setData(await response.json());setError("");}
   void load();return()=>{live=false};
  },[state,token,page,section]);
+ async function changePlatformPermission(enabled:boolean) {
+  if(!token||!grantEmail||!grantPermission)return;
+  setGrantBusy(true);setGrantMessage("");
+  try{
+   const r=await fetch("/api/admin/access-manager/permissions",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({email:grantEmail,permission:grantPermission,enabled})});
+   const result=await r.json();
+   if(!r.ok)throw new Error(result.error??"Permission change rejected");
+   setGrantMessage(enabled?"Permission granted and audited.":"Permission revoked and audited.");
+  }catch(e){setGrantMessage(e instanceof Error?e.message:"Permission change failed");}
+  finally{setGrantBusy(false);}
+ }
  async function loadTimesheet() {
   if(!token)return;setTimesheetMessage("");
   try {const r=await fetch("/api/admin/access-manager/timesheet",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
@@ -86,6 +101,11 @@ export default function AccessManager() {
  <button type="button" onClick={()=>void loadCatalog()}>Refresh permission catalog</button>
  {catalogMessage&&<p role="alert">{catalogMessage}</p>}
  {section==="Employees"&&<><h3>Employee access requests</h3><AccessRequestsPanel /></>}
+ <h3>Owner permission grant / revoke</h3><p>Uses the existing audited platform permission function. Only registered employee accounts and active catalog permissions are eligible.</p>
+ <label>Employee email <input type="email" value={grantEmail} onChange={e=>setGrantEmail(e.target.value)} placeholder="employee@example.com"/></label>
+ <label>Permission <select value={grantPermission} onChange={e=>setGrantPermission(e.target.value)}><option value="">Choose permission</option>{catalog.map(p=><option key={p.permission} value={p.permission}>{p.area}: {p.label}</option>)}</select></label>
+ <div style={{display:"flex",gap:10,marginTop:12}}><button type="button" disabled={grantBusy||!grantEmail||!grantPermission} onClick={()=>void changePlatformPermission(true)}>Grant permission</button><button type="button" disabled={grantBusy||!grantEmail||!grantPermission} onClick={()=>void changePlatformPermission(false)}>Revoke permission</button></div>{grantMessage&&<p role="status">{grantMessage}</p>}
+ </> }
  {section==="Timesheet"&&<><h3>Existing Timesheet roles (read-only)</h3><p>Owner is a platform role, not a Timesheet database role. Role changes are disabled until database-level authorization is verified.</p><button type="button" onClick={()=>void loadTimesheet()}>Refresh Timesheet users</button>{timesheetMessage&&<p role="alert">{timesheetMessage}</p>}{timesheetProfiles.map(p=><p key={p.id}>{p.full_name} · {p.email} — <strong>{p.role}</strong></p>)}</>}
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
  </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
