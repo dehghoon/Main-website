@@ -31,6 +31,21 @@ export default function AccessManager() {
  const [trialExpiry,setTrialExpiry]=useState("");
  const [trialMessage,setTrialMessage]=useState("");
  const [trialBusy,setTrialBusy]=useState(false);
+ const [rewards,setRewards]=useState<{user_id:string;status:string;requested_at:string;verified_at:string|null;granted_at:string|null;expires_at:string|null}[]>([]);
+ const [rewardsMessage,setRewardsMessage]=useState("");
+ const [rewardsBusy,setRewardsBusy]=useState(false);
+ async function loadRewards(){
+  if(!token)return;setRewardsBusy(true);setRewardsMessage("");
+  try{const r=await fetch("/api/admin/access-manager/pro-rewards",{headers:{Authorization:"Bearer "+token},cache:"no-store"});const b=await r.json();if(!r.ok)throw new Error(b.error||"Unable to load rewards");setRewards(b.requests??[]);}
+  catch(e){setRewardsMessage(e instanceof Error?e.message:"Unable to load rewards");}
+  finally{setRewardsBusy(false);}
+ }
+ async function reviewReward(userId:string,decision:"verify"|"reject"|"activate"){
+  setRewardsBusy(true);setRewardsMessage("");
+  try{const r=await fetch("/api/admin/access-manager/pro-rewards",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({userId,decision})});const b=await r.json();if(!r.ok)throw new Error(b.detail||b.error||"Review rejected");await loadRewards();}
+  catch(e){setRewardsMessage(e instanceof Error?e.message:"Review rejected");}
+  finally{setRewardsBusy(false);}
+ }
  async function manageTrial(action:"grant"|"extend"|"revoke"){
   setTrialBusy(true);setTrialMessage("");
   try{
@@ -106,7 +121,7 @@ export default function AccessManager() {
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
  {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();}}>{s}</button>)}</nav>
+ {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();if(s==="Pro Rewards")void loadRewards();}}>{s}</button>)}</nav>
  {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
@@ -142,7 +157,7 @@ export default function AccessManager() {
  <button disabled={trialBusy||!trialCustomer||!trialGrant} onClick={()=>void manageTrial("revoke")}>Revoke trial</button></div>
  {trialMessage&&<p role="status">{trialMessage}</p>}
  <p>Requires the staged customer-trial database migration; not available in production until migration and security tests pass.</p>
- </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
+ </section>:section==="Pro Rewards"?<section><h2>Customer Discovery — two-month Pro rewards</h2><p>Verify eligible requests now. Activation is separate and is blocked by the database until the official Pro launch. Review the original survey response before verification.</p><button type="button" disabled={rewardsBusy} onClick={()=>void loadRewards()}>Refresh reward requests</button>{rewardsMessage&&<p role="alert">{rewardsMessage}</p>}{rewards.map(r=><article key={r.user_id} style={{border:"1px solid #ccd8e0",padding:12,marginTop:10,borderRadius:10}}><p><strong>{r.user_id}</strong> — {r.status}</p><p>Requested: {new Date(r.requested_at).toLocaleString()}</p>{r.status==="pending"&&<><button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"verify")}>Verify eligibility</button><button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"reject")}>Reject</button></>}{r.status==="verified"&&<button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"activate")}>Activate after official Pro launch</button>}{r.expires_at&&<p>Expires: {new Date(r.expires_at).toLocaleString()}</p>}</article>)}</section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  {section==="Pro Rewards"&&<p>Verified rewards must remain reserved until the official Pro launch. Do not start the two-month period early.</p>}</section>}</>}
  </section></main>;
 }
