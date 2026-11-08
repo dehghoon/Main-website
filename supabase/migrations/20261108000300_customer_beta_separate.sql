@@ -36,9 +36,10 @@ begin
  raise exception 'owner_required';end if;
  if p_action not in ('grant','revoke') then raise exception 'invalid_action';end if;
  if p_action='grant' then
-  if p_tool_key is null or length(p_tool_key) not between 1 and 100 or p_starts_at is null or p_expires_at<=p_starts_at then raise exception 'invalid_beta_grant';end if;
+  if p_tool_key is null or length(p_tool_key) not between 1 and 100 or p_starts_at is null or p_expires_at is null or p_expires_at<=p_starts_at then raise exception 'invalid_beta_grant';end if;
   if not exists(select 1 from auth.users where id=p_customer_id) then raise exception 'customer_not_found';end if;
   if not exists(select 1 from public.client_beta_preferences where user_id=p_customer_id and beta_opt_in=true) then raise exception 'beta_not_requested';end if;
+  if exists(select 1 from public.customer_beta_grants where customer_id=p_customer_id and tool_key=p_tool_key and revoked_at is null and expires_at>now()) then raise exception 'active_beta_grant_exists';end if;
   insert into public.customer_beta_grants(customer_id,tool_key,starts_at,expires_at,granted_by)
   values(p_customer_id,p_tool_key,p_starts_at,p_expires_at,v_actor) returning id into v_grant;
  else
