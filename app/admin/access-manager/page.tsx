@@ -47,7 +47,7 @@ export default function AccessManager() {
    const r=await fetch("/api/admin/access-manager/permissions",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({email:grantEmail,permission:grantPermission,enabled})});
    const result=await r.json();
    if(!r.ok)throw new Error(result.error??"Permission change rejected");
-   setGrantMessage(enabled?"Permission granted and audited.":"Permission revoked and audited.");
+   setGrantMessage(enabled?"Platform permission grant accepted by audited RPC.":"Platform permission revoke accepted by audited RPC.");
   }catch(e){setGrantMessage(e instanceof Error?e.message:"Permission change failed");}
   finally{setGrantBusy(false);}
  }
@@ -87,7 +87,7 @@ export default function AccessManager() {
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
  {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();}}>{s}</button>)}</nav>
+ {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();}}>{s}</button>)}</nav>
  {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
