@@ -10,6 +10,7 @@ export default function ClientWorkspacePage() {
   return <main className="authShell"><section className="authCard">
     <a href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={260} height={64} priority /></a>
     <span className="eyebrow">Client Access</span><h1>Client Workspace</h1><p>Client access will be controlled by subscription plan and entitlement status. The form is intentionally not connected to Supabase yet.</p>
+    <div role="status" style={{padding:16,border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6,margin:"18px 0"}}><strong>Early Access — registration is not yet available.</strong> This page is a UI preview. Submitting the form does not create an account or grant access to engineering tools. For product updates or to express interest in beta testing, please <a href="/contact" style={{textDecoration:"underline"}}>contact LinkoTech</a>. Do not enter a real password here.</div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"18px 0"}}><button type="button" onClick={()=>{setMode("login");setMessage("")}} style={{opacity:mode==="login"?1:.55}}>Log In</button><button type="button" onClick={()=>{setMode("signup");setMessage("")}} style={{opacity:mode==="signup"?1:.55}}>Sign Up</button></div>
     <form className="authForm" onSubmit={submit}>
       {mode==="signup"&&<><label>Full name<input required /></label><label>Company name<input required /></label></>}
