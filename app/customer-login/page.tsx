@@ -29,6 +29,7 @@ export default function ClientWorkspacePage() {
   const [betaChoice, setBetaChoice] = useState<boolean | null>(null);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [rewardStatus, setRewardStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const client = supabaseClient();
@@ -37,7 +38,9 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setBetaChoice(null); return; }
+      if (!id) { setBetaChoice(null); setRewardStatus(null); return; }
+      const reward = await client!.from("customer_discovery_rewards").select("status").eq("user_id", id).maybeSingle();
+      if (mounted && !reward.error) setRewardStatus(reward.data?.status ?? null);
       const { data, error } = await client!.from("client_beta_preferences")
         .select("beta_opt_in").eq("user_id", id).maybeSingle();
       if (!mounted) return;
@@ -102,6 +105,18 @@ export default function ClientWorkspacePage() {
     setBusy(false);
   }
 
+  async function requestReward() {
+    const client = supabaseClient();
+    if (!client || !userId) return;
+    setBusy(true);
+    const { data } = await client.auth.getUser();
+    if (data.user?.id !== userId) { setMessage("Sign in again to request this offer."); setBusy(false); return; }
+    const { error } = await client.from("customer_discovery_rewards").insert({ user_id: userId });
+    if (error) setMessage("Could not submit the reward request. Please contact support.");
+    else { setRewardStatus("pending"); setMessage("Your reward request is pending verification. Pro access is not active yet."); }
+    setBusy(false);
+  }
+
   async function signOut() {
     await supabaseClient()?.auth.signOut();
     setUserId(null); setBetaChoice(null); setShowWelcome(false); setMessage("Signed out.");
@@ -126,7 +141,9 @@ export default function ClientWorkspacePage() {
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Customer Discovery reward</h2>
         <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, subject to submission verification and activation. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
-        <a href={discoveryUrl} target="_blank" rel="noopener noreferrer">Request the Customer Discovery questionnaire</a>
+        <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
+        <p>After completing the questionnaire, request verification here. The Pro reward starts only after a verified administrator grants it.</p>
+        {rewardStatus ? <p role="status">Reward status: <strong>{rewardStatus}</strong></p> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
       </div>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
     </> : <>
