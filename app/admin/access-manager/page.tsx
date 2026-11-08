@@ -23,6 +23,23 @@ export default function AccessManager() {
  const [grantPermission,setGrantPermission]=useState("");
  const [grantMessage,setGrantMessage]=useState("");
  const [grantBusy,setGrantBusy]=useState(false);
+ const [trialCustomer,setTrialCustomer]=useState("");
+ const [trialGrant,setTrialGrant]=useState("");
+ const [trialStart,setTrialStart]=useState("");
+ const [trialExpiry,setTrialExpiry]=useState("");
+ const [trialMessage,setTrialMessage]=useState("");
+ const [trialBusy,setTrialBusy]=useState(false);
+ async function manageTrial(action:"grant"|"extend"|"revoke"){
+  setTrialBusy(true);setTrialMessage("");
+  try{
+   const response=await fetch("/api/admin/access-manager/customer-trials",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({action,customerId:trialCustomer,grantId:trialGrant||null,startsAt:trialStart?new Date(trialStart).toISOString():null,expiresAt:trialExpiry?new Date(trialExpiry).toISOString():null})});
+   const result=await response.json();
+   if(!response.ok)throw new Error(result.error||"Request rejected");
+   setTrialGrant(result.grantId);setTrialMessage("Trial "+action+" recorded; product access requires server-side entitlement enforcement.");
+  }catch(e){setTrialMessage(e instanceof Error?e.message:"Trial operation failed");}
+  finally{setTrialBusy(false);}
+ }
+
  useEffect(()=>{let live=true;async function check(){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key){if(live)setState("error");return;}
@@ -109,6 +126,18 @@ export default function AccessManager() {
  {section==="Timesheet"&&<><h3>Existing Timesheet roles (read-only)</h3><p>Owner is a platform role, not a Timesheet database role. Role changes are disabled until database-level authorization is verified.</p><button type="button" onClick={()=>void loadTimesheet()}>Refresh Timesheet users</button>{timesheetMessage&&<p role="alert">{timesheetMessage}</p>}{timesheetProfiles.map(p=><p key={p.id}>{p.full_name} · {p.email} — <strong>{p.role}</strong></p>)}</>}
  {section!=="Employees"&&<><h3>Owner grant / revoke {section} permissions</h3><label>Employee email <input type="email" value={grantEmail} onChange={e=>setGrantEmail(e.target.value)} placeholder="employee@example.com"/></label><label>Permission <select value={grantPermission} onChange={e=>setGrantPermission(e.target.value)}><option value="">Choose permission</option>{catalog.filter(p=>p.area.toLowerCase().includes(section==="Timesheet"?"timesheet":"blog")).map(p=><option key={p.permission} value={p.permission}>{p.label}</option>)}</select></label><div style={{display:"flex",gap:10,marginTop:12}}><button type="button" disabled={grantBusy||!grantEmail||!grantPermission||!grantPermission.startsWith(section==="Timesheet"?"timesheet.":"blog.")} onClick={()=>void changePlatformPermission(true)}>Grant</button><button type="button" disabled={grantBusy||!grantEmail||!grantPermission||!grantPermission.startsWith(section==="Timesheet"?"timesheet.":"blog.")} onClick={()=>void changePlatformPermission(false)}>Revoke</button></div>{grantMessage&&<p role="status">{grantMessage}</p>}</>}
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
+ </section>:section==="Beta Access"?<section><h2>Customer trial access</h2>
+ <p>Owner-only trial grants. Use the customer's authenticated user ID. Trial access starts and expires at the specified time; product backends must check the entitlement on every protected operation.</p>
+ <label>Customer user ID <input value={trialCustomer} onChange={e=>setTrialCustomer(e.target.value)} placeholder="Customer UUID"/></label>
+ <label>Existing grant ID (for extend/revoke) <input value={trialGrant} onChange={e=>setTrialGrant(e.target.value)} placeholder="Trial UUID"/></label>
+ <label>Starts at <input type="datetime-local" value={trialStart} onChange={e=>setTrialStart(e.target.value)}/></label>
+ <label>Expires at <input type="datetime-local" value={trialExpiry} onChange={e=>setTrialExpiry(e.target.value)}/></label>
+ <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:12}}>
+ <button disabled={trialBusy||!trialCustomer||!trialStart||!trialExpiry} onClick={()=>void manageTrial("grant")}>Grant trial</button>
+ <button disabled={trialBusy||!trialCustomer||!trialGrant||!trialExpiry} onClick={()=>void manageTrial("extend")}>Extend trial</button>
+ <button disabled={trialBusy||!trialCustomer||!trialGrant} onClick={()=>void manageTrial("revoke")}>Revoke trial</button></div>
+ {trialMessage&&<p role="status">{trialMessage}</p>}
+ <p>Requires the staged customer-trial database migration; not available in production until migration and security tests pass.</p>
  </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  {section==="Pro Rewards"&&<p>Verified rewards must remain reserved until the official Pro launch. Do not start the two-month period early.</p>}</section>}</>}
  </section></main>;
