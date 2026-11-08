@@ -24,6 +24,8 @@ export async function POST(request:NextRequest){
  let body:Record<string,unknown>;
  try{body=await request.json();}catch{return response({error:"invalid_json"},400);}
  if(typeof body.userId!=="string"||!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(body.userId)||!["verify","reject","activate"].includes(String(body.decision)))return response({error:"invalid_request"},400);
+ if(body.decision==="verify" && (typeof body.reason!=="string" || body.reason.trim().length<10))
+  return response({error:"survey_verification_note_required"},400);
  const {data,error}=await db.rpc("owner_review_discovery_reward",{p_user_id:body.userId,p_decision:body.decision,p_reason:typeof body.reason==="string"?body.reason.slice(0,1000):null});
  if(error)return response({error:"reward_review_rejected",detail:error.message},409);
  return response({status:data});
