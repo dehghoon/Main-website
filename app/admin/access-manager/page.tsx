@@ -20,11 +20,11 @@ export default function AccessManager() {
   const auth=createClient(url,key);const {data:{session}}=await auth.auth.getSession();
   if(!session){if(live)setState("denied");return;}
   // The server validates the JWT and verified admin identity; never authorize using a client-side email check.
-  const response=await fetch("/api/admin/customer-discovery?page=0",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+  const response=await fetch("/api/admin/access-manager/me",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
   if(!live)return;
   if(response.status===401||response.status===403){setState("denied");return;}
   if(!response.ok){setState("error");return;}
-  setToken(session.access_token);setData(await response.json());setState("allowed");
+  setToken(session.access_token);setState("allowed");
  }void check();return()=>{live=false}},[]);
  useEffect(()=>{if(state!=="allowed"||!token||section!=="Customer Discovery")return;let live=true;
   async function load(){const response=await fetch("/api/admin/customer-discovery?page="+page,{headers:{Authorization:"Bearer "+token},cache:"no-store"});
