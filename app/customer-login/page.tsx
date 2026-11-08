@@ -143,12 +143,16 @@ export default function ClientWorkspacePage() {
       <p>You are signed in. Verified, generally available tools will appear here as they become available.</p>
       {(showWelcome || betaChoice === null) && <div role="group" aria-label="Experimental tool preference">
         <h2>Would you like experimental access?</h2>
-        <p>Some LinkoTech tools are incomplete and may contain errors. Opting in records your interest in experimental access. It does not grant access to a separate application. Experimental tools are not certified or reliable for professional engineering.</p>
+        <p><strong>Warning: These tools are still being developed and may not work properly.</strong> Some features may be missing, results may be incorrect, and availability may be interrupted. Use them only for evaluation and feedback, never for engineering decisions or production work. Opting in only records your interest; it does not grant access.</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, request experimental access</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide incomplete tools</button></div>
       </div>}
       {betaChoice !== null && <div>
         <p><strong>Experimental access preference:</strong> {betaChoice ? "Requested" : "Hidden"}</p>
-        {betaChoice && <p>{trialActive ? "Your trial is active. Product tools will appear here only after their own access integration is complete." : "Experimental access requested — pending Owner approval. No experimental tools are unlocked."}</p>}
+        {betaChoice && <div role="note" style={{border:"1px solid #b7791f",borderRadius:10,padding:14,margin:"12px 0"}}>
+          <strong>Important: Experimental tools are unfinished and may not work correctly.</strong>
+          <p>These tools are under active development. Features may be missing, calculations or outputs may be incorrect, and the service may be interrupted. They are provided for evaluation and feedback only, not for professional engineering, safety-critical decisions, or production work. Independently verify all results. Your feedback helps us improve them.</p>
+          <p>{trialActive ? "Your trial is active. Individual tools will appear only when their access integration is ready." : "Your request is pending Owner approval. No experimental tools are unlocked."}</p>
+        </div>}
         <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
       </div>}
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
