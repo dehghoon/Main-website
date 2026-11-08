@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import AccessRequestsPanel from "../../owner/access-requests/AccessRequestsPanel";
 type Survey = { id:string; created_at:string; full_name:string|null; company_name:string|null; email:string|null; phone:string|null; response:unknown };
 type Result = {responses:Survey[];total:number;page:number};
 const sections = ["Customer Discovery","Employees","Timesheet","Weblog","Labeling","Beta Access","Starter & Pro","Pro Rewards"] as const;
@@ -75,7 +76,7 @@ export default function AccessManager() {
  <p>Existing active permission catalog (read-only). Grant and revoke actions remain controlled by the original module until verified integration is complete.</p>
  <button type="button" onClick={()=>void loadCatalog()}>Refresh permission catalog</button>
  {catalogMessage&&<p role="alert">{catalogMessage}</p>}
- {section==="Employees"&&<p><a href="/owner/access-requests">Open existing Employee Access Requests</a> — the current approval workflow remains authoritative.</p>}
+ {section==="Employees"&&<><h3>Employee access requests</h3><AccessRequestsPanel /></>}
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
  </section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  {section==="Pro Rewards"&&<p>Verified rewards must remain reserved until the official Pro launch. Do not start the two-month period early.</p>}</section>}</>}
