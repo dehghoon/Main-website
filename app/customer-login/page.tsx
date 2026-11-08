@@ -4,8 +4,8 @@ import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const discoveryUrl = "https://discovery.linkoteq.com/";
-const betaTools = [{ name: "3D Structural Model (experimental)", url: "https://3dmodel.linkoteq.com/" }];
+const discoveryUrl = "mailto:hello@linkoteq.com?subject=Customer%20Discovery%20survey%20and%20Pro%20offer";
+
 type Preference = { beta_opt_in: boolean };
 let browserClient: SupabaseClient | null = null;
 function supabaseClient(): SupabaseClient | null {
@@ -98,7 +98,7 @@ export default function ClientWorkspacePage() {
     const { error } = await client.from("client_beta_preferences")
       .upsert({ user_id: userId, beta_opt_in: optIn, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
     if (error) setMessage("Could not save your preference. Please retry.");
-    else { setBetaChoice(optIn); setShowWelcome(false); setMessage(optIn ? "Experimental access requested. These tools are incomplete and must not be relied upon for engineering decisions." : "Preference saved. Experimental tools will remain hidden in your client workspace."); }
+    else { setBetaChoice(optIn); setShowWelcome(false); setMessage(optIn ? "Experimental access requested. These tools are incomplete and must not be relied upon for engineering decisions. Access to the separate 3D application is not yet granted by this choice." : "Preference saved. Experimental tools will remain hidden in your client workspace."); }
     setBusy(false);
   }
 
@@ -115,18 +115,18 @@ export default function ClientWorkspacePage() {
       <p>You are signed in. Verified, generally available tools will appear here as they become available.</p>
       {(showWelcome || betaChoice === null) && <div role="group" aria-label="Experimental tool preference">
         <h2>Would you like experimental access?</h2>
-        <p>Some LinkoTech tools are incomplete and may contain errors. Opting in displays experimental tool links in your workspace. It does not mean the tools are certified, reliable for professional engineering, or immediately enabled on separate applications.</p>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, show experimental tools</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide incomplete tools</button></div>
+        <p>Some LinkoTech tools are incomplete and may contain errors. Opting in records your interest in experimental access. It does not grant access to a separate application. Experimental tools are not certified or reliable for professional engineering.</p>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, request experimental access</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide incomplete tools</button></div>
       </div>}
       {betaChoice !== null && <div>
-        <p><strong>Experimental tools:</strong> {betaChoice ? "Opted in" : "Hidden"}</p>
-        {betaChoice && <ul>{betaTools.map(t=><li key={t.url}><a href={t.url} target="_blank" rel="noopener noreferrer">{t.name}</a> — early development, use at your own risk</li>)}</ul>}
+        <p><strong>Experimental access preference:</strong> {betaChoice ? "Requested" : "Hidden"}</p>
+        {betaChoice && <p>3D Structural Model — access pending approval and separate application authorization.</p>}
         <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
       </div>}
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Customer Discovery reward</h2>
         <p>Complete the Customer Discovery questionnaire to qualify for an offer of <strong>two months of free Pro access</strong>, subject to submission verification and activation. Completing the form does not automatically activate a subscription or unlock unavailable features.</p>
-        <a href={discoveryUrl} target="_blank" rel="noopener noreferrer">Open Customer Discovery form</a>
+        <a href={discoveryUrl} target="_blank" rel="noopener noreferrer">Request the Customer Discovery questionnaire</a>
       </div>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
     </> : <>
