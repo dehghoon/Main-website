@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Render original editorial illustrations locally, without an image API charge.
 // This workflow prepares media; the separate social publisher handles posting.
+import "./validate-ai-news-social-contract.mjs";
 import {createCanvas,loadImage} from "@napi-rs/canvas";
 import {createHash} from "node:crypto";
 const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
