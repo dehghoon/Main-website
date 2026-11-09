@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase-browser";
 
-type Article={title:string;excerpt:string|null;body:string;author_name:string|null;show_author_name:boolean;published_at:string|null;created_at:string;cover_image_url:string|null;video_url:string|null;cover_image_alt:string|null;cover_image_title:string|null;cover_image_caption:string|null;cover_image_meta:string|null;cover_image_position:string|null;cover_image_size:string|null;video_title:string|null;video_caption:string|null;video_thumbnail_url:string|null;video_meta:string|null;tags:string[];calculator_name:string|null;calculator_url:string|null;seo_title:string|null;seo_description:string|null;linkedin_copy:string|null};
+export type Article={title:string;excerpt:string|null;body:string;author_name:string|null;show_author_name:boolean;published_at:string|null;created_at:string;cover_image_url:string|null;video_url:string|null;cover_image_alt:string|null;cover_image_title:string|null;cover_image_caption:string|null;cover_image_meta:string|null;cover_image_position:string|null;cover_image_size:string|null;video_title:string|null;video_caption:string|null;video_thumbnail_url:string|null;video_meta:string|null;tags:string[];calculator_name:string|null;calculator_url:string|null;seo_title:string|null;seo_description:string|null;linkedin_copy:string|null};
 
 type DestinationKind="linkedin-page"|"linkedin-group"|"facebook-page"|"facebook-group";
 const DESTINATION_LABELS:Record<DestinationKind,string>={
@@ -15,9 +15,9 @@ const DESTINATION_LABELS:Record<DestinationKind,string>={
  "facebook-group":"Facebook Group URL"
 };
 
-export default function ArticleClient(){
- const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(null); const [status,setStatus]=useState("Loading article…"); const [copied,setCopied]=useState("");
- useEffect(()=>{const s=getSupabase();if(!s)return setStatus("Article service is unavailable.");void s.from("blog_posts").select("title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy").eq("slug",params.slug).eq("status","published").single().then(({data,error})=>{if(error||!data)setStatus("Article not found.");else{setArticle(data as Article);setStatus("");}});},[params.slug]);
+export default function ArticleClient({initialArticle}:{initialArticle:Article|null}){
+ const params=useParams<{slug:string}>(); const [article,setArticle]=useState<Article|null>(initialArticle); const [status,setStatus]=useState(initialArticle?"":"Loading article…"); const [copied,setCopied]=useState("");
+ useEffect(()=>{if(initialArticle)return;const s=getSupabase();if(!s)return setStatus("Article service is unavailable.");void s.from("blog_posts").select("title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy").eq("slug",params.slug).eq("status","published").single().then(({data,error})=>{if(error||!data)setStatus("Article not found.");else{setArticle(data as Article);setStatus("");}});},[params.slug,initialArticle]);
  if(!article)return <main className="publicArticle"><p>{status}</p></main>;
  const canonicalUrl=`https://www.linkoteq.com/blog/${params.slug}`;
  const shareVersion=encodeURIComponent(article.published_at||article.created_at);
