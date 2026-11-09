@@ -38,3 +38,44 @@ as $$
 $$;
 revoke all on function public.has_accepted_customer_tool_disclaimer(text,text) from public,anon;
 grant execute on function public.has_accepted_customer_tool_disclaimer(text,text) to authenticated;
+
+-- Enforce acknowledgment in the database, including direct REST inserts.
+-- Prevents bypassing the client-side checkbox by calling the requests table directly.
+create or replace function public.enforce_trial_request_disclaimer()
+returns trigger language plpgsql security invoker set search_path=''
+as $$
+begin
+ if new.access_type='trial' and not exists (
+   select 1 from public.customer_tool_disclaimer_acceptances a
+   where a.customer_id=new.customer_id
+     and a.tool_key=new.tool_key
+     and a.disclaimer_version='engineering-trial-v1'
+ ) then
+   raise exception 'engineering_disclaimer_required' using errcode='23514';
+ end if;
+ return new;
+end $$;
+drop trigger if exists customer_trial_request_disclaimer_guard on public.customer_tool_access_requests;
+create trigger customer_trial_request_disclaimer_guard
+before insert on public.customer_tool_access_requests
+for each row execute function public.enforce_trial_request_disclaimer();
+
+-- Customer entitlement checks must also fail closed if a current-version
+-- acknowledgment is missing, even if a legacy Trial grant already exists.
+create or replace function public.has_active_customer_tool_trial(p_tool_key text)
+returns boolean language sql stable security definer set search_path=''
+as $$
+ select auth.uid() is not null and p_tool_key in ('snow_load','w_section')
+ and exists(
+   select 1 from public.customer_trial_grants t
+   where t.customer_id=auth.uid() and t.tool_key=p_tool_key
+     and t.revoked_at is null and t.starts_at<=now() and t.expires_at>now()
+ )
+ and exists(
+   select 1 from public.customer_tool_disclaimer_acceptances a
+   where a.customer_id=auth.uid() and a.tool_key=p_tool_key
+     and a.disclaimer_version='engineering-trial-v1'
+ )
+$$;
+revoke all on function public.has_active_customer_tool_trial(text) from public,anon;
+grant execute on function public.has_active_customer_tool_trial(text) to authenticated;
