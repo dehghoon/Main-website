@@ -15,13 +15,13 @@ const drafts=await response.json();
 let processed=0,failed=0;
 for(const d of drafts){
  const age=Date.now()-Date.parse(d.created_at||"");
- if(!Number.isFinite(age)||age<0||age>7*86400000){console.log("Skipping stale draft "+d.id);continue;}
- if(d.scheduled_at&&new Date(d.scheduled_at)>new Date()){console.log("Skipping future draft "+d.id);continue;}
+ if(!replaceId&&(!Number.isFinite(age)||age<0||age>7*86400000)){console.log("Skipping stale draft "+d.id);continue;}
+ if(!replaceId&&d.scheduled_at&&new Date(d.scheduled_at)>new Date()){console.log("Skipping future draft "+d.id);continue;}
  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(d.slug||"")||!d.title||!d.excerpt||!d.body||d.body.length<500){console.log("Skipping incomplete draft "+d.id);continue;}
  try{
   const subtitle=String(d.excerpt).slice(0,70);
   const shortTitle=String(d.cover_image_title||d.title);
-  const variant=replaceId?1:([...d.slug].reduce((a,c)=>a+c.charCodeAt(0),0)%4);
+  const variant=[...d.slug].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
   execFileSync("node",["scripts/generate-blog-cover.mjs","--slug",d.slug,"--title",shortTitle,"--subtitle",subtitle,"--variant",String(variant)],{stdio:"inherit"});
   execFileSync("node",["scripts/render-blog-cover-jpeg.mjs",d.slug],{stdio:"inherit"});
   const jpg=await stat("public/blog/covers/"+d.slug+".jpg");
@@ -31,4 +31,4 @@ for(const d of drafts){
  }catch(e){failed++;console.error("Cover preparation failed for "+d.id+": "+e.message);}
 }
 console.log(JSON.stringify({processed,failed,examined:drafts.length}));
-if(failed)process.exitCode=1;
+if(failed||(replaceId&&processed!==1))process.exitCode=1;
