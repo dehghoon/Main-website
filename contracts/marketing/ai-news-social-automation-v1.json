@@ -1,0 +1,97 @@
+{
+  "contract_id": "linkoteq-ai-news-social-automation",
+  "version": "1.0.0",
+  "updated": "2026-11-09",
+  "independent_from": "contracts/marketing/blog-automation-v1.json",
+  "purpose": "Independent AI news posts for official Linkoteq Facebook, Instagram and LinkedIn; never reuse blog publication workflow",
+  "source_policy": {
+    "primary_sources_required": true,
+    "real_company_and_date": true,
+    "source_https": true,
+    "no_fabricated_metrics": true,
+    "distinguish_vendor_claim_from_verified_outcome": true,
+    "rotate_aec_disciplines_and_project_stages": true,
+    "no_unverified_linkoteq_capabilities": true
+  },
+  "roles": {
+    "gpt8": {
+      "must_read_before_work": true,
+      "work": [
+        "Fetch this exact contract from dehghoon/Main-website main before researching or writing",
+        "Research timely AI news across AEC; check duplicate slugs and existing publications",
+        "Create evidence-backed platform-specific English copy and an original 5-slide creative_brief in ai_news_social_assets",
+        "Write distinct pending publication records for facebook, instagram and linkedin only when safe idempotency and publisher guards are in place",
+        "Read back all rows; never directly duplicate worker publishing or claim success from pending records"
+      ]
+    },
+    "github_image_worker": {
+      "must_read_before_work": true,
+      "work": [
+        "Validate this contract at start of each scheduled/manual workflow",
+        "Process only pending eligible ai_news_social_assets",
+        "Generate exactly five separate square 1200x1200 JPEG carousel slides, visually specific to story and each slide",
+        "Generate a separate Facebook/LinkedIn collage JPEG; do not substitute blog 1200x630 hero",
+        "Check public Storage URLs, actual JPEG, scene diversity and Supabase readback",
+        "Leave approvals to verified Supabase publisher v4; do not self-publish"
+      ]
+    },
+    "supabase_publisher": {
+      "work": [
+        "Apply verified creative/content gates before publishing",
+        "Instagram carousel must contain five distinct image URLs; Facebook and LinkedIn use collage image",
+        "Use Windsor.ai official accounts and reconcile ambiguous responses",
+        "Never duplicate previously published posts"
+      ]
+    }
+  },
+  "schema": {
+    "project_id": "xssiwlwlsyxrwdbninqe",
+    "assets": "public.ai_news_social_assets",
+    "publications": "public.ai_news_social_publications",
+    "bucket": "blog-media",
+    "required_brief_slides": 5,
+    "instagram_dimensions": [
+      1200,
+      1200
+    ],
+    "instagram_image_count": 5,
+    "facebook_linkedin_media": "collage-final.jpg"
+  },
+  "permissions": {
+    "facebook_auto_publish": true,
+    "instagram_auto_publish": true,
+    "linkedin_ai_news_auto_publish": true,
+    "blog_auto_publish": false,
+    "blog_related_social_requires_user_approval": true,
+    "tiktok_video_publish": false
+  },
+  "invariants": {
+    "no_latest_core_dependency": true,
+    "no_paid_image_api": true,
+    "no_tinyfish": true,
+    "no_generic_repeated_svg": true,
+    "no_blog_cover_reuse": true,
+    "no_single_image_instagram": true,
+    "no_false_success": true,
+    "no_duplicate_publication": true,
+    "never_republish_published": true,
+    "do_not_bypass_publisher_approval_gates": true
+  },
+  "workflow": {
+    "file": ".github/workflows/ai-news-social-images.yml",
+    "generator": "scripts/prepare-ai-news-social-images.mjs",
+    "validator": "scripts/validate-ai-news-social-contract.mjs",
+    "media_generator": "local SVG to JPEG using @napi-rs/canvas; five independent story-specific scenes",
+    "publisher": "Supabase ai-news-social-publisher v4 via Windsor.ai",
+    "retry": "Only eligible pending assets; failures explicit; never reset published posts"
+  },
+  "acceptance": [
+    "Read contract on every GPT-8 run and GitHub run",
+    "Five genuinely different topical visual scenes, not just five differently colored templates",
+    "All 5 public square JPEGs and collage verified",
+    "Exactly 3 distinct platform records per new story, with correct media_urls",
+    "No publishing until existing publisher quality checks pass",
+    "Platform IDs verified before reporting published",
+    "Blog automation untouched"
+  ]
+}
