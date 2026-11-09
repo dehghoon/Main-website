@@ -24,6 +24,7 @@ export default function PricingPage() {
         <span className="eyebrow">Pricing</span>
         <h1 style={{fontSize:"clamp(42px,6vw,72px)",margin:"12px 0 14px",letterSpacing:"-.045em"}}>Plans for every engineering workflow.</h1>
         <p style={{maxWidth:760,color:"#66788a",fontSize:18,lineHeight:1.7,marginBottom:34}}>Clients can start free, move to Pro for professional exports, or use Company for unlimited output and team access. LinkoTech employees receive full internal access independent of client subscription plans.</p>
+        <div role="note" style={{maxWidth:950,padding:"16px 20px",marginBottom:28,border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Product development notice:</strong> This pricing table describes planned plan features and limits, not a guarantee that every listed capability is available today. Client account registration, billing, quotas, and entitlements are not yet connected. Please <a href="/contact" style={{textDecoration:"underline"}}>contact us</a> to confirm the current availability of any tool before relying on it for a project. Do not assume that beta functionality is validated for engineering decisions.</div>
 
         <div style={{display:"grid",gridTemplateColumns:"minmax(220px,1.3fr) repeat(3,minmax(170px,1fr))",border:"1px solid rgba(7,21,37,.12)",borderRadius:24,overflow:"hidden",background:"white",boxShadow:"0 28px 70px rgba(7,21,37,.10)"}}>
           <div style={{padding:24,background:"#f7fafc",fontWeight:800}}>Features</div>

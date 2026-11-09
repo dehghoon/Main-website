@@ -84,6 +84,7 @@ export default function SiteHeader() {
             <div className="navDropdown">
               <a href="/about">About Linko</a>
               <a href={EMPLOYEE_TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
+              <a href="/admin/access-manager">Access Manager</a>
             </div>
           </div>
           <a href="/pricing">Pricing</a>

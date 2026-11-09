@@ -53,10 +53,11 @@ export default function Home() {
           <div className="navMenu"><button className="navMenuButton" type="button">Contact <ChevronDown size={15} /></button><div className="navDropdown"><a href="/contact">Contact Us</a><a href={CUSTOMER_DISCOVERY_URL}><UsersRound size={16} /> Customer Discovery</a><a href="/contact/support"><LifeBuoy size={16} /> Support</a></div></div>
           <a href="/pricing">Pricing</a>
         </nav>
-        <div className="navMenu signInMenu"><button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={15} /></button><div className="navDropdown signInDropdown"><a href={TIMESHEET_URL}>Employee Login</a><a href="/customer-login">Customer Login</a></div></div>
+        <div className="navMenu signInMenu"><button className="navCta navMenuButton" type="button">Sign In <ChevronDown size={15} /></button><div className="navDropdown signInDropdown"><a href={TIMESHEET_URL}>Employee Login</a><a href="/customer-login">Customer Login</a><a href="/admin/access-manager">Access Manager</a></div></div>
       </header>
 
       <ThreeDModelShowcase />
+      <aside role="note" style={{maxWidth:1180,margin:"18px auto",padding:"14px 22px",border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Early development:</strong> LinkoTech engineering tools are evolving. Some workflows, including the 3D Structural Model, may be experimental or incomplete. Confirm current functionality before using results for professional engineering decisions. <a href="/contact" style={{textDecoration:"underline"}}>Ask about early access or provide feedback</a>.</aside>
 
       <section className="hero" id="top">
         <div className="heroCopy">
