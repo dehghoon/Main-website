@@ -31,6 +31,7 @@ export default function ClientWorkspacePage() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [trialActive, setTrialActive] = useState(false);
   const [toolAccess, setToolAccess] = useState<Record<string, boolean>>({});
+  const [pendingRequests, setPendingRequests] = useState<string[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
@@ -42,7 +43,7 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setTrialActive(false); setToolAccess({}); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
       const {data:{session}}=await client!.auth.getSession();
       if(session?.access_token){
         try{
@@ -61,6 +62,8 @@ export default function ClientWorkspacePage() {
         }));
         if(mounted)setToolAccess(Object.fromEntries(checks));
       }
+      const {data:requests}=await client!.from("customer_tool_access_requests").select("tool_key").eq("customer_id",id).eq("status","pending");
+      if(mounted && requests)setPendingRequests(requests.map(item=>item.tool_key));
       const reward = await client!.from("customer_discovery_rewards").select("status,granted_at,expires_at").eq("user_id", id).maybeSingle();
       if (mounted && !reward.error) {
         setRewardStatus(reward.data?.status ?? null);
@@ -142,9 +145,24 @@ export default function ClientWorkspacePage() {
     setBusy(false);
   }
 
+  async function requestTool(toolKey: string, accessType: "trial" | "beta") {
+    const client=supabaseClient();
+    if(!client||!userId)return;
+    setBusy(true);setMessage("");
+    try {
+      const {data:{user},error:authError}=await client.auth.getUser();
+      if(authError||user?.id!==userId)throw new Error("Please sign in again.");
+      const {error}=await client.from("customer_tool_access_requests").insert({customer_id:userId,tool_key:toolKey,access_type:accessType});
+      if(error)throw error;
+      setPendingRequests(current=>[...current,toolKey]);
+      setMessage("Request submitted. Access remains locked until Owner approval.");
+    }catch(error){setMessage(error instanceof Error?error.message:"Request could not be submitted. Please try again.");}
+    finally{setBusy(false);}
+  }
+
   async function signOut() {
     await supabaseClient()?.auth.signOut();
-    setUserId(null); setTrialActive(false); setBetaChoice(null); setShowWelcome(false); setMessage("Signed out.");
+    setUserId(null); setTrialActive(false); setPendingRequests([]); setBetaChoice(null); setShowWelcome(false); setMessage("Signed out.");
   }
 
   return <main className="authShell"><section className="authCard">
@@ -172,7 +190,7 @@ export default function ClientWorkspacePage() {
         <p>Approved tools open directly. Each tool requires its own active entitlement.</p>
         {ENGINEERING_TOOLS.map(tool=><div key={tool.key} style={{padding:"10px 0",borderBottom:"1px solid #ddd"}}>
           <strong>{tool.name}</strong> — {toolAccess[tool.key]?"Approved":"Access not active"}
-          <div>{toolAccess[tool.key] && tool.url ? <a href={tool.url}>Open {tool.name}</a> : <span>{tool.readiness==="released"?"30-day Trial":"Beta Access"} requires Owner approval. <a href={"/tool-access?tool="+encodeURIComponent(tool.key)}>Access details</a></span>}</div>
+          <div>{toolAccess[tool.key] && tool.url ? <a href={tool.url}>Open {tool.name}</a> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
         </div>)}
       </div>
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
