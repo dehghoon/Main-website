@@ -38,7 +38,7 @@ jobs:
             node scripts/generate-blog-cover.mjs --slug "$EXTRA" --title "Structural $TOPIC Workflow" --subtitle "Editorial visual testing"
             node scripts/render-blog-cover-jpeg.mjs "$EXTRA"
             test -s "public/blog/covers/$EXTRA.jpg"
-            test "$(sha256sum "public/blog/covers/$EXTRA.jpg" | cut -d\x27 \x27 -f1)" != "$(sha256sum "public/blog/covers/$SLUG.jpg" | cut -d\x27 \x27 -f1)"
+            test "$(sha256sum "public/blog/covers/$EXTRA.jpg" | awk '{print $1}')" != "$(sha256sum "public/blog/covers/$SLUG.jpg" | awk '{print $1}')"
             rm "public/blog/covers/$EXTRA.svg" "public/blog/covers/$EXTRA.jpg"
           done
           rm "public/blog/covers/$SLUG.svg" "public/blog/covers/$SLUG.jpg"
