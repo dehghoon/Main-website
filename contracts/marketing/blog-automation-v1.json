@@ -1,0 +1,78 @@
+{
+  "contract_id": "linkoteq-blog-automation",
+  "version": "1.0.0",
+  "owner": "Linkoteq",
+  "last_reviewed": "2026-11-09",
+  "scope": "Blog article drafts and their hero images only",
+  "roles": {
+    "content_agent": {
+      "name": "GPT-8 Marketing / ChatGPT Automation",
+      "must_read_before_work": true,
+      "responsibilities": [
+        "Fetch this exact file from GitHub main before topic selection; validate contract_id/version and abort with a clear error if unavailable",
+        "Check recent published/draft articles and recent verified engineering changes",
+        "Create and read back exactly one draft with status=draft and published_at=null, regardless of image generation readiness",
+        "Use project xssiwlwlsyxrwdbninqe public.blog_posts; never assume project name identifies its purpose",
+        "Never claim draft/image success without readback"
+      ]
+    },
+    "image_pipeline": {
+      "name": "GitHub Actions",
+      "must_read_before_work": true,
+      "responsibilities": [
+        "Validate this contract before image generation",
+        "Select existing draft missing a cover, or explicitly requested replacement draft",
+        "Generate original topic-specific engineering imagery, with distinct composition, not merely palette differences",
+        "Render and verify actual 1200x630 JPEG, upload to blog-media, attach to exact draft and read back",
+        "Fail with a clear error if any stage fails; report processed=0 explicitly, not as an image success"
+      ]
+    },
+    "database": {
+      "name": "Supabase",
+      "project_id": "xssiwlwlsyxrwdbninqe",
+      "table": "public.blog_posts",
+      "bucket": "blog-media",
+      "responsibilities": [
+        "Persist drafts, cover URLs and media metadata",
+        "Keep draft state and publication guard"
+      ]
+    },
+    "publisher": {
+      "name": "User",
+      "responsibilities": [
+        "Review and explicitly publish via blog dashboard"
+      ],
+      "automation_may_publish": false
+    }
+  },
+  "invariants": {
+    "draft_before_image": true,
+    "do_not_publish": true,
+    "do_not_enqueue_social": true,
+    "no_paid_image_api": true,
+    "no_tinyfish": true,
+    "no_latest_core_version_dependency": true,
+    "no_unverified_engineering_claims": true,
+    "no_generic_repeated_covers": true,
+    "no_overwrite_published_articles": true
+  },
+  "checks": {
+    "before_content": [
+      "contract-read",
+      "topic-and-slug-deduplication",
+      "evidence-review"
+    ],
+    "before_image": [
+      "contract-read",
+      "draft-exists-and-is-draft",
+      "image-theme-differs-from-recent-covers"
+    ],
+    "after_image": [
+      "jpeg-1200x630",
+      "storage-object-exists",
+      "draft-cover-url-readback",
+      "draft-remains-unpublished"
+    ]
+  },
+  "change_policy": "Update this contract, the GPT-8 automation prompt and the GitHub contract-validation test together. Keep contract version pinned to supported major 1; fail closed on incompatible major."
+}
