@@ -1,3 +1,4 @@
+import { ENGINEERING_TOOLS } from "../../../../../lib/tool-access/catalog";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
  if(action==="grant"&&(!starts||!expires||starts>=expires))return NextResponse.json({error:"invalid_dates"},{status:400});
  if(action==="extend"&&!expires)return NextResponse.json({error:"invalid_expiry"},{status:400});
  const isBeta=body.accessType==="beta";
+ const tool = ENGINEERING_TOOLS.find(item=>item.key===body.toolKey);
+ if (body.accessType!=="beta" && body.accessType!=="released") return NextResponse.json({error:"invalid_access_type"},{status:400});
+ if (!tool || (isBeta ? tool.readiness==="released" : tool.readiness!=="released")) return NextResponse.json({error:"tool_access_type_mismatch"},{status:400});
  if(isBeta && (typeof body.toolKey!=="string"||!/^[a-z0-9][a-z0-9_-]{0,99}$/i.test(body.toolKey)||action==="extend"))
   return NextResponse.json({error:"invalid_beta_request"},{status:400});
  const {data,error}=await db.rpc(isBeta?"owner_manage_customer_beta":"owner_manage_customer_trial",{
