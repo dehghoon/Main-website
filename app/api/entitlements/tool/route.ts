@@ -21,5 +21,11 @@ export async function GET(request: NextRequest) {
  const args={p_tool_key:tool.key};
  const {data,error}=await db.rpc(rpc,args);
  if(error)return NextResponse.json({error:"entitlement_unavailable"},{status:503,headers:noStore});
- return NextResponse.json({tool:tool.key,active:data===true,accessType:tool.readiness==="released"?"trial":"beta",requestRequired:data!==true,warning:tool.readiness==="released"?null:"Under development. Evaluation only; not for professional engineering decisions."},{headers:noStore});
+ let disclaimerAccepted=true;
+ if(tool.readiness==="released" && data===true){
+   const acknowledgment=await db.rpc("has_accepted_customer_tool_disclaimer",{p_tool_key:tool.key,p_version:"engineering-trial-v1"});
+   if(acknowledgment.error)return NextResponse.json({error:"disclaimer_verification_unavailable"},{status:503,headers:noStore});
+   disclaimerAccepted=acknowledgment.data===true;
+ }
+ return NextResponse.json({tool:tool.key,active:data===true && disclaimerAccepted,disclaimerRequired:!disclaimerAccepted,accessType:tool.readiness==="released"?"trial":"beta",requestRequired:data!==true,warning:tool.readiness==="released"?null:"Under development. Evaluation only; not for professional engineering decisions."},{headers:noStore});
 }
