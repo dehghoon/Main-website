@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate shared marketing contract
+        run: node scripts/validate-blog-contract.mjs
       - run: npm install --no-package-lock --no-audit --no-fund
       - name: Generate and render a sample cover without external APIs
         run: |
