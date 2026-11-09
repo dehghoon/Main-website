@@ -4,6 +4,7 @@
 import "./validate-ai-news-social-contract.mjs";
 import {createCanvas,loadImage} from "@napi-rs/canvas";
 import {createHash} from "node:crypto";
+import {artScene,chooseTheme} from "./editorial-vector-scenes.mjs";
 const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!key)throw Error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -69,13 +70,16 @@ async function renderSlide(slide,idx,asset){
  const detailStart=Math.max(1030,875+heading.length*63+12);
  if(detailStart+(detail.length-1)*39>1125)throw Error("Slide copy exceeds safe text area");
  const hue=parseInt(createHash("sha256").update(String(asset.slug)+":"+scene.name+":"+idx).digest("hex").slice(0,2),16)%30;
- const art='<g fill="none" stroke="#8ce7fa" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">'+scene.art+'</g>';
+ const topicTheme=chooseTheme(slide.visual+" "+slide.headline+" "+slide.detail);
+ const alternate=["construction","documents","digital","safety","robotics"];
+ const illustrationTheme=topicTheme==="structure"?alternate[idx]:topicTheme;
+ const art=artScene(illustrationTheme,asset.slug+":"+idx+":"+slide.visual,"#75e5ff",idx%2?"#ffb96c":"#fa8ab8");
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07172b"/><stop offset="1" stop-color="#164b71"/></linearGradient></defs><rect width="1200" height="1200" fill="url(#bg)"/><g transform="translate('+hue+',0)">'+art+'</g><rect y="720" width="1200" height="480" fill="#07172b"/><g font-family="Arial,Helvetica,sans-serif"><text x="65" y="790" font-size="30" fill="#8ce7fa">LINKOTEQ / ENGINEERING INSIGHTS</text>'+heading.map((t,i)=>'<text x="65" y="'+(875+i*63)+'" font-size="51" font-weight="bold" fill="white">'+esc(t)+'</text>').join("")+detail.map((t,i)=>'<text x="65" y="'+(detailStart+i*39)+'" font-size="25" fill="#c9e9f4">'+esc(t)+'</text>').join("")+'<text x="1070" y="1150" font-size="24" fill="#8ce7fa">'+(idx+1)+'/5</text></g></svg>';
  const image=await loadImage(Buffer.from(svg));
  const canvas=createCanvas(1200,1200);canvas.getContext("2d").drawImage(image,0,0);
  const bytes=canvas.toBuffer("image/jpeg",90);
  if(bytes[0]!==255||bytes[1]!==216)throw Error("SVG to JPEG conversion failed");
- return {bytes,scene:scene.name,canvas};
+ return {bytes,scene:illustrationTheme,canvas};
 }
 function renderCollage(slides){
  const canvas=createCanvas(1600,1200),ctx=canvas.getContext("2d");
@@ -111,7 +115,7 @@ for(const a of jobs){
    if(!verify.ok||!verify.headers.get("content-type")?.includes("image/jpeg"))throw Error("Slide public URL unavailable");
    urls.push(url);
   }
-  if(new Set(sceneNames).size<3)throw Error("Carousel visual diversity check failed: fewer than 3 distinct visual scenes");
+  if(new Set(rendered.map(s=>createHash("sha256").update(s.bytes).digest("hex"))).size!==5)throw Error("Carousel contains duplicate JPEG images");
   const collage=renderCollage(rendered);
   const collagePath="ai-news/"+a.id+"/collage-final.jpg";
   await request("/storage/v1/object/blog-media/"+collagePath,{method:"POST",
