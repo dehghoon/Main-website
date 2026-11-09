@@ -32,6 +32,7 @@ export default function ClientWorkspacePage() {
   const [trialActive, setTrialActive] = useState(false);
   const [toolAccess, setToolAccess] = useState<Record<string, boolean>>({});
   const [pendingRequests, setPendingRequests] = useState<string[]>([]);
+  const [trialDisclaimerAccepted, setTrialDisclaimerAccepted] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
@@ -190,7 +191,12 @@ export default function ClientWorkspacePage() {
         <p>Approved tools open directly. Each tool requires its own active entitlement.</p>
         {ENGINEERING_TOOLS.map(tool=><div key={tool.key} style={{padding:"10px 0",borderBottom:"1px solid #ddd"}}>
           <strong>{tool.name}</strong> — {toolAccess[tool.key]?"Approved":"Access not active"}
-          <div>{toolAccess[tool.key] && tool.url ? <a href={tool.url}>Open {tool.name}</a> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
+          {tool.readiness==="released" && <div role="note" style={{border:"1px solid #a87b28",borderRadius:8,padding:12,margin:"8px 0"}}>
+            <strong>Engineering calculation disclaimer — {tool.name}</strong>
+            <p>All inputs, assumptions, applicable codes, calculation results, and engineering decisions must be independently reviewed and verified by the responsible qualified engineer. Linkoteq software is an aid, not a substitute for professional engineering judgment. The engineer remains responsible for the suitability, accuracy, and safe use of the results. Do not rely on an unverified output for design or construction.</p>
+            <label><input type="checkbox" checked={trialDisclaimerAccepted[tool.key]===true} onChange={event=>setTrialDisclaimerAccepted(current=>({...current,[tool.key]:event.target.checked}))}/> I have read and understand this disclaimer for {tool.name}.</label>
+          </div>}
+          <div>{toolAccess[tool.key] && tool.url ? trialDisclaimerAccepted[tool.key]===true || tool.readiness!=="released" ? <a href={tool.url}>Open {tool.name}</a> : <span>Read and acknowledge the disclaimer above to continue.</span> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy || (tool.readiness==="released" && trialDisclaimerAccepted[tool.key]!==true)} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
         </div>)}
       </div>
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
