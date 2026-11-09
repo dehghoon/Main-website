@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing & Planned Engineering Software Plans | LinkoTech",
+  description: "Explore LinkoTech's proposed engineering software plans. Features and availability are under development; confirm access before relying on any engineering workflow.",
+  alternates: { canonical: "https://www.linkoteq.com/pricing" },
+};
+
 const plans = [
   { name: "Starter", price: "$0", cadence: "Free", featured: false },
   { name: "Pro", price: "$15 / month", cadence: "$100 / year", featured: true },
