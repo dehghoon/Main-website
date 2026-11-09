@@ -1,0 +1,27 @@
+name: Editorial media acceptance
+on:
+  pull_request:
+    paths: ['scripts/**', 'tests/editorial-media.test.mjs', 'tests/fixtures/editorial-*.mjs', 'contracts/marketing/**', '.github/workflows/*cover*', '.github/workflows/*editorial*', '.github/workflows/ai-news-social-images.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/**', 'tests/editorial-media.test.mjs', 'tests/fixtures/editorial-*.mjs', 'contracts/marketing/**', '.github/workflows/validate-editorial-media.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - run: node scripts/validate-blog-contract.mjs && node scripts/validate-ai-news-social-contract.mjs
+      - run: npm run test:editorial
+      - run: node scripts/preview-editorial-media.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editorial-jpeg-acceptance
+          path: docs/visual-qa/editorial-v2/

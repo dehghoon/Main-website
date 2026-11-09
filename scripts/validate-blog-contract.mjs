@@ -1,3 +1,4 @@
+import {validateEditorialImagePolicy} from "./validate-editorial-image-policy.mjs";
 import {readFileSync} from "node:fs";
 import {resolve} from "node:path";
 const path=resolve("contracts/marketing/blog-automation-v1.json");
@@ -13,4 +14,5 @@ for(const k of ["draft_before_image","do_not_publish","do_not_enqueue_social","n
 requireCondition(c.roles?.database?.project_id==="xssiwlwlsyxrwdbninqe","Wrong Supabase project");
 requireCondition(c.roles?.database?.bucket==="blog-media","Wrong media bucket");
 requireCondition(c.checks?.after_image?.includes("draft-cover-url-readback"),"Missing image readback requirement");
+validateEditorialImagePolicy(c,"blog");
 if(!process.exitCode)console.log("BLOG CONTRACT OK:",c.contract_id,c.version);

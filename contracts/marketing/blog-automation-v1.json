@@ -1,6 +1,6 @@
 {
   "contract_id": "linkoteq-blog-automation",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "owner": "Linkoteq",
   "last_reviewed": "2026-11-09",
   "scope": "Blog article drafts and their hero images only",
@@ -13,7 +13,10 @@
         "Check recent published/draft articles and recent verified engineering changes",
         "Create and read back exactly one draft with status=draft and published_at=null, regardless of image generation readiness",
         "Use project xssiwlwlsyxrwdbninqe public.blog_posts; never assume project name identifies its purpose",
-        "Never claim draft/image success without readback"
+        "Never claim draft/image success without readback",
+        "Write a complete article body and concise, literal cover_image_title describing the real engineering operation; the image worker receives the full body",
+        "Use image_engine v2 from GitHub main for future drafts; inspect the five recent covers and do not approve irrelevant or repeated output",
+        "Do not call legacy paid image Edge Functions or reinterpret unsupported subjects as a generic frame"
       ]
     },
     "image_pipeline": {
@@ -24,7 +27,9 @@
         "Select existing draft missing a cover, or explicitly requested replacement draft",
         "Generate original topic-specific engineering imagery, with distinct composition, not merely palette differences",
         "Render and verify actual 1200x630 JPEG, upload to blog-media, attach to exact draft and read back",
-        "Fail with a clear error if any stage fails; report processed=0 explicitly, not as an image success"
+        "Fail with a clear error if any stage fails; report processed=0 explicitly, not as an image success",
+        "Run image_engine quality_gate before queue access; pass full article body through --content-file",
+        "Use bundled fonts, measured text bounds, subject-specific geometry and one of three cover compositions"
       ]
     },
     "database": {
@@ -74,5 +79,57 @@
       "draft-remains-unpublished"
     ]
   },
-  "change_policy": "Update this contract, the GPT-8 automation prompt and the GitHub contract-validation test together. Keep contract version pinned to supported major 1; fail closed on incompatible major."
+  "change_policy": "Update this contract, the GPT-8 automation prompt and the GitHub contract-validation test together. Keep contract version pinned to supported major 1; fail closed on incompatible major.",
+  "image_engine": {
+    "id": "linkoteq-editorial-svg",
+    "version": 2,
+    "scene_module": "scripts/editorial-vector-scenes.mjs",
+    "renderer_module": "scripts/editorial-media.mjs",
+    "method": "local authored SVG to real JPEG via @napi-rs/canvas",
+    "supported_subjects": [
+      "bridge",
+      "timber",
+      "concrete",
+      "coordination",
+      "flood",
+      "drawings",
+      "joist",
+      "import",
+      "site",
+      "structure"
+    ],
+    "narrative_shots": [
+      "context",
+      "detail",
+      "process",
+      "review",
+      "outcome"
+    ],
+    "selection": "Full content evidence and explicit supported scene; generic AI/software keywords alone are insufficient",
+    "unsupported_subject": "Fail explicitly; request an authored scene extension, never substitute unrelated artwork",
+    "quality_gate": "npm run test:editorial",
+    "visual_review": "Inspect relevance, composition, mobile text, cropping and distinct art; build success and different hashes alone are not visual approval",
+    "no_paid_image_api": true,
+    "no_latest_core_dependency": true,
+    "preserve_historical_assets": true
+  },
+  "workflow": {
+    "file": ".github/workflows/scheduled-blog-draft-covers.yml",
+    "manual_file": ".github/workflows/prepare-blog-cover.yml",
+    "generator": "scripts/prepare-scheduled-blog-covers.mjs",
+    "cover_generator": "scripts/generate-blog-cover.mjs",
+    "validator": "scripts/validate-blog-contract.mjs",
+    "input_context": [
+      "title",
+      "cover_image_title",
+      "excerpt",
+      "body"
+    ],
+    "dimensions": [
+      1200,
+      630
+    ],
+    "publication": "Draft only; owner publishes manually"
+  },
+  "automation_prompt_file": "contracts/marketing/gpt8-blog-automation-prompt.md"
 }
