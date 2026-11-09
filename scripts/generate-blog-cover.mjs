@@ -4,6 +4,7 @@
 // This creates an original vector illustration, not an OpenAI image API request.
 import {mkdir,writeFile} from "node:fs/promises";
 import {resolve} from "node:path";
+import {artScene,chooseTheme} from "./editorial-vector-scenes.mjs";
 const args=process.argv.slice(2);
 const flag=n=>{const i=args.indexOf("--"+n);return i<0?"":args[i+1]||""};
 const slug=flag("slug"), title=flag("title"), subtitle=flag("subtitle");
@@ -31,7 +32,8 @@ const art={
 const chosen=art[kind].replaceAll("#8ce7fa",cyan).replaceAll("#f4bd68",gold);
 const structuralScene=`<g stroke-linejoin="round" stroke-width="6" fill="none"><path d="M675 260l175 -92 235 105-175 98Z" fill="${pink}" fill-opacity=".24" stroke="${cyan}"/><path d="M675 260v175l235 100V371M910 535l175 -95V273" stroke="${cyan}"/><path d="M675 350l235 100 175 -95M760 215v175M850 168v195M1000 235v175" stroke="${gold}"/><path d="M700 287l175 80m-140 -98 175 79m-130 -99 175 78" stroke="${pink}" stroke-width="4"/></g>`;
 const importScene=`<g transform="translate(45 0)"><g opacity=".94"><rect x="670" y="195" width="120" height="84" rx="15" fill="${bg}" stroke="${cyan}" stroke-width="5"/><rect x="670" y="302" width="120" height="84" rx="15" fill="${bg}" stroke="${pink}" stroke-width="5"/><text x="730" y="245" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff">SOURCE</text><text x="730" y="351" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff">MODEL</text><path d="M800 291h68m-20 -17 20 17-20 17" stroke="${gold}" stroke-width="9" stroke-linecap="round" fill="none"/></g><g transform="translate(195 -25) scale(.76)">${structuralScene}</g><path d="M975 510l65 0 35 -38" stroke="${gold}" stroke-width="8" fill="none"/><circle cx="1075" cy="472" r="13" fill="${pink}"/></g>`;
-const motif=kind==="import"?importScene:kind==="core"?chosen:kind==="model"?structuralScene:chosen;
+const editorialTheme=chooseTheme(title+" "+subtitle);
+const motif=`<g transform="translate(560 62) scale(.59)">${artScene(editorialTheme,slug,cyan,gold)}</g>`;
 const ornament=Array.from({length:9},(_,i)=>`<circle cx="${690+i*55}" cy="${115+(i%3)*33}" r="${8+(i%3)*8}" fill="${i%2?pink:gold}" opacity=".19"/>`).join("");
 const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><defs><linearGradient id="bg"><stop stop-color="${bg}"/><stop offset=".55" stop-color="#193e68"/><stop offset="1" stop-color="${bg}"/></linearGradient><radialGradient id="glow"><stop stop-color="${pink}" stop-opacity=".4"/><stop offset="1" stop-color="${pink}" stop-opacity="0"/></radialGradient></defs><rect width="1200" height="630" fill="url(#bg)"/><circle cx="940" cy="330" r="360" fill="url(#glow)"/>${ornament}${motif}<g font-family="Arial,Helvetica,sans-serif"><text x="65" y="91" font-size="28" fill="${cyan}" font-weight="bold">LINKOTEQ / ENGINEERING INSIGHTS</text>${titleSvg}<text x="65" y="${Math.min(subtitleY,545)}" font-size="19" fill="#e2e9ff">${escape(subtitle.slice(0,70))}</text></g><rect x="65" y="570" width="320" height="8" fill="${pink}"/></svg>\n`;
-const output=resolve("public/blog/covers",slug+".svg");await mkdir(resolve("public/blog/covers"),{recursive:true});await writeFile(output,svg,{flag:"w"});console.log(JSON.stringify({output,kind,variant}));
+const output=resolve("public/blog/covers",slug+".svg");await mkdir(resolve("public/blog/covers"),{recursive:true});await writeFile(output,svg,{flag:"w"});console.log(JSON.stringify({output,kind,editorialTheme,variant}));
