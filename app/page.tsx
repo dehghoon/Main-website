@@ -34,9 +34,9 @@ const products = [
 const tools = [
   { title: "Customer Discovery", description: "Structured Interviews, Evidence Capture, And Insight Tracking For Product Discovery.", icon: UsersRound, href: CUSTOMER_DISCOVERY_URL, action: "Open Platform" },
   { title: "Team Timesheet", description: "A Lightweight Operational Workspace For Time Capture And Project Visibility.", icon: Clock3, href: TIMESHEET_URL, action: "Open Workspace" },
-  { title: "3D Structural Model", description: "Create structural geometry, assign loads, inspect properties, and prepare a calculation-ready model for connected analysis workflows.", icon: Layers3, href: MODEL_3D_URL, action: "Open 3D Model" },
-  { title: "W-Section", description: "Interactive W-section verification with section data, utilization ratios, and report-ready engineering outputs.", icon: Building2, href: STEEL_COLUMN_URL, action: "Open Calculator" },
-  { title: "Snow Load", description: "NBCC 2020 roof snow calculations for uniform, lower-roof drift, and projection / parapet loading with ULS, SLS, and report-ready outputs.", icon: Snowflake, href: SNOW_LOAD_URL, action: "Open Calculator" },
+  { title: "3D Structural Model", description: "Create structural geometry, assign loads, inspect properties, and prepare a calculation-ready model for connected analysis workflows.", icon: Layers3, href: "/tool-access?tool=3d_model", action: "Open 3D Model" },
+  { title: "W-Section", description: "Interactive W-section verification with section data, utilization ratios, and report-ready engineering outputs.", icon: Building2, href: "/tool-access?tool=w_section", action: "Open Calculator" },
+  { title: "Snow Load", description: "NBCC 2020 roof snow calculations for uniform, lower-roof drift, and projection / parapet loading with ULS, SLS, and report-ready outputs.", icon: Snowflake, href: "/tool-access?tool=snow_load", action: "Open Calculator" },
 ];
 
 export default function Home() {
@@ -48,7 +48,7 @@ export default function Home() {
           <a href="#top">Home</a><a href="#platform">AI Platform</a><a href="#roadmap">Roadmap</a>
           <div className="navMenu"><button className="navMenuButton" type="button">Knowledge Center <ChevronDown size={15} /></button><div className="navDropdown wideDropdown">{knowledgeItems.map(({ label, href, icon: Icon }) => <a key={label} href={href}><Icon size={16} /><span>{label}</span></a>)}</div></div>
           <a href="/blog">Blog</a>
-          <div className="navMenu"><button className="navMenuButton" type="button">Calculators <ChevronDown size={15} /></button><div className="navDropdown"><a href={MODEL_3D_URL}><Layers3 size={16} /> 3D Structural Model</a><a href={STEEL_COLUMN_URL}><Building2 size={16} /> W-Section</a><a href={SNOW_LOAD_URL}><Snowflake size={16} /> Snow Load</a></div></div>
+          <div className="navMenu"><button className="navMenuButton" type="button">Calculators <ChevronDown size={15} /></button><div className="navDropdown"><a href="/tool-access?tool=3d_model"><Layers3 size={16} /> 3D Structural Model</a><a href="/tool-access?tool=w_section"><Building2 size={16} /> W-Section</a><a href="/tool-access?tool=snow_load"><Snowflake size={16} /> Snow Load</a></div></div>
           <div className="navMenu"><button className="navMenuButton" type="button">About <ChevronDown size={15} /></button><div className="navDropdown"><a href="/about">About Linko</a><a href={TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a></div></div>
           <div className="navMenu"><button className="navMenuButton" type="button">Contact <ChevronDown size={15} /></button><div className="navDropdown"><a href="/contact">Contact Us</a><a href={CUSTOMER_DISCOVERY_URL}><UsersRound size={16} /> Customer Discovery</a><a href="/contact/support"><LifeBuoy size={16} /> Support</a></div></div>
           <a href="/pricing">Pricing</a>
