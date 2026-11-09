@@ -2,7 +2,7 @@ name: Scheduled Linkoteq blog draft covers
 on:
   schedule:
     # Retry throughout the morning, covering Toronto DST and standard time.
-    - cron: '0 13,14,15,16,17 * * 1,3'
+    - cron: '17,47 13-22 * * 1,3'
   workflow_dispatch:
     inputs:
       replace_post_id:
@@ -31,5 +31,5 @@ jobs:
       - name: Prepare eligible draft JPEG covers and attach to Supabase
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          REPLACE_POST_ID: ${{ inputs.replace_post_id || (github.event_name == 'push' && 'c2c41c82-7a85-4ea2-a1db-24c982cf1766') || '' }}
+          REPLACE_POST_ID: ${{ inputs.replace_post_id }}
         run: node scripts/prepare-scheduled-blog-covers.mjs
