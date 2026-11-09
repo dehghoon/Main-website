@@ -1,6 +1,6 @@
 {
   "contract_id": "linkoteq-ai-news-social-automation",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-11-09",
   "independent_from": "contracts/marketing/blog-automation-v1.json",
   "purpose": "Independent AI news posts for official Linkoteq Facebook, Instagram and LinkedIn; never reuse blog publication workflow",
@@ -21,7 +21,9 @@
         "Research timely AI news across AEC; check duplicate slugs and existing publications",
         "Create evidence-backed platform-specific English copy and an original 5-slide creative_brief in ai_news_social_assets",
         "Write distinct pending publication records for facebook, instagram and linkedin only when safe idempotency and publisher guards are in place",
-        "Read back all rows; never directly duplicate worker publishing or claim success from pending records"
+        "Read back all rows; never directly duplicate worker publishing or claim success from pending records",
+        "For each new story use creative_brief_policy and image_engine v2; never use paid image-generation Edge Functions or blog hero reuse",
+        "Keep the five scene descriptions specific to the actual reported event; unsupported visual topics require an authored scene extension and explicit blocked status, not unrelated fallback"
       ]
     },
     "github_image_worker": {
@@ -32,7 +34,9 @@
         "Generate exactly five separate square 1200x1200 JPEG carousel slides, visually specific to story and each slide",
         "Generate a separate Facebook/LinkedIn collage JPEG; do not substitute blog 1200x630 hero",
         "Check public Storage URLs, actual JPEG, scene diversity and Supabase readback",
-        "Leave approvals to verified Supabase publisher v4; do not self-publish"
+        "Leave approvals to verified Supabase publisher v4; do not self-publish",
+        "Run image_engine quality_gate before queue access; render all five slides and collage before uploads",
+        "Block jobs with non-pending publication history; decode public JPEG responses and verify dimensions"
       ]
     },
     "supabase_publisher": {
@@ -55,7 +59,11 @@
       1200
     ],
     "instagram_image_count": 5,
-    "facebook_linkedin_media": "collage-final.jpg"
+    "facebook_linkedin_media": "collage-final.jpg",
+    "collage_dimensions": [
+      1600,
+      1200
+    ]
   },
   "permissions": {
     "facebook_auto_publish": true,
@@ -81,7 +89,7 @@
     "file": ".github/workflows/ai-news-social-images.yml",
     "generator": "scripts/prepare-ai-news-social-images.mjs",
     "validator": "scripts/validate-ai-news-social-contract.mjs",
-    "media_generator": "local SVG to JPEG using @napi-rs/canvas; five independent story-specific scenes",
+    "media_generator": "editorial SVG engine v2: independent 1200x1200 story scenes plus 1600x1200 collage",
     "publisher": "Supabase ai-news-social-publisher v4 via Windsor.ai",
     "retry": "Only eligible pending assets; failures explicit; never reset published posts"
   },
@@ -93,5 +101,67 @@
     "No publishing until existing publisher quality checks pass",
     "Platform IDs verified before reporting published",
     "Blog automation untouched"
-  ]
+  ],
+  "image_engine": {
+    "id": "linkoteq-editorial-svg",
+    "version": 2,
+    "scene_module": "scripts/editorial-vector-scenes.mjs",
+    "renderer_module": "scripts/editorial-media.mjs",
+    "method": "local authored SVG to real JPEG via @napi-rs/canvas",
+    "supported_subjects": [
+      "bridge",
+      "timber",
+      "concrete",
+      "coordination",
+      "flood",
+      "drawings",
+      "joist",
+      "import",
+      "site",
+      "structure"
+    ],
+    "narrative_shots": [
+      "context",
+      "detail",
+      "process",
+      "review",
+      "outcome"
+    ],
+    "selection": "Full content evidence and explicit supported scene; generic AI/software keywords alone are insufficient",
+    "unsupported_subject": "Fail explicitly; request an authored scene extension, never substitute unrelated artwork",
+    "quality_gate": "npm run test:editorial",
+    "visual_review": "Inspect relevance, composition, mobile text, cropping and distinct art; build success and different hashes alone are not visual approval",
+    "no_paid_image_api": true,
+    "no_latest_core_dependency": true,
+    "preserve_historical_assets": true
+  },
+  "creative_brief_policy": {
+    "new_story_scene": "Set creative_brief.scene to the supported subject matching the actual news; never choose a supported topic merely to make rendering pass",
+    "slide_fields": [
+      "headline",
+      "detail",
+      "visual",
+      "shot"
+    ],
+    "slide_count": 5,
+    "shot_order": [
+      "context",
+      "detail",
+      "process",
+      "review",
+      "outcome"
+    ],
+    "story_roles": [
+      "hook/context",
+      "specific problem/detail",
+      "AI workflow/example",
+      "human review/limitations",
+      "implication/question/CTA"
+    ],
+    "visual": "Describe actual engineering objects, people, operation and setting from source evidence; keep one coherent story with distinct shots",
+    "text": "Short English copy within renderer-measured bounds; never crop or silently truncate",
+    "compatibility": "Existing pending briefs without scene/shot retain content-based selection and default five shots; never rewrite historical briefs"
+  },
+  "change_policy": "Update this contract, validators and GPT-8 automation prompt together; retain major 1 compatibility and existing publication gates.",
+  "automation_prompt_file": "contracts/marketing/gpt8-ai-news-automation-prompt.md"
 }

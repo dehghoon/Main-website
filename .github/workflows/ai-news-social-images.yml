@@ -8,6 +8,13 @@ on:
   push:
     branches: [main]
     paths:
+      - ".github/workflows/ai-news-social-images.yml"
+      - "scripts/editorial-vector-scenes.mjs"
+      - "scripts/editorial-media.mjs"
+      - "scripts/validate-editorial-image-policy.mjs"
+      - "scripts/assets/fonts/**"
+      - "tests/editorial-media.test.mjs"
+      - "tests/fixtures/editorial-*.mjs"
       - "scripts/prepare-ai-news-social-images.mjs"
       - "scripts/validate-ai-news-social-contract.mjs"
       - "contracts/marketing/ai-news-social-automation-v1.json"
@@ -28,6 +35,8 @@ jobs:
       - name: Read and validate independent AI news social contract
         run: node scripts/validate-ai-news-social-contract.mjs
       - run: npm install --no-package-lock --no-audit --no-fund
+      - name: Verify editorial SVG v2 before processing any queue
+        run: npm run test:editorial
       - name: Generate contextual AI news carousel images and verify JPEGs
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

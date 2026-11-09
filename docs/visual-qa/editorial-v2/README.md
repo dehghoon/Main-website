@@ -46,3 +46,10 @@ The three baseline failures are `annotated preview uses explicit readable class 
 All five slides and the collage render before uploads. A job with any non-pending publication history is blocked before writes. Public JPEG responses are decoded and dimension-checked. Existing publisher approval gates, pending-only mutations, schedules and blog manual publication policy remain in place. The offline worker test verifies the exact five Instagram URLs and one collage URL for each other platform, zero writes on published history and zero uploads on rendering failure. Live publishing was intentionally not exercised.
 
 Reproduce with `npm install --no-package-lock --no-audit --no-fund`, `npm run test:editorial`, then `node scripts/preview-editorial-media.mjs`. Fonts and their license are included for reproducible typography. GitHub Actions runs the image acceptance suite and uploads full JPEG evidence.
+
+
+## Approved integration follow-up (2026-11-09)
+
+After the baseline failures were disclosed, the owner explicitly approved merging PR #17. The three unrelated labeling failures remain disclosed and are not hidden or weakened. Both marketing contracts advance to 1.1.0, pin SVG engine v2, and include the actual supported subject catalog, shot order, input context and JPEG dimensions. Both scheduled workflows now run the editorial acceptance suite before any queue processing and react to shared renderer/font changes. The manual blog workflow also runs acceptance. Contract/renderer drift and workflow ordering are covered by a ninth passing test.
+
+Canonical future GPT-8 prompts are stored beside the contracts and synchronized to the two existing Automations after merge. The AI-news prompt consolidates the formerly conflicting paid-image, single-image and 4–6-slide instructions into the current free five-slide policy. Existing schedules and publishing permissions are preserved. This follow-up does not manually regenerate existing media or write historical Supabase records.

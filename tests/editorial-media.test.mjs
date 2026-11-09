@@ -70,3 +70,16 @@ test('worker integration: five slides, dedicated collage, pending-only patches a
   assert.match(p.stdout,mode==='success'?/"generated":1/:mode==='published'?/"blocked":1/:/"failed":1/);
  }
 });
+test('contracts pin the real renderer catalog, dimensions, narrative shots and future workflow gates',async()=>{
+ const {validateEditorialImagePolicy}=await import('../scripts/validate-editorial-image-policy.mjs');
+ for(const [kind,path] of [['blog','blog'],['news','ai-news-social']]){
+  const c=JSON.parse(await readFile(`contracts/marketing/${path}-automation-v1.json`));
+  assert.equal(c.version,'1.1.0');validateEditorialImagePolicy(c,kind);
+  for(const change of [x=>x.image_engine.version=1,x=>x.image_engine.no_paid_image_api=false,x=>x.image_engine.supported_subjects.pop(),x=>x.image_engine.preserve_historical_assets=false]){
+   const broken=structuredClone(c);change(broken);assert.throws(()=>validateEditorialImagePolicy(broken,kind),/EDITORIAL IMAGE POLICY/);
+  }
+  const yml=await readFile(c.workflow.file,'utf8');
+  assert.ok(yml.includes('scripts/editorial-vector-scenes.mjs'));assert.ok(yml.includes('scripts/editorial-media.mjs'));
+  assert.ok(yml.indexOf('run: npm run test:editorial')<yml.indexOf('SUPABASE_SERVICE_ROLE_KEY:'));
+ }
+});

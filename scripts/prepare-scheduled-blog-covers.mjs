@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Scheduled cover preparation: only existing, complete, unillustrated drafts.
+import "./validate-blog-contract.mjs";
 import {execFileSync} from "node:child_process";
 import {stat,mkdtemp,writeFile,rm} from "node:fs/promises";
 import {tmpdir} from "node:os";
