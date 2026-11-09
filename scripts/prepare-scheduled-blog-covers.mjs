@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Scheduled cover preparation: only existing, complete, unillustrated drafts.
 import {execFileSync} from "node:child_process";
-import {stat} from "node:fs/promises";
+import {stat,mkdtemp,writeFile,rm} from "node:fs/promises";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!key)throw Error("SUPABASE_SERVICE_ROLE_KEY secret is required");
 const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
@@ -21,8 +23,11 @@ for(const d of drafts){
  try{
   const subtitle=String(d.excerpt).slice(0,70);
   const shortTitle=String(d.cover_image_title||d.title);
-  const variant=[...d.slug].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
-  execFileSync("node",["scripts/generate-blog-cover.mjs","--slug",d.slug,"--title",shortTitle,"--subtitle",subtitle,"--variant",String(variant)],{stdio:"inherit"});
+  const temp=await mkdtemp(join(tmpdir(),"linkoteq-cover-"));
+  try {
+   const content=join(temp,"article.txt");await writeFile(content,String(d.body));
+   execFileSync("node",["scripts/generate-blog-cover.mjs","--slug",d.slug,"--title",shortTitle,"--subtitle",subtitle,"--content-file",content],{stdio:"inherit"});
+  } finally {await rm(temp,{recursive:true,force:true});}
   execFileSync("node",["scripts/render-blog-cover-jpeg.mjs",d.slug],{stdio:"inherit"});
   const jpg=await stat("public/blog/covers/"+d.slug+".jpg");
   if(jpg.size<1024)throw Error("JPEG too small");

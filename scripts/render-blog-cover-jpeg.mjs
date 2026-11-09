@@ -4,6 +4,7 @@
 import {readFile,writeFile} from "node:fs/promises";
 import {resolve} from "node:path";
 import {createCanvas,loadImage} from "@napi-rs/canvas";
+import {validateJpeg} from "./editorial-media.mjs";
 const slug=process.argv[2]||"";
 if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)){console.error("Provide a safe article slug");process.exit(2);}
 const path=resolve("public/blog/covers",slug+".svg");
@@ -16,6 +17,7 @@ ctx.fillStyle="#07172b";ctx.fillRect(0,0,1200,630);
 ctx.drawImage(image,0,0,1200,630);
 const jpeg=canvas.toBuffer("image/jpeg",90);
 if(jpeg.length<1024||jpeg[0]!==255||jpeg[1]!==216)throw Error("JPEG encoding failed");
+await validateJpeg(jpeg,1200,630);
 const output=resolve("public/blog/covers",slug+".jpg");
 await writeFile(output,jpeg,{flag:"wx"});
 console.log(JSON.stringify({output,bytes:jpeg.length,width:1200,height:630}));

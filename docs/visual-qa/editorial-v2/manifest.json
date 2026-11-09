@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "qa-bridge",
+    "title": "AI-assisted bridge inspection",
+    "cover": "bridge:context",
+    "slides": [
+      "bridge:context",
+      "bridge:detail",
+      "bridge:process",
+      "bridge:review",
+      "bridge:outcome"
+    ]
+  },
+  {
+    "slug": "qa-timber",
+    "title": "Robotic timber fabrication",
+    "cover": "timber:context",
+    "slides": [
+      "timber:context",
+      "timber:detail",
+      "timber:process",
+      "timber:review",
+      "timber:outcome"
+    ]
+  },
+  {
+    "slug": "qa-concrete",
+    "title": "Lower-carbon concrete trials",
+    "cover": "concrete:context",
+    "slides": [
+      "concrete:context",
+      "concrete:detail",
+      "concrete:process",
+      "concrete:review",
+      "concrete:outcome"
+    ]
+  },
+  {
+    "slug": "qa-coordination",
+    "title": "Finding BIM service clashes",
+    "cover": "coordination:context",
+    "slides": [
+      "coordination:context",
+      "coordination:detail",
+      "coordination:process",
+      "coordination:review",
+      "coordination:outcome"
+    ]
+  },
+  {
+    "slug": "qa-flood",
+    "title": "Modelling urban flood paths",
+    "cover": "flood:context",
+    "slides": [
+      "flood:context",
+      "flood:detail",
+      "flood:process",
+      "flood:review",
+      "flood:outcome"
+    ]
+  },
+  {
+    "slug": "qa-drawings",
+    "title": "Extracting engineering drawings",
+    "cover": "drawings:context",
+    "slides": [
+      "drawings:context",
+      "drawings:detail",
+      "drawings:process",
+      "drawings:review",
+      "drawings:outcome"
+    ]
+  }
+]

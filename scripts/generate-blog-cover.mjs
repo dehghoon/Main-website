@@ -1,39 +1,12 @@
 #!/usr/bin/env node
-// Dependency-free, deterministic Linkoteq editorial SVG cover generator.
-// Usage: node scripts/generate-blog-cover.mjs --slug article-slug --title "Article title" --subtitle "Short description"
-// This creates an original vector illustration, not an OpenAI image API request.
-import {mkdir,writeFile} from "node:fs/promises";
-import {resolve} from "node:path";
-import {artScene,chooseTheme} from "./editorial-vector-scenes.mjs";
-const args=process.argv.slice(2);
-const flag=n=>{const i=args.indexOf("--"+n);return i<0?"":args[i+1]||""};
-const slug=flag("slug"), title=flag("title"), subtitle=flag("subtitle");
-const seed=[...slug].reduce((h,ch)=>(Math.imul(h,31)+ch.charCodeAt(0))>>>0,7);
-const variant=flag("variant")===""?seed%4:Number(flag("variant"));
-if(!Number.isInteger(variant)||variant<0||variant>3)throw Error("Variant must be 0..3");
-const palettes=[["#17215b","#50e7ff","#ffca63","#ed7ec6"],["#39205e","#70f3bc","#ffaf55","#f78bd1"],["#123b52","#8dd7ff","#ff8273","#b58eff"],["#3b2357","#59e6ed","#f7dc7a","#ff7ea3"]];
-const [bg,cyan,gold,pink]=palettes[variant];
-if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||!title||title.length>180||subtitle.length>180){console.error("Provide --slug, --title (max 180 chars), optional --subtitle (max 180 chars)");process.exit(2);}
-const escape=s=>s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&apos;");
-function lines(s,max=22,limit=4){const words=s.split(/\s+/);const out=[];let line="";for(const word of words){if((line+" "+word).trim().length>max&&line){out.push(line);line=word;}else line=(line+" "+word).trim();}if(line)out.push(line);if(out.length>limit)throw Error("Title too long for cover; shorten title");return out;}
-const titleLines=lines(title.toUpperCase(),24,4);
-const titleSvg=titleLines.map((s,i)=>`<text x="65" y="${200+i*66}" font-size="49" fill="#ffffff" font-weight="bold">${escape(s)}</text>`).join("");
-const subtitleY=Math.max(475,225+titleLines.length*66);
-const topic=(title+" "+subtitle).toLowerCase();
-const kind=/core|schema|compatib|interoperab|migration|version/.test(topic)?"core":/joist|bay|area.assignment/.test(topic)?"joist":/import|convert|etabs|sap2000|staad/.test(topic)?"import":/verification|section|capacity|steel design/.test(topic)?"verify":/load|force|deflection/.test(topic)?"load":"model";
-const art={
- core:`<g font-family="Arial,Helvetica,sans-serif" stroke-linejoin="round"><g fill="#102d4c" stroke="#8ce7fa" stroke-width="3"><rect x="670" y="160" width="178" height="65" rx="12"/><rect x="670" y="265" width="178" height="65" rx="12"/><rect x="670" y="370" width="178" height="65" rx="12"/></g><g fill="#e8f8fe" font-size="19" text-anchor="middle"><text x="759" y="200">GEOMETRY</text><text x="759" y="305">LOADS</text><text x="759" y="410">SECTIONS</text></g><g stroke="#f4bd68" stroke-width="4" fill="none"><path d="M848 193L923 283M848 298L923 298M848 403L923 313"/><path d="m912 276 11 7-3-13m-8 28 11 0-9-9m-3 38 12-14-14-1"/></g><rect x="923" y="241" width="235" height="115" rx="22" fill="#133f60" stroke="#f4bd68" stroke-width="5"/><g fill="#ffffff" text-anchor="middle"><text x="1040" y="287" font-size="25" font-weight="bold">CORE v0.6</text><text x="1040" y="316" font-size="16">SHARED SCHEMA</text></g><path d="M990 360V408h100" stroke="#8ce7fa" stroke-width="4" fill="none"/><text x="1040" y="440" fill="#9ce5f3" font-size="18" text-anchor="middle">v0.5 compatibility goal</text></g>`,
- joist:`<g stroke="#8ce7fa" stroke-width="5" fill="none" stroke-linejoin="round"><path d="M680 245L865 155L1080 260L895 355Z M680 245V440L895 550V355M895 550L1080 445V260"/><path d="M710 260L925 365M745 243L960 348M780 225L995 330M815 208L1030 313" stroke="#f4bd68" stroke-width="4"/><path d="M710 260l25 -31 25 55 25 -31 25 56 25 -32 25 56 25 -30 25 57" stroke="#f4bd68" stroke-width="3"/></g>`,
- import:`<g fill="none" stroke-width="4" stroke-linejoin="round"><rect x="685" y="145" width="150" height="280" rx="12" stroke="#8ce7fa"/><rect x="945" y="145" width="150" height="280" rx="12" stroke="#f4bd68"/><path d="M730 205h60m-60 45h60m-60 45h60m-60 45h60M990 205h60m-60 45h60m-60 45h60m-60 45h60" stroke="#8ce7fa"/><path d="M845 285h90m-30 -25 30 25-30 25" stroke="#ffffff" stroke-width="7"/></g>`,
- verify:`<g fill="none" stroke="#8ce7fa" stroke-width="8" stroke-linejoin="round"><path d="M740 165h280v42H905v245h115v42H740v-42h115V207H740Z"/><circle cx="1040" cy="215" r="55" stroke="#f4bd68" stroke-width="6"/><path d="m1015 215 18 18 33 -42" stroke="#f4bd68" stroke-width="7"/></g>`,
- load:`<g fill="none" stroke="#8ce7fa" stroke-width="7"><path d="M700 450h380M730 450V260m320 190V260"/><path d="M790 150v170m-15 -20 15 20 15 -20M890 150v170m-15 -20 15 20 15 -20M990 150v170m-15 -20 15 20 15 -20" stroke="#f4bd68" stroke-width="6"/></g>`,
- model:`<g fill="none" stroke="#8ce7fa" stroke-width="5"><path d="M700 505V170L820 105L940 170V505M820 105V445M700 170L820 225L940 170M700 280L820 335L940 280M700 390L820 445L940 390M700 505L820 560L940 505M940 170L1050 230V555L940 505M940 280L1050 340M940 390L1050 450"/></g>`
-};
-const chosen=art[kind].replaceAll("#8ce7fa",cyan).replaceAll("#f4bd68",gold);
-const structuralScene=`<g stroke-linejoin="round" stroke-width="6" fill="none"><path d="M675 260l175 -92 235 105-175 98Z" fill="${pink}" fill-opacity=".24" stroke="${cyan}"/><path d="M675 260v175l235 100V371M910 535l175 -95V273" stroke="${cyan}"/><path d="M675 350l235 100 175 -95M760 215v175M850 168v195M1000 235v175" stroke="${gold}"/><path d="M700 287l175 80m-140 -98 175 79m-130 -99 175 78" stroke="${pink}" stroke-width="4"/></g>`;
-const importScene=`<g transform="translate(45 0)"><g opacity=".94"><rect x="670" y="195" width="120" height="84" rx="15" fill="${bg}" stroke="${cyan}" stroke-width="5"/><rect x="670" y="302" width="120" height="84" rx="15" fill="${bg}" stroke="${pink}" stroke-width="5"/><text x="730" y="245" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff">SOURCE</text><text x="730" y="351" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff">MODEL</text><path d="M800 291h68m-20 -17 20 17-20 17" stroke="${gold}" stroke-width="9" stroke-linecap="round" fill="none"/></g><g transform="translate(195 -25) scale(.76)">${structuralScene}</g><path d="M975 510l65 0 35 -38" stroke="${gold}" stroke-width="8" fill="none"/><circle cx="1075" cy="472" r="13" fill="${pink}"/></g>`;
-const editorialTheme=chooseTheme(title+" "+subtitle);
-const motif=`<g transform="translate(560 62) scale(.59)">${artScene(editorialTheme,slug,cyan,gold)}</g>`;
-const ornament=Array.from({length:9},(_,i)=>`<circle cx="${690+i*55}" cy="${115+(i%3)*33}" r="${8+(i%3)*8}" fill="${i%2?pink:gold}" opacity=".19"/>`).join("");
-const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><defs><linearGradient id="bg"><stop stop-color="${bg}"/><stop offset=".55" stop-color="#193e68"/><stop offset="1" stop-color="${bg}"/></linearGradient><radialGradient id="glow"><stop stop-color="${pink}" stop-opacity=".4"/><stop offset="1" stop-color="${pink}" stop-opacity="0"/></radialGradient></defs><rect width="1200" height="630" fill="url(#bg)"/><circle cx="940" cy="330" r="360" fill="url(#glow)"/>${ornament}${motif}<g font-family="Arial,Helvetica,sans-serif"><text x="65" y="91" font-size="28" fill="${cyan}" font-weight="bold">LINKOTEQ / ENGINEERING INSIGHTS</text>${titleSvg}<text x="65" y="${Math.min(subtitleY,545)}" font-size="19" fill="#e2e9ff">${escape(subtitle.slice(0,70))}</text></g><rect x="65" y="570" width="320" height="8" fill="${pink}"/></svg>\n`;
-const output=resolve("public/blog/covers",slug+".svg");await mkdir(resolve("public/blog/covers"),{recursive:true});await writeFile(output,svg,{flag:"w"});console.log(JSON.stringify({output,kind,editorialTheme,variant}));
+import './validate-blog-contract.mjs';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {blogSvg} from './editorial-media.mjs';
+const args=process.argv.slice(2),flag=n=>{const i=args.indexOf('--'+n);return i<0?'':args[i+1]||'';};
+const slug=flag('slug'),title=flag('title'),subtitle=flag('subtitle');
+if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||!title||title.length>180||subtitle.length>180)throw Error('Provide safe slug, title and subtitle (max 180 characters)');
+const body=flag('content-file')?await readFile(flag('content-file'),'utf8'):'';
+const {svg,plan}=blogSvg({title,subtitle,body,visual:flag('visual'),scene:flag('scene')||undefined,seed:slug});
+const dir=resolve('public/blog/covers');await mkdir(dir,{recursive:true});const output=resolve(dir,slug+'.svg');
+await writeFile(output,svg);console.log(JSON.stringify({output,scene:plan.signature}));
