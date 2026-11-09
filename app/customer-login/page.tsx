@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ENGINEERING_TOOLS } from "../../lib/tool-access/catalog";
 import { FormEvent, useEffect, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -17,7 +18,7 @@ function supabaseClient(): SupabaseClient | null {
 }
 
 export default function ClientWorkspacePage() {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -29,6 +30,7 @@ export default function ClientWorkspacePage() {
   const [betaChoice, setBetaChoice] = useState<boolean | null>(null);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [trialActive, setTrialActive] = useState(false);
+  const [toolAccess, setToolAccess] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
@@ -40,7 +42,7 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setTrialActive(false); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      if (!id) { setTrialActive(false); setToolAccess({}); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
       const {data:{session}}=await client!.auth.getSession();
       if(session?.access_token){
         try{
@@ -48,6 +50,16 @@ export default function ClientWorkspacePage() {
           const status=trial.ok?await trial.json():null;
           if(mounted)setTrialActive(status?.active===true);
         }catch{if(mounted)setTrialActive(false);}
+      }
+      if(session?.access_token){
+        const checks=await Promise.all(ENGINEERING_TOOLS.map(async tool=>{
+          try {
+            const response=await fetch("/api/entitlements/tool?tool="+encodeURIComponent(tool.key),{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+            const result=response.ok?await response.json():null;
+            return [tool.key,result?.active===true] as const;
+          }catch{return [tool.key,false] as const;}
+        }));
+        if(mounted)setToolAccess(Object.fromEntries(checks));
       }
       const reward = await client!.from("customer_discovery_rewards").select("status,granted_at,expires_at").eq("user_id", id).maybeSingle();
       if (mounted && !reward.error) {
@@ -155,6 +167,14 @@ export default function ClientWorkspacePage() {
         </div>}
         <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
       </div>}
+      <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
+        <h2>Your engineering tools</h2>
+        <p>Approved tools open directly. Each tool requires its own active entitlement.</p>
+        {ENGINEERING_TOOLS.map(tool=><div key={tool.key} style={{padding:"10px 0",borderBottom:"1px solid #ddd"}}>
+          <strong>{tool.name}</strong> — {toolAccess[tool.key]?"Approved":"Access not active"}
+          <div>{toolAccess[tool.key] && tool.url ? <a href={tool.url}>Open {tool.name}</a> : <span>{tool.readiness==="released"?"30-day Trial":"Beta Access"} requires Owner approval. <a href={"/tool-access?tool="+encodeURIComponent(tool.key)}>Access details</a></span>}</div>
+        </div>)}
+      </div>
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Completed tools — trial access</h2>
         <p>Trials of completed, released tools are separate from early access to unfinished tools. Choosing not to try unfinished tools does not prevent you from requesting a trial of completed tools. Completed-tool trials require their own Owner approval and product entitlement; no tool is unlocked merely by selecting an interest preference.</p>
