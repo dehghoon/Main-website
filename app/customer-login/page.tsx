@@ -33,6 +33,7 @@ export default function ClientWorkspacePage() {
   const [toolAccess, setToolAccess] = useState<Record<string, boolean>>({});
   const [pendingRequests, setPendingRequests] = useState<string[]>([]);
   const [trialDisclaimerAccepted, setTrialDisclaimerAccepted] = useState<Record<string, boolean>>({});
+  const [savedDisclaimer, setSavedDisclaimer] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
@@ -44,7 +45,7 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setSavedDisclaimer({}); setTrialDisclaimerAccepted({}); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
       const {data:{session}}=await client!.auth.getSession();
       if(session?.access_token){
         try{
@@ -65,6 +66,8 @@ export default function ClientWorkspacePage() {
       }
       const {data:requests}=await client!.from("customer_tool_access_requests").select("tool_key").eq("customer_id",id).eq("status","pending");
       if(mounted && requests)setPendingRequests(requests.map(item=>item.tool_key));
+      const {data:acceptances}=await client!.from("customer_tool_disclaimer_acceptances").select("tool_key").eq("customer_id",id).eq("disclaimer_version","engineering-trial-v1");
+      if(mounted)setSavedDisclaimer(Object.fromEntries((acceptances??[]).map(row=>[row.tool_key,true])));
       const reward = await client!.from("customer_discovery_rewards").select("status,granted_at,expires_at").eq("user_id", id).maybeSingle();
       if (mounted && !reward.error) {
         setRewardStatus(reward.data?.status ?? null);
@@ -146,9 +149,23 @@ export default function ClientWorkspacePage() {
     setBusy(false);
   }
 
+  async function saveDisclaimer(toolKey: string) {
+    const client=supabaseClient();
+    if(!client||!userId||!trialDisclaimerAccepted[toolKey])return;
+    setBusy(true);setMessage("");
+    try {
+      const {data,error}=await client.rpc("accept_customer_tool_disclaimer",{p_tool_key:toolKey,p_version:"engineering-trial-v1"});
+      if(error||data!==true)throw error??new Error("Acknowledgment was not saved.");
+      setSavedDisclaimer(current=>({...current,[toolKey]:true}));
+      setMessage("Engineering disclaimer acknowledgment recorded.");
+    }catch(error){setMessage(error instanceof Error?error.message:"Could not save acknowledgment.");}
+    finally{setBusy(false);}
+  }
+
   async function requestTool(toolKey: string, accessType: "trial" | "beta") {
     const client=supabaseClient();
     if(!client||!userId)return;
+    if(accessType==="trial"&&!savedDisclaimer[toolKey]){setMessage("Please record your engineering disclaimer acknowledgment first.");return;}
     setBusy(true);setMessage("");
     try {
       const {data:{user},error:authError}=await client.auth.getUser();
@@ -195,8 +212,9 @@ export default function ClientWorkspacePage() {
             <strong>Engineering calculation disclaimer — {tool.name}</strong>
             <p>All inputs, assumptions, applicable codes, calculation results, and engineering decisions must be independently reviewed and verified by the responsible qualified engineer. Linkoteq software is an aid, not a substitute for professional engineering judgment. The engineer remains responsible for the suitability, accuracy, and safe use of the results. Do not rely on an unverified output for design or construction.</p>
             <label><input type="checkbox" checked={trialDisclaimerAccepted[tool.key]===true} onChange={event=>setTrialDisclaimerAccepted(current=>({...current,[tool.key]:event.target.checked}))}/> I have read and understand this disclaimer for {tool.name}.</label>
+            <p>{savedDisclaimer[tool.key] ? "Acknowledgment recorded for this account." : <button type="button" disabled={busy || trialDisclaimerAccepted[tool.key]!==true} onClick={()=>void saveDisclaimer(tool.key)}>Record acknowledgment</button>}</p>
           </div>}
-          <div>{toolAccess[tool.key] && tool.url ? trialDisclaimerAccepted[tool.key]===true || tool.readiness!=="released" ? <a href={tool.url}>Open {tool.name}</a> : <span>Read and acknowledge the disclaimer above to continue.</span> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy || (tool.readiness==="released" && trialDisclaimerAccepted[tool.key]!==true)} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
+          <div>{toolAccess[tool.key] && tool.url ? savedDisclaimer[tool.key]===true || tool.readiness!=="released" ? <a href={tool.url}>Open {tool.name}</a> : <span>Read and acknowledge the disclaimer above to continue.</span> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy || (tool.readiness==="released" && savedDisclaimer[tool.key]!==true)} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
         </div>)}
       </div>
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
