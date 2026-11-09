@@ -3,6 +3,7 @@
 // Uses only GitHub Actions encrypted secret; never prints the key.
 import {readFile} from "node:fs/promises";
 import {loadImage} from "@napi-rs/canvas";
+import {createHash} from "node:crypto";
 const project="https://xssiwlwlsyxrwdbninqe.supabase.co";
 const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
 const id=process.env.POST_ID||"";
@@ -21,15 +22,22 @@ if(bytes.length<1024||bytes.length>8*1024*1024)throw Error("JPEG size out of ran
 if(bytes[0]!==255||bytes[1]!==216||bytes.at(-2)!==255||bytes.at(-1)!==217)throw Error("Invalid JPEG signature");
 const dimensions=await loadImage(bytes);
 if(dimensions.width!==1200||dimensions.height!==630)throw Error("Cover must be 1200x630 JPEG");
-const path="featured/"+id+"/"+slug+(replacement?"-colorful-v2":"")+".jpg";
+const digest=createHash("sha256").update(bytes).digest("hex").slice(0,16);
+const path="featured/"+id+"/"+slug+(replacement?"-colorful-"+digest:"")+".jpg";
 const upload=await fetch(project+"/storage/v1/object/blog-media/"+path,{method:"POST",headers:{...headers,"content-type":"image/jpeg","cache-control":"3600","x-upsert":"false"},body:bytes});
-if(!upload.ok)throw Error("Storage upload failed HTTP "+upload.status);
+if(!upload.ok&&upload.status!==409)throw Error("Storage upload failed HTTP "+upload.status);
 const publicUrl=project+"/storage/v1/object/public/blog-media/"+path;
+if(upload.status===409){
+ const existing=await fetch(publicUrl,{cache:"no-store"});
+ if(!existing.ok)throw Error("Existing cover is not accessible");
+ const existingBytes=Buffer.from(await existing.arrayBuffer());
+ if(createHash("sha256").update(existingBytes).digest("hex")!==createHash("sha256").update(bytes).digest("hex"))throw Error("Cover path collision with different content");
+}
 const update=await fetch(project+"/rest/v1/blog_posts?id=eq."+encodeURIComponent(id)+"&status=eq.draft"+(replacement?"&cover_image_url=eq."+encodeURIComponent(previousUrl):"&cover_image_url=is.null"),{method:"PATCH",headers:{...headers,"content-type":"application/json",prefer:"return=representation"},body:JSON.stringify({cover_image_url:publicUrl})});
 let updated=[];
 if(update.ok){try{updated=await update.json();}catch{}}
 if(!update.ok||updated.length!==1){
-  const cleanup=await fetch(project+"/storage/v1/object/blog-media/"+path,{method:"DELETE",headers});
+  const cleanup=upload.status===409?{ok:true}:await fetch(project+"/storage/v1/object/blog-media/"+path,{method:"DELETE",headers});
   if(!cleanup.ok)console.error("Orphan cleanup failed HTTP "+cleanup.status+" for "+path);
   throw Error("Draft changed or update failed; cover upload reverted where possible");
 }
