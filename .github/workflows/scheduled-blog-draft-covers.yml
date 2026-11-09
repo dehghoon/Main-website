@@ -13,6 +13,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/generate-blog-cover.mjs'
+      - '.github/workflows/scheduled-blog-draft-covers.yml'
 permissions:
   contents: read
 concurrency:
@@ -31,5 +32,5 @@ jobs:
       - name: Prepare eligible draft JPEG covers and attach to Supabase
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          REPLACE_POST_ID: ${{ inputs.replace_post_id }}
+          REPLACE_POST_ID: ${{ inputs.replace_post_id || (github.event_name == 'push' && 'c2c41c82-7a85-4ea2-a1db-24c982cf1766') || '' }}
         run: node scripts/prepare-scheduled-blog-covers.mjs
