@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
  }
  // Customer-only endpoint. Never infer employee privileges from client claims.
  // Existing employee sign-in remains unchanged until server-verified SSO federation.
- const rpc=tool.readiness==="released"?"has_active_customer_trial":"has_active_customer_beta";
- const args=tool.readiness==="released"?{}:{p_tool_key:tool.key};
+ const rpc=tool.readiness==="released"?"has_active_customer_tool_trial":"has_active_customer_beta";
+ const args={p_tool_key:tool.key};
  const {data,error}=await db.rpc(rpc,args);
  if(error)return NextResponse.json({error:"entitlement_unavailable"},{status:503,headers:noStore});
  return NextResponse.json({tool:tool.key,active:data===true,accessType:tool.readiness==="released"?"trial":"beta",requestRequired:data!==true,warning:tool.readiness==="released"?null:"Under development. Evaluation only; not for professional engineering decisions."},{headers:noStore});
