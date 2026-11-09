@@ -15,7 +15,7 @@ export const ENGINEERING_TOOLS: ReadonlyArray<{
 }> = [
   { key: "snow_load", name: "Snow Load", readiness: "released", url: "https://snow.linkoteq.com/", trialDays: 30 },
   { key: "3d_model", name: "3D Structural Model", readiness: "beta", url: "https://3dmodel.linkoteq.com/", trialDays: null },
-  { key: "w_section", name: "W-Section", readiness: "unverified", url: "https://wsection.linkoteq.com/", trialDays: null },
+  { key: "w_section", name: "W-Section", readiness: "released", url: "https://wsection.linkoteq.com/", trialDays: 30 },
   { key: "wind_load", name: "Wind Load", readiness: "beta", url: null, trialDays: null },
   { key: "earthquake", name: "Earthquake / Seismic", readiness: "beta", url: null, trialDays: null },
 ] as const;
