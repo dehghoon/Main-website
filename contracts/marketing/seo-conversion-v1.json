@@ -1,0 +1,132 @@
+{
+  "contract_id": "linkoteq-marketing-seo-conversion",
+  "version": "1.0.0",
+  "scope": "Shared public SEO, social metadata, conversion and analytics rules; blog and AI-news workflows remain independent",
+  "governance": {
+    "plugin_mutation": false,
+    "allowed": [
+      "marketing content",
+      "public website pages",
+      "SEO and social metadata",
+      "public CTA",
+      "editorial templates",
+      "marketing workflows",
+      "marketing contracts via reviewed PR"
+    ],
+    "prohibited": [
+      "GPT-8 plugin and internal settings",
+      "Structural Core",
+      "engineering calculations",
+      "tool APIs",
+      "Access Manager",
+      "authentication and authorization",
+      "mandatory test bypass"
+    ],
+    "read_from_main_before_run": true
+  },
+  "seo": {
+    "articles": [
+      "unique evidence-based seo_title",
+      "unique meta_description",
+      "stable readable slug",
+      "absolute canonical URL",
+      "single H1 and logical H2/H3",
+      "truthful BlogPosting or Article JSON-LD",
+      "actual published and modified timestamps",
+      "contextual internal links",
+      "descriptive image alt text",
+      "relevant functional CTA",
+      "valid sitemap and index directives"
+    ],
+    "tools": [
+      "reusable metadata factory for future public tool landing pages",
+      "unique title and description",
+      "canonical and social preview",
+      "truthful SoftwareApplication or WebApplication schema when supported",
+      "sitemap/robots policy",
+      "public indexed introduction and truthful readiness/limitations",
+      "CTA to existing signup or access request"
+    ],
+    "social": [
+      "og:title",
+      "og:description",
+      "og:image",
+      "og:url",
+      "twitter:card",
+      "platform-appropriate summaries",
+      "real topic-specific public JPEG"
+    ],
+    "no_fabricated_fields": true,
+    "do_not_create_web_metadata_for_social_only_posts": true
+  },
+  "access": {
+    "public_landing_pages_indexable": true,
+    "starter_requires_login": true,
+    "snow_load": "approved Trial",
+    "w_section": "approved Trial",
+    "model_3d": "approved Beta",
+    "paid_plans_active": false,
+    "cta_must_resolve_to_live_flow": true,
+    "no_access_control_changes": true
+  },
+  "measurement": {
+    "sources": [
+      "GA4",
+      "Google Search Console",
+      "verified platform analytics",
+      "verified product events"
+    ],
+    "kpis": [
+      "qualified visitors",
+      "visitor_to_registration_rate",
+      "approved trial and beta requests",
+      "article_to_tool_landing_rate",
+      "customer_discovery_completion_rate",
+      "approved_user_activation_rate",
+      "organic_traffic_to_registration_rate"
+    ],
+    "required_audit": [
+      "GA4 event schema and funnels",
+      "UTM source/medium/campaign",
+      "signup completion and deduplication",
+      "trial/beta request and approval",
+      "CTA clicks",
+      "mobile landing paths",
+      "consent and privacy controls"
+    ],
+    "missing_data": "Report unavailable; never fabricate metrics"
+  },
+  "automation": {
+    "blog_contract": "contracts/marketing/blog-automation-v1.json",
+    "ai_news_contract": "contracts/marketing/ai-news-social-automation-v1.json",
+    "image_engine": "scripts/editorial-vector-scenes.mjs",
+    "blog_hero": [
+      1200,
+      630
+    ],
+    "instagram_slides": {
+      "count": 5,
+      "dimensions": [
+        1200,
+        1200
+      ]
+    },
+    "ai_news_collage": [
+      1600,
+      1200
+    ],
+    "blog_requires_owner_publish": true,
+    "platform_success_requires_verified_external_id": true,
+    "no_duplicates": true,
+    "fail_closed_on_image_errors": true
+  },
+  "implementation": {
+    "first": "Audit existing metadata, landing pages, event tracking, live routes, templates and tests",
+    "second": "Add shared reusable SEO/social metadata implementation only after compatibility review",
+    "third": "Wire both independent workflow validators to shared contract and add regression tests",
+    "fourth": "Validate sitemap, robots, canonical, OG previews, JSON-LD, images, mobile, analytics events and scheduled publishing",
+    "new_package": "Optional linkoteq-seo-social only after architecture review and explicit approval",
+    "release": "PR review and CI before merge; no unapproved deployment"
+  },
+  "reporting": "Separate verified existing capabilities, gaps, evidence, failures and recommendations; do not claim deployment from contract change alone"
+}
