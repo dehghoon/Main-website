@@ -1,0 +1,53 @@
+{
+  "contractId": "linkoteq-seo-social",
+  "version": "1.0.0",
+  "owner": "GPT-8 Marketing",
+  "scope": [
+    "public tool landing pages",
+    "published blog articles",
+    "social share previews"
+  ],
+  "requirements": {
+    "publicTool": [
+      "uniqueTitle",
+      "metaDescription",
+      "canonical",
+      "openGraphTitle",
+      "openGraphDescription",
+      "openGraphUrl",
+      "robots",
+      "sitemap",
+      "accurateBetaTrialDisclosure",
+      "relevantCTA"
+    ],
+    "publishedArticle": [
+      "serverRenderedTitle",
+      "metaDescription",
+      "canonical",
+      "blogPostingJsonLd",
+      "publishedDate",
+      "updatedDateIfApplicable",
+      "ogImage",
+      "internalLinks",
+      "relevantCTA"
+    ],
+    "social": [
+      "contentSpecificImage",
+      "ogTitle",
+      "ogDescription",
+      "ogUrl"
+    ]
+  },
+  "policy": {
+    "publicLandingPagesIndexable": true,
+    "toolExecutionRequiresExistingAuthorization": true,
+    "noUnverifiedEngineeringClaims": true,
+    "noInventedPricingOrRatings": true,
+    "noChangesToStructuralCoreOrAccessManager": true
+  },
+  "implementation": "Repositories must carry AGENTS.md and an SEO check workflow; generated pages must use shared metadata templates. Verify live output after deployment.",
+  "workflowContracts": [
+    "contracts/marketing/blog-automation-v1.json",
+    "contracts/marketing/ai-news-social-automation-v1.json"
+  ]
+}
