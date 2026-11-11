@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "import:labeling": "node scripts/import-structural-labeling-candidates.mjs",
     "test:blog-agent": "node --experimental-strip-types --test tests/blog-agent-content.test.ts",
-    "test:editorial": "node --test tests/editorial-media.test.mjs"
+    "test:editorial": "node --test tests/editorial-media.test.mjs",
+    "test:marketing-seo": "node --test tests/marketing-seo-contract.test.mjs && node scripts/validate-blog-contract.mjs && node scripts/validate-ai-news-social-contract.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",
