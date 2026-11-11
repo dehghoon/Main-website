@@ -93,7 +93,7 @@ export default async function ArticlePage({params}:Props){
   ...(article.published_at?{datePublished:article.published_at}:{}),
  };
  return <>
-  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData).replace(/</g,"\\\\u003c")}} />
+  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData).replace(/</g,"\\u003c")}} />
   <ArticleClient initialArticle={article}/>
  </>;
 }
