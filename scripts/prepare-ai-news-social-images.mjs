@@ -14,7 +14,7 @@ const request=async(path,options={})=>{
  return r;
 };
 const q=await request("/rest/v1/ai_news_social_assets?image_status=eq.pending&image_url=is.null&creative_status=eq.pending_review&scheduled_at=lte."+
- encodeURIComponent(new Date().toISOString())+
+ encodeURIComponent(new Date(Date.now()+60*60*1000).toISOString())+
  "&select=id,slug,title,subtitle,creative_brief,source_url&order=scheduled_at.asc&limit=5");
 const jobs=await q.json();
 let generated=0,blocked=0,failed=0;
