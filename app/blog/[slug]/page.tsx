@@ -78,5 +78,22 @@ async function getFullArticle(slug:string):Promise<Article|null>{
 export default async function ArticlePage({params}:Props){
  const {slug}=await params;
  const article=await getFullArticle(slug);
- return <ArticleClient initialArticle={article}/>;
+ if(!article)return <ArticleClient initialArticle={null}/>;
+ const canonical=`https://www.linkoteq.com/blog/${slug}`;
+ const structuredData={
+  "@context":"https://schema.org",
+  "@type":"BlogPosting",
+  headline:article.title,
+  description:article.seo_description||article.excerpt||undefined,
+  mainEntityOfPage:{"@type":"WebPage","@id":canonical},
+  url:canonical,
+  author:{"@type":"Organization",name:"Linkoteq",url:"https://www.linkoteq.com"},
+  publisher:{"@type":"Organization",name:"Linkoteq",url:"https://www.linkoteq.com"},
+  ...(article.cover_image_url?{image:[article.cover_image_url]}:{}),
+  ...(article.published_at?{datePublished:article.published_at}:{}),
+ };
+ return <>
+  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData).replace(/</g,"\\u003c")}} />
+  <ArticleClient initialArticle={article}/>
+ </>;
 }
