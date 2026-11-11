@@ -29,6 +29,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  const canonical=`https://www.linkoteq.com/blog/${slug}`;
  if(!article){
   return {
+   robots:{index:false,follow:false},
    metadataBase:new URL("https://www.linkoteq.com"),
    title:"LinkoTech Blog",
    description:"Engineering insight from LinkoTech.",
