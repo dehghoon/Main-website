@@ -1,3 +1,4 @@
+import {validateSharedMarketingPolicy} from './validate-shared-marketing-policy.mjs';
 import {validateEditorialImagePolicy} from "./validate-editorial-image-policy.mjs";
 import {readFileSync} from "node:fs";
 import {resolve} from "node:path";
@@ -15,3 +16,5 @@ check(c.permissions?.blog_auto_publish===false&&c.permissions?.instagram_auto_pu
 check(c.workflow?.generator==="scripts/prepare-ai-news-social-images.mjs","Wrong generator");
 validateEditorialImagePolicy(c,"news");
 console.log("AI NEWS CONTRACT OK",c.contract_id,c.version);
+
+validateSharedMarketingPolicy('contracts/marketing/ai-news-social-automation-v1.json');

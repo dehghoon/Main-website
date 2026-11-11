@@ -17,6 +17,8 @@ on:
       - "tests/fixtures/editorial-*.mjs"
       - "scripts/prepare-ai-news-social-images.mjs"
       - "scripts/validate-ai-news-social-contract.mjs"
+      - 'scripts/validate-shared-marketing-policy.mjs'
+      - 'contracts/marketing/seo-conversion-v1.json'
       - "contracts/marketing/ai-news-social-automation-v1.json"
 permissions:
   contents: read

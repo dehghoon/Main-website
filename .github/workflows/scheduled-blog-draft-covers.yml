@@ -22,6 +22,8 @@ on:
       - "tests/fixtures/editorial-*.mjs"
       - 'scripts/generate-blog-cover.mjs'
       - 'scripts/validate-blog-contract.mjs'
+      - 'scripts/validate-shared-marketing-policy.mjs'
+      - 'contracts/marketing/seo-conversion-v1.json'
       - 'contracts/marketing/blog-automation-v1.json'
       - '.github/workflows/scheduled-blog-draft-covers.yml'
 permissions:
