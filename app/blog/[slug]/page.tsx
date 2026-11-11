@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ArticleClient from "./article-client";
+import ArticleClient, { type Article } from "./article-client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -59,7 +59,24 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  };
 }
 
+
+const ARTICLE_COLUMNS="title,excerpt,body,author_name,show_author_name,published_at,created_at,cover_image_url,video_url,cover_image_alt,cover_image_title,cover_image_caption,cover_image_meta,cover_image_position,cover_image_size,video_title,video_caption,video_thumbnail_url,video_meta,tags,calculator_name,calculator_url,seo_title,seo_description,linkedin_copy";
+async function getFullArticle(slug:string):Promise<Article|null>{
+ if(!/^[a-z0-9-]+$/.test(slug))return null;
+ const base=process.env.NEXT_PUBLIC_SUPABASE_URL;
+ const anon=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+ if(!base||!anon)return null;
+ const query=new URLSearchParams({slug:`eq.${slug}`,status:"eq.published",select:ARTICLE_COLUMNS,limit:"1"});
+ try{
+  const response=await fetch(`${base}/rest/v1/blog_posts?${query.toString()}`,{headers:{apikey:anon,Authorization:`Bearer ${anon}`},cache:"no-store"});
+  if(!response.ok)return null;
+  const rows=await response.json();
+  return rows?.[0]||null;
+ }catch{return null;}
+}
+
 export default async function ArticlePage({params}:Props){
- await params;
- return <ArticleClient/>;
+ const {slug}=await params;
+ const article=await getFullArticle(slug);
+ return <ArticleClient initialArticle={article}/>;
 }
