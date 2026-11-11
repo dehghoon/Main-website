@@ -131,5 +131,12 @@
     ],
     "publication": "Draft only; owner publishes manually"
   },
-  "automation_prompt_file": "contracts/marketing/gpt8-blog-automation-prompt.md"
+  "automation_prompt_file": "contracts/marketing/gpt8-blog-automation-prompt.md",
+  "shared_marketing_policy": {
+    "path": "contracts/marketing/seo-conversion-v1.json",
+    "contract_id": "linkoteq-marketing-seo-conversion",
+    "major_version": 1,
+    "required_for_future_content": true,
+    "requirement": "Read from main before each run; apply relevant public SEO, social metadata, CTA and conversion rules; report missing implementation without claiming success; preserve independent workflow and publication approval gates"
+  }
 }
