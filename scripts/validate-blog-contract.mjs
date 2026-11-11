@@ -1,3 +1,4 @@
+import {validateSharedMarketingPolicy} from './validate-shared-marketing-policy.mjs';
 import {validateEditorialImagePolicy} from "./validate-editorial-image-policy.mjs";
 import {readFileSync} from "node:fs";
 import {resolve} from "node:path";
@@ -16,3 +17,5 @@ requireCondition(c.roles?.database?.bucket==="blog-media","Wrong media bucket");
 requireCondition(c.checks?.after_image?.includes("draft-cover-url-readback"),"Missing image readback requirement");
 validateEditorialImagePolicy(c,"blog");
 if(!process.exitCode)console.log("BLOG CONTRACT OK:",c.contract_id,c.version);
+
+validateSharedMarketingPolicy('contracts/marketing/blog-automation-v1.json');
