@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic="force-dynamic";
 const headers={"Cache-Control":"private, no-store"};
 function session(request:NextRequest){
- const token=request.headers.get("authorization")?.match(/^Bearer ([^\\s]+)$/i)?.[1];
+ const token=request.headers.get("authorization")?.match(/^Bearer (\S+)$/i)?.[1];
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  return token&&url&&key?{token,db:createClient(url,key,{global:{headers:{Authorization:"Bearer "+token}},auth:{persistSession:false,autoRefreshToken:false}})}:null;
 }
