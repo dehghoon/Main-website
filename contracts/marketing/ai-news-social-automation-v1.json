@@ -163,5 +163,12 @@
     "compatibility": "Existing pending briefs without scene/shot retain content-based selection and default five shots; never rewrite historical briefs"
   },
   "change_policy": "Update this contract, validators and GPT-8 automation prompt together; retain major 1 compatibility and existing publication gates.",
-  "automation_prompt_file": "contracts/marketing/gpt8-ai-news-automation-prompt.md"
+  "automation_prompt_file": "contracts/marketing/gpt8-ai-news-automation-prompt.md",
+  "shared_marketing_policy": {
+    "path": "contracts/marketing/seo-conversion-v1.json",
+    "contract_id": "linkoteq-marketing-seo-conversion",
+    "major_version": 1,
+    "required_for_future_content": true,
+    "requirement": "Read from main before each run; apply relevant public SEO, social metadata, CTA and conversion rules; report missing implementation without claiming success; preserve independent workflow and publication approval gates"
+  }
 }
