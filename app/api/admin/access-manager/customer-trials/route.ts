@@ -29,11 +29,13 @@ export async function POST(request: NextRequest) {
  if (!tool || (isBeta ? tool.readiness==="released" : tool.readiness!=="released")) return NextResponse.json({error:"tool_access_type_mismatch"},{status:400});
  if(isBeta && (typeof body.toolKey!=="string"||!/^[a-z0-9][a-z0-9_-]{0,99}$/i.test(body.toolKey)||action==="extend"))
   return NextResponse.json({error:"invalid_beta_request"},{status:400});
- const {data,error}=await db.rpc(isBeta?"owner_manage_customer_beta":action==="grant"?"owner_grant_customer_tool_trial":"owner_manage_customer_trial",{
- p_customer_id:body.customerId,p_starts_at:starts,p_expires_at:expires,
- p_action:action,p_grant_id:typeof body.grantId==="string"?body.grantId:null,
- ...((isBeta || action==="grant")?{p_tool_key:body.toolKey}:{})
- });
+ const rpcName = isBeta ? "owner_manage_customer_beta" : action==="grant" ? "owner_grant_customer_tool_trial" : "owner_manage_customer_trial";
+ const rpcArgs = !isBeta && action==="grant"
+  ? {p_customer_id:body.customerId,p_tool_key:body.toolKey,p_starts_at:starts,p_expires_at:expires}
+  : {p_customer_id:body.customerId,p_starts_at:starts,p_expires_at:expires,
+     p_action:action,p_grant_id:typeof body.grantId==="string"?body.grantId:null,
+     ...(isBeta?{p_tool_key:body.toolKey}:{})};
+ const {data,error}=await db.rpc(rpcName,rpcArgs);
  if(error)return NextResponse.json({error:"trial_change_rejected",detail:error.message},{status:409,headers:{"Cache-Control":"no-store"}});
  return NextResponse.json({grantId:data},{headers:{"Cache-Control":"private, no-store"}});
 }
