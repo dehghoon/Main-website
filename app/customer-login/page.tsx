@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ENGINEERING_TOOLS } from "../../lib/tool-access/catalog";
 import { FormEvent, useEffect, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -17,7 +18,7 @@ function supabaseClient(): SupabaseClient | null {
 }
 
 export default function ClientWorkspacePage() {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -29,6 +30,10 @@ export default function ClientWorkspacePage() {
   const [betaChoice, setBetaChoice] = useState<boolean | null>(null);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [trialActive, setTrialActive] = useState(false);
+  const [toolAccess, setToolAccess] = useState<Record<string, boolean>>({});
+  const [pendingRequests, setPendingRequests] = useState<string[]>([]);
+  const [trialDisclaimerAccepted, setTrialDisclaimerAccepted] = useState<Record<string, boolean>>({});
+  const [savedDisclaimer, setSavedDisclaimer] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
@@ -40,7 +45,7 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setTrialActive(false); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setSavedDisclaimer({}); setTrialDisclaimerAccepted({}); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
       const {data:{session}}=await client!.auth.getSession();
       if(session?.access_token){
         try{
@@ -49,6 +54,20 @@ export default function ClientWorkspacePage() {
           if(mounted)setTrialActive(status?.active===true);
         }catch{if(mounted)setTrialActive(false);}
       }
+      if(session?.access_token){
+        const checks=await Promise.all(ENGINEERING_TOOLS.map(async tool=>{
+          try {
+            const response=await fetch("/api/entitlements/tool?tool="+encodeURIComponent(tool.key),{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+            const result=response.ok?await response.json():null;
+            return [tool.key,result?.active===true] as const;
+          }catch{return [tool.key,false] as const;}
+        }));
+        if(mounted)setToolAccess(Object.fromEntries(checks));
+      }
+      const {data:requests}=await client!.from("customer_tool_access_requests").select("tool_key").eq("customer_id",id).eq("status","pending");
+      if(mounted && requests)setPendingRequests(requests.map(item=>item.tool_key));
+      const {data:acceptances}=await client!.from("customer_tool_disclaimer_acceptances").select("tool_key").eq("customer_id",id).eq("disclaimer_version","engineering-trial-v1");
+      if(mounted)setSavedDisclaimer(Object.fromEntries((acceptances??[]).map(row=>[row.tool_key,true])));
       const reward = await client!.from("customer_discovery_rewards").select("status,granted_at,expires_at").eq("user_id", id).maybeSingle();
       if (mounted && !reward.error) {
         setRewardStatus(reward.data?.status ?? null);
@@ -130,9 +149,30 @@ export default function ClientWorkspacePage() {
     setBusy(false);
   }
 
+  async function requestTool(toolKey: string, accessType: "trial" | "beta") {
+    const client=supabaseClient();
+    if(!client||!userId)return;
+    if(accessType==="trial"&&!trialDisclaimerAccepted[toolKey]&&!savedDisclaimer[toolKey]){setMessage("Please read and accept the engineering disclaimer first.");return;}
+    setBusy(true);setMessage("");
+    try {
+      const {data:{user},error:authError}=await client.auth.getUser();
+      if(authError||user?.id!==userId)throw new Error("Please sign in again.");
+      if(accessType==="trial"&&!savedDisclaimer[toolKey]) {
+        const {data:accepted,error:acceptError}=await client.rpc("accept_customer_tool_disclaimer",{p_tool_key:toolKey,p_version:"engineering-trial-v1"});
+        if(acceptError||accepted!==true)throw acceptError??new Error("Disclaimer acknowledgment could not be saved.");
+        setSavedDisclaimer(current=>({...current,[toolKey]:true}));
+      }
+      const {error}=await client.from("customer_tool_access_requests").insert({customer_id:userId,tool_key:toolKey,access_type:accessType});
+      if(error)throw error;
+      setPendingRequests(current=>[...current,toolKey]);
+      setMessage("Request submitted. Access remains locked until Owner approval.");
+    }catch(error){setMessage(error instanceof Error?error.message:"Request could not be submitted. Please try again.");}
+    finally{setBusy(false);}
+  }
+
   async function signOut() {
     await supabaseClient()?.auth.signOut();
-    setUserId(null); setTrialActive(false); setBetaChoice(null); setShowWelcome(false); setMessage("Signed out.");
+    setUserId(null); setTrialActive(false); setPendingRequests([]); setBetaChoice(null); setShowWelcome(false); setMessage("Signed out.");
   }
 
   return <main className="authShell"><section className="authCard">
@@ -155,6 +195,20 @@ export default function ClientWorkspacePage() {
         </div>}
         <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
       </div>}
+      <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
+        <h2>Your engineering tools</h2>
+        <p>Approved tools open directly. Each tool requires its own active entitlement.</p>
+        {ENGINEERING_TOOLS.map(tool=><div key={tool.key} style={{padding:"10px 0",borderBottom:"1px solid #ddd"}}>
+          <strong>{tool.name}</strong> — {toolAccess[tool.key]?"Approved":"Access not active"}
+          {tool.readiness==="released" && <div role="note" style={{border:"1px solid #a87b28",borderRadius:8,padding:12,margin:"8px 0"}}>
+            <strong>Engineering calculation disclaimer — {tool.name}</strong>
+            <p>All inputs, assumptions, applicable codes, calculation results, and engineering decisions must be independently reviewed and verified by the responsible qualified engineer. Linkoteq software is an aid, not a substitute for professional engineering judgment. The engineer remains responsible for the suitability, accuracy, and safe use of the results. Do not rely on an unverified output for design or construction.</p>
+            <label><input type="checkbox" checked={trialDisclaimerAccepted[tool.key]===true} onChange={event=>setTrialDisclaimerAccepted(current=>({...current,[tool.key]:event.target.checked}))}/> I have read and understand this disclaimer for {tool.name}.</label>
+            {savedDisclaimer[tool.key] && <p>Acknowledgment recorded for this account.</p>}
+          </div>}
+          <div>{toolAccess[tool.key] && tool.url ? savedDisclaimer[tool.key]===true || tool.readiness!=="released" ? <a href={tool.url}>Open {tool.name}</a> : <span>Read and acknowledge the disclaimer above to continue.</span> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy || (tool.readiness==="released" && !savedDisclaimer[tool.key] && trialDisclaimerAccepted[tool.key]!==true)} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
+        </div>)}
+      </div>
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Completed tools — trial access</h2>
         <p>Trials of completed, released tools are separate from early access to unfinished tools. Choosing not to try unfinished tools does not prevent you from requesting a trial of completed tools. Completed-tool trials require their own Owner approval and product entitlement; no tool is unlocked merely by selecting an interest preference.</p>

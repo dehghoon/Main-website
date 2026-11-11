@@ -1,10 +1,11 @@
 "use client";
+import { ENGINEERING_TOOLS } from "../../../lib/tool-access/catalog";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import AccessRequestsPanel from "../../owner/access-requests/AccessRequestsPanel";
 type Survey = { id:string; created_at:string; full_name:string|null; company_name:string|null; email:string|null; phone:string|null; response:unknown };
 type Result = {responses:Survey[];total:number;page:number};
-const sections = ["Customer Discovery","Employees","Timesheet","Weblog","Labeling","Beta Access","Starter & Pro","Pro Rewards"] as const;
+const sections = ["Customer Discovery","Employees","Timesheet","Weblog","Labeling","Beta Access","Starter & Pro & Company","Pro Rewards"] as const;
 export default function AccessManager() {
  const [section,setSection]=useState<(typeof sections)[number]>("Customer Discovery");
  const [state,setState]=useState<"loading"|"denied"|"allowed"|"error">("loading");
@@ -23,6 +24,9 @@ export default function AccessManager() {
  const [grantPermission,setGrantPermission]=useState("");
  const [grantMessage,setGrantMessage]=useState("");
  const [grantBusy,setGrantBusy]=useState(false);
+ const [pendingToolRequests,setPendingToolRequests]=useState<{id:string;customer_id:string;tool_key:string;access_type:string;created_at:string}[]>([]);
+ const [toolRequestMessage,setToolRequestMessage]=useState("");
+ const [toolRequestBusy,setToolRequestBusy]=useState(false);
  const [trialCustomer,setTrialCustomer]=useState("");
  const [trialType,setTrialType]=useState<"released"|"beta">("released");
  const [trialTool,setTrialTool]=useState("");
@@ -46,6 +50,19 @@ export default function AccessManager() {
   try{const r=await fetch("/api/admin/access-manager/pro-rewards",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({userId,decision,reason:rewardReviewNote})});const b=await r.json();if(!r.ok)throw new Error(b.detail||b.error||"Review rejected");await loadRewards();}
   catch(e){setRewardsMessage(e instanceof Error?e.message:"Review rejected");}
   finally{setRewardsBusy(false);}
+ }
+ async function loadToolRequests(){
+  if(!token)return;
+  setToolRequestBusy(true);setToolRequestMessage("");
+  try{const r=await fetch("/api/admin/access-manager/tool-requests",{headers:{Authorization:"Bearer "+token},cache:"no-store"});const b=await r.json();if(!r.ok)throw new Error(b.error||"Unable to load requests");setPendingToolRequests(b.requests??[]);}
+  catch(e){setToolRequestMessage(e instanceof Error?e.message:"Unable to load requests");}
+  finally{setToolRequestBusy(false);}
+ }
+ async function reviewToolRequest(id:string,decision:"approve"|"reject"){
+  setToolRequestBusy(true);setToolRequestMessage("");
+  try{const r=await fetch("/api/admin/access-manager/tool-requests",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({requestId:id,decision})});const b=await r.json();if(!r.ok)throw new Error(b.detail||b.error||"Review failed");setPendingToolRequests(current=>current.filter(item=>item.id!==id));setToolRequestMessage("Request "+b.status+".");}
+  catch(e){setToolRequestMessage(e instanceof Error?e.message:"Review failed");}
+  finally{setToolRequestBusy(false);}
  }
  async function manageTrial(action:"grant"|"extend"|"revoke"){
   setTrialBusy(true);setTrialMessage("");
@@ -122,7 +139,7 @@ export default function AccessManager() {
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
  {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();if(s==="Pro Rewards")void loadRewards();}}>{s}</button>)}</nav>
+ {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();if(s==="Pro Rewards")void loadRewards();if(s==="Beta Access")void loadToolRequests();}}>{s}</button>)}</nav>
  {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
@@ -144,21 +161,21 @@ export default function AccessManager() {
  {section==="Timesheet"&&<><h3>Existing Timesheet roles (read-only)</h3><p>Owner is a platform role, not a Timesheet database role. Role changes are disabled until database-level authorization is verified.</p><button type="button" onClick={()=>void loadTimesheet()}>Refresh Timesheet users</button>{timesheetMessage&&<p role="alert">{timesheetMessage}</p>}{timesheetProfiles.map(p=><p key={p.id}>{p.full_name} · {p.email} — <strong>{p.role}</strong></p>)}</>}
  {section!=="Employees"&&<><h3>Owner grant / revoke {section} permissions</h3><label>Employee email <input type="email" value={grantEmail} onChange={e=>setGrantEmail(e.target.value)} placeholder="employee@example.com"/></label><label>Permission <select value={grantPermission} onChange={e=>setGrantPermission(e.target.value)}><option value="">Choose permission</option>{catalog.filter(p=>p.area.toLowerCase().includes(section==="Timesheet"?"timesheet":"blog")).map(p=><option key={p.permission} value={p.permission}>{p.label}</option>)}</select></label><div style={{display:"flex",gap:10,marginTop:12}}><button type="button" disabled={grantBusy||!grantEmail||!grantPermission||!grantPermission.startsWith(section==="Timesheet"?"timesheet.":"blog.")} onClick={()=>void changePlatformPermission(true)}>Grant</button><button type="button" disabled={grantBusy||!grantEmail||!grantPermission||!grantPermission.startsWith(section==="Timesheet"?"timesheet.":"blog.")} onClick={()=>void changePlatformPermission(false)}>Revoke</button></div>{grantMessage&&<p role="status">{grantMessage}</p>}</>}
  {catalog.filter(item=>section==="Employees"||item.area?.toLowerCase().includes(section==="Timesheet"?"time":"blog")||item.permission?.toLowerCase().includes(section==="Timesheet"?"time":"blog")).map(item=><article key={item.permission} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><strong>{item.label}</strong><p>{item.permission} · {item.area}</p><p>{item.description}</p></article>)}
- </section>:section==="Beta Access"?<section><h2>Customer trial access</h2>
+ </section>:section==="Beta Access"?<section><h2>Customer tool access requests</h2><button type="button" disabled={toolRequestBusy} onClick={()=>void loadToolRequests()}>Refresh pending requests</button>{toolRequestMessage&&<p role="status">{toolRequestMessage}</p>}{pendingToolRequests.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:10,padding:12,marginTop:10}}><p><strong>{item.tool_key}</strong> — {item.access_type}</p><p>Customer ID: {item.customer_id}</p><p>Requested: {new Date(item.created_at).toLocaleString()}</p><button type="button" disabled={toolRequestBusy} onClick={()=>void reviewToolRequest(item.id,"approve")}>Approve and grant access</button> <button type="button" disabled={toolRequestBusy} onClick={()=>void reviewToolRequest(item.id,"reject")}>Reject</button></article>)}<h2>Manual customer trial access</h2>
  <p>Owner-only trial grants. Use the customer's authenticated user ID. Trial access starts and expires at the specified time; product backends must check the entitlement on every protected operation.</p>
- <label>Access type <select value={trialType} onChange={e=>setTrialType(e.target.value as "released"|"beta")}><option value="released">Completed tool trial</option><option value="beta">Unfinished tool beta access</option></select></label>
- {trialType==="beta"&&<label>Unfinished tool key <input value={trialTool} onChange={e=>setTrialTool(e.target.value)} placeholder="tool identifier"/></label>}
+ <label>Access type <select value={trialType} onChange={e=>(setTrialType(e.target.value as "released"|"beta"),setTrialTool(""))}><option value="released">Completed tool trial</option><option value="beta">Unfinished tool beta access</option></select></label>
+ <label>Tool <select value={trialTool} onChange={e=>setTrialTool(e.target.value)}><option value="">Choose tool</option>{ENGINEERING_TOOLS.filter(tool=>trialType==="released"?tool.readiness==="released":tool.readiness!=="released").map(tool=><option key={tool.key} value={tool.key}>{tool.name} ({tool.readiness})</option>)}</select></label>
  <label>Customer user ID <input value={trialCustomer} onChange={e=>setTrialCustomer(e.target.value)} placeholder="Customer UUID"/></label>
  <label>Existing grant ID (for extend/revoke) <input value={trialGrant} onChange={e=>setTrialGrant(e.target.value)} placeholder="Trial UUID"/></label>
  <label>Starts at <input type="datetime-local" value={trialStart} onChange={e=>setTrialStart(e.target.value)}/></label>
  <label>Expires at <input type="datetime-local" value={trialExpiry} onChange={e=>setTrialExpiry(e.target.value)}/></label>
  <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:12}}>
- <button disabled={trialBusy||!trialCustomer||!trialStart||!trialExpiry} onClick={()=>void manageTrial("grant")}>Grant trial</button>
- {trialType==="released"&&<button disabled={trialBusy||!trialCustomer||!trialGrant||!trialExpiry} onClick={()=>void manageTrial("extend")}>Extend trial</button>}
- <button disabled={trialBusy||!trialCustomer||!trialGrant} onClick={()=>void manageTrial("revoke")}>Revoke trial</button></div>
+ <button disabled={trialBusy||!trialTool||!trialCustomer||!trialStart||!trialExpiry} onClick={()=>void manageTrial("grant")}>Grant trial</button>
+ {trialType==="released"&&<button disabled={trialBusy||!trialTool||!trialCustomer||!trialGrant||!trialExpiry} onClick={()=>void manageTrial("extend")}>Extend trial</button>}
+ <button disabled={trialBusy||!trialTool||!trialCustomer||!trialGrant} onClick={()=>void manageTrial("revoke")}>Revoke trial</button></div>
  {trialMessage&&<p role="status">{trialMessage}</p>}
- <p>Requires the staged customer-trial database migration; not available in production until migration and security tests pass.</p>
- </section>:section==="Pro Rewards"?<section><h2>Customer Discovery — two-month Pro rewards</h2><p>Verify eligible requests now. Activation is separate and is blocked by the database until the official Pro launch. Review the original survey response before verification.</p><button type="button" disabled={rewardsBusy} onClick={()=>void loadRewards()}>Refresh reward requests</button><p>Confirm the customer identity against the actual Customer Discovery submission. A reward request alone does not prove survey completion.</p><label>Survey verification evidence (submission reference and matching email) <input value={rewardReviewNote} onChange={e=>setRewardReviewNote(e.target.value)} placeholder="Survey reference and identity match"/></label>{rewardsMessage&&<p role="alert">{rewardsMessage}</p>}{rewards.map(r=><article key={r.user_id} style={{border:"1px solid #ccd8e0",padding:12,marginTop:10,borderRadius:10}}><p><strong>{r.customer_email}</strong> — {r.status}</p><p>Customer ID: {r.user_id}</p><p>Requested: {new Date(r.requested_at).toLocaleString()}</p>{r.status==="pending"&&<><button disabled={rewardsBusy||rewardReviewNote.trim().length<10} onClick={()=>void reviewReward(r.user_id,"verify")}>Verify eligibility</button><button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"reject")}>Reject</button></>}{r.status==="verified"&&<button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"activate")}>Activate after official Pro launch</button>}{r.expires_at&&<p>Expires: {new Date(r.expires_at).toLocaleString()}</p>}</article>)}</section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
+ <p>Grant changes are audited. Tool backend authorization must be verified before production rollout.</p>
+ </section>:section==="Pro Rewards"?<section><h2>Customer Discovery — two-month Pro rewards</h2><p>Verify eligible requests now. Activation is separate and is blocked by the database until the official Pro launch. Review the original survey response before verification.</p><button type="button" disabled={rewardsBusy} onClick={()=>void loadRewards()}>Refresh reward requests</button><p>Confirm the customer identity against the actual Customer Discovery submission. A reward request alone does not prove survey completion.</p><label>Survey verification evidence (submission reference and matching email) <input value={rewardReviewNote} onChange={e=>setRewardReviewNote(e.target.value)} placeholder="Survey reference and identity match"/></label>{rewardsMessage&&<p role="alert">{rewardsMessage}</p>}{rewards.map(r=><article key={r.user_id} style={{border:"1px solid #ccd8e0",padding:12,marginTop:10,borderRadius:10}}><p><strong>{r.customer_email}</strong> — {r.status}</p><p>Customer ID: {r.user_id}</p><p>Requested: {new Date(r.requested_at).toLocaleString()}</p>{r.status==="pending"&&<><button disabled={rewardsBusy||rewardReviewNote.trim().length<10} onClick={()=>void reviewReward(r.user_id,"verify")}>Verify eligibility</button><button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"reject")}>Reject</button></>}{r.status==="verified"&&<button disabled={rewardsBusy} onClick={()=>void reviewReward(r.user_id,"activate")}>Activate after official Pro launch</button>}{r.expires_at&&<p>Expires: {new Date(r.expires_at).toLocaleString()}</p>}</article>)}</section>:section==="Starter & Pro & Company"?<section><h2>Customer subscription plans</h2><p>Starter, Pro and Company are subscription plans, separate from per-tool completed-product trials and unfinished-product Beta Access. Employee access is managed independently.</p><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th scope="col">Plan</th><th scope="col">Monthly</th><th scope="col">Annual</th><th scope="col">Purpose</th></tr></thead><tbody><tr><th scope="row">Starter</th><td>Free</td><td>Free</td><td>Basic view access and limited imports</td></tr><tr><th scope="row">Pro</th><td>$15</td><td>$100</td><td>Professional exports and higher quotas</td></tr><tr><th scope="row">Company</th><td>$100</td><td>$700</td><td>Company users and unlimited outputs</td></tr></tbody></table><p role="note">Read-only plan catalog. Customer records, verified subscription status, billing, and plan changes are not connected yet. No customer plan is inferred from a trial or beta grant; no plan changes can be made here until audited backend operations and migration checks are complete.</p></section>:<section><h2>{section}</h2><p>This management function is not yet enabled. No permissions, subscriptions, or rewards can be changed from this screen until secure server-side approval workflows are implemented and tested.</p>
  </section>}</>}
  </section></main>;
 }
