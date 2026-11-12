@@ -22,3 +22,18 @@ body { font-family: "Inter", "Segoe UI", Arial, sans-serif; -webkit-font-smoothi
  .globalHeader .mobileMenuPanel .mobileGroupLabel { padding:12px 12px 4px; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#56718b; }
 }
 @media(prefers-reduced-motion:reduce) { .globalHeader * { transition:none!important; } }
+
+/* Marketing product discovery cards */
+.refreshToolGrid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;max-width:1440px;margin:0 auto; }
+.refreshToolCard { display:flex;flex-direction:column;min-height:310px;padding:30px;border:1px solid rgba(255,255,255,.17);border-radius:22px;background:linear-gradient(155deg,#183a5d,#102940);box-shadow:0 20px 45px rgba(0,0,0,.12);transition:transform .2s ease,box-shadow .2s ease; }
+.refreshToolCard:hover { transform:translateY(-4px);box-shadow:0 28px 55px rgba(0,0,0,.2); }
+.refreshToolCardTop { display:flex;align-items:center;justify-content:space-between;margin-bottom:30px; }
+.refreshToolIcon { display:grid;place-items:center;width:56px;height:56px;border-radius:16px;color:#a4f0ef;background:rgba(255,255,255,.1); }
+.refreshStatus { border-radius:100px;padding:7px 12px;font-size:12px;font-weight:800;background:rgba(165,235,245,.14);color:#a4f0ef; }
+.refreshToolCard h3 { font-size:clamp(23px,2vw,29px);margin:0 0 12px;letter-spacing:-.025em; }
+.refreshToolCard p { color:#c4d6e5;line-height:1.65;margin:0 0 28px; }
+.refreshToolLink { margin-top:auto;display:inline-flex;align-items:center;gap:10px;font-weight:750;color:#a4f0ef; }
+.refreshToolLink:hover { text-decoration:underline; }
+.refreshDisclaimer { max-width:850px;margin:24px auto 0;text-align:center;font-size:13px;line-height:1.65;color:#b9cddd; }
+@media(max-width:900px) { .refreshToolGrid { grid-template-columns:1fr; } .refreshToolCard { min-height:260px; } }
+@media(prefers-reduced-motion:reduce) { .refreshToolCard { transition:none; } .refreshToolCard:hover { transform:none; } }
