@@ -12,7 +12,8 @@ check(c.schema?.project_id==="xssiwlwlsyxrwdbninqe","Wrong Supabase project");
 check(c.schema?.required_brief_slides===5&&c.schema?.instagram_image_count===5,"Expected five carousel slides");
 check(c.schema?.instagram_dimensions?.join("x")==="1200x1200","Wrong slide dimensions");
 for(const k of ["no_latest_core_dependency","no_paid_image_api","no_tinyfish","no_generic_repeated_svg","no_blog_cover_reuse","no_single_image_instagram","no_false_success","no_duplicate_publication","never_republish_published","do_not_bypass_publisher_approval_gates"]){check(c.invariants?.[k]===true,"Missing invariant "+k);}
-check(c.permissions?.blog_auto_publish===false&&c.permissions?.instagram_auto_publish===true&&c.permissions?.linkedin_ai_news_auto_publish===true,"Incorrect publication permission");
+check(c.permissions?.blog_auto_publish===false&&c.permissions?.instagram_auto_publish===false&&c.permissions?.linkedin_ai_news_auto_publish===false,"Incorrect publication permission");
+check(c.manual_creative_workflow?.automatic_image_generation===false&&c.manual_creative_workflow?.publication_requires_explicit_owner_instruction===true,"Manual publication required");
 check(c.workflow?.generator==="scripts/prepare-ai-news-social-images.mjs","Wrong generator");
 validateEditorialImagePolicy(c,"news");
 console.log("AI NEWS CONTRACT OK",c.contract_id,c.version);
