@@ -1,0 +1,24 @@
+/* Platform refresh: scoped global navigation, typography and focus treatment. */
+:root { --brand-navy:#102b49; --brand-blue:#1765bb; --brand-cyan:#14a9b4; --brand-surface:#f7fafc; --brand-border:#dce6ee; }
+body { font-family: "Inter", "Segoe UI", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
+.globalHeader { border-bottom:1px solid var(--brand-border); box-shadow:0 6px 24px rgba(16,43,73,.07); }
+.globalHeader .utilityBar { max-width:1500px; margin:auto; min-height:76px; }
+.globalHeader .primaryBar { background:#f7fafc; }
+.globalHeader a:focus-visible,.globalHeader button:focus-visible { outline:3px solid var(--brand-cyan); outline-offset:3px; border-radius:6px; }
+.globalHeader .navDropdown { z-index:120; }
+.globalHeader .toolStatus { margin-left:auto; font-size:11px; font-weight:750; color:#38618b; background:#edf5ff; border-radius:100px; padding:4px 7px; }
+.globalHeader .mobileMenuToggle { display:none; border:1px solid var(--brand-border); border-radius:10px; background:white; color:var(--brand-navy); padding:10px 12px; font-size:14px; font-weight:700; }
+.globalHeader .mobileMenuPanel { display:none; }
+@media(max-width:900px) {
+ .globalHeader .utilityBar { min-height:66px; padding:10px 18px; flex-wrap:wrap; }
+ .globalHeader .utilityBrand img { width:155px; }
+ .globalHeader .utilityNav,.globalHeader .primaryBar { display:none; }
+ .globalHeader .mobileMenuToggle { display:inline-flex; align-items:center; gap:8px; margin-left:auto; }
+ .globalHeader .signInMenu { margin-left:0; }
+ .globalHeader .navCta { font-size:14px!important; padding:9px 12px!important; min-height:40px; }
+ .globalHeader .mobileMenuPanel.isOpen { display:grid; gap:4px; padding:12px 18px 22px; max-height:calc(100dvh - 66px); overflow-y:auto; border-top:1px solid var(--brand-border); background:white; }
+ .globalHeader .mobileMenuPanel a { display:flex; justify-content:space-between; align-items:center; min-height:44px; padding:10px 12px; border-radius:9px; font-size:15px; font-weight:650; color:var(--brand-navy); }
+ .globalHeader .mobileMenuPanel a:hover { background:#eef6ff; }
+ .globalHeader .mobileMenuPanel .mobileGroupLabel { padding:12px 12px 4px; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#56718b; }
+}
+@media(prefers-reduced-motion:reduce) { .globalHeader * { transition:none!important; } }
