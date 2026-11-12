@@ -1,0 +1,31 @@
+/* Linkoteq canonical navigation v1.0.0. Framework-neutral; one source for all apps. */
+(()=>{"use strict";
+const base="https://linkoteq.com";
+const tools=[["3D Structural Model","https://3dmodel.linkoteq.com/","Beta"],["W-Section","https://wsection.linkoteq.com/","Trial"],["Snow Load","https://snow.linkoteq.com/","Trial"]];
+const links=[["Home",base+"/"],["Pricing",base+"/pricing"],["Knowledge Center",base+"/knowledge/documentation"],["Blog",base+"/blog"],["Contact",base+"/contact"],["Sign In",base+"/customer-login"]];
+class LinkoteqHeader extends HTMLElement{
+ connectedCallback(){
+  if(this.shadowRoot)return;
+  const root=this.attachShadow({mode:"open"});
+  const style=document.createElement("style");
+  style.textContent=`:host{display:block;position:relative;z-index:1250;font-family:Inter,system-ui,Arial,sans-serif;color:#102b49}*{box-sizing:border-box}header{background:#fff;border-bottom:1px solid #dce6ee;box-shadow:0 4px 18px #102b4912}nav{display:flex;align-items:center;gap:22px;max-width:1450px;margin:auto;padding:12px 24px;min-height:72px}a{color:inherit;text-decoration:none;font-size:14px;font-weight:600}a:hover{text-decoration:underline}img{width:auto;height:43px;max-width:170px;object-fit:contain}.brand{display:flex;align-items:center;margin-right:auto}button{background:#fff;border:1px solid #dce6ee;border-radius:8px;padding:10px 12px;color:inherit;font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #14a9b4;outline-offset:3px}.desktop{display:flex;align-items:center;gap:20px}.tools{position:relative}.tool-list{display:none;position:absolute;top:100%;right:0;min-width:230px;background:white;padding:8px;border:1px solid #dce6ee;border-radius:10px;box-shadow:0 12px 28px #102b4922}.tools:focus-within .tool-list,.tools:hover .tool-list{display:grid}.tool-list a,.mobile a{padding:10px;display:block}.status{font-size:11px;color:#1765bb;margin-left:8px}.toggle{display:none}.mobile{display:none;padding:8px 18px 18px;border-top:1px solid #dce6ee}.mobile[open]{display:grid}.mobile a{min-height:42px}@media(max-width:900px){nav{min-height:62px;padding:9px 16px}.desktop{display:none}.toggle{display:block}img{height:37px;max-width:145px}} `;
+  const header=document.createElement("header");
+  const nav=document.createElement("nav");nav.setAttribute("aria-label","Linkoteq global navigation");
+  const brand=document.createElement("a");brand.className="brand";brand.href=base+"/";brand.setAttribute("aria-label","Linkoteq Home");
+  const logo=document.createElement("img");logo.src=base+"/linko-logo-final.svg";logo.alt="Linkoteq";brand.append(logo);nav.append(brand);
+  const desktop=document.createElement("div");desktop.className="desktop";
+  links.forEach(([name,url])=>{const a=document.createElement("a");a.href=url;a.textContent=name;desktop.append(a)});
+  const toolsWrap=document.createElement("div");toolsWrap.className="tools";
+  const toolButton=document.createElement("button");toolButton.type="button";toolButton.textContent="Engineering Tools ▾";toolButton.setAttribute("aria-label","Engineering tools");
+  const toolList=document.createElement("div");toolList.className="tool-list";
+  tools.forEach(([name,url,status])=>{const a=document.createElement("a");a.href=url;a.textContent=name;const badge=document.createElement("span");badge.className="status";badge.textContent=status;a.append(badge);toolList.append(a)});
+  toolsWrap.append(toolButton,toolList);desktop.append(toolsWrap);nav.append(desktop);
+  const toggle=document.createElement("button");toggle.className="toggle";toggle.type="button";toggle.textContent="Menu";toggle.setAttribute("aria-expanded","false");toggle.setAttribute("aria-controls","linkoteq-menu");nav.append(toggle);
+  const mobile=document.createElement("div");mobile.className="mobile";mobile.id="linkoteq-menu";
+  [...links,...tools.map(t=>[t[0]+" · "+t[2],t[1]])].forEach(([name,url])=>{const a=document.createElement("a");a.href=url;a.textContent=name;mobile.append(a)});
+  toggle.addEventListener("click",()=>{const open=!mobile.hasAttribute("open");mobile.toggleAttribute("open",open);toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"Close":"Menu"});
+  header.append(nav,mobile);root.append(style,header);
+ }
+}
+if(!customElements.get("linkoteq-header"))customElements.define("linkoteq-header",LinkoteqHeader);
+})();
