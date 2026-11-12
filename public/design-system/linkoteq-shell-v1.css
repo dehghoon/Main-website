@@ -1,0 +1,20 @@
+/* Linkoteq shared design tokens and platform navigation. Canonical asset served by Main-website.
+   Version: 2026-11-11. Scoped to .platformNav / .globalHeader to protect engineering canvases. */
+:root{--lq-navy:#102b49;--lq-blue:#1765bb;--lq-cyan:#14a9b4;--lq-border:#dce6ee;--lq-surface:#f7fafc;--lq-font:Inter,"Segoe UI",Arial,sans-serif}
+:is(.platformNav,.globalHeader){color:var(--lq-navy);font-family:var(--lq-font);background:#fff;border-bottom:1px solid var(--lq-border);box-shadow:0 6px 24px rgba(16,43,73,.07)}
+:is(.platformNav,.globalHeader) :is(a,button):focus-visible{outline:3px solid var(--lq-cyan);outline-offset:3px}
+:is(.platformNav,.globalHeader) .utilityBar{max-width:1500px;margin-inline:auto;min-height:76px}
+:is(.platformNav,.globalHeader) .utilityBrand img{width:220px;max-width:100%;height:auto;object-fit:contain}
+:is(.platformNav,.globalHeader) .primaryBar{background:var(--lq-surface)}
+:is(.platformNav,.globalHeader) .toolStatus{font-size:11px;font-weight:750;color:#38618b;background:#edf5ff;border-radius:100px;padding:4px 7px}
+@media(max-width:900px){
+ :is(.platformNav,.globalHeader){width:100%;max-width:100%;min-width:0}
+ :is(.platformNav,.globalHeader) .utilityBar{width:100%;max-width:100%;min-width:0;min-height:66px;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+ :is(.platformNav,.globalHeader) .utilityBrand{flex:0 1 auto;min-width:0;max-width:calc(100% - 100px)}
+ :is(.platformNav,.globalHeader) .utilityBrand img{display:block;width:min(155px,100%);max-width:100%;height:auto}
+ :is(.platformNav,.globalHeader) .utilityNav,:is(.platformNav,.globalHeader) .primaryBar{display:none!important}
+ :is(.platformNav,.globalHeader) .mobileMenuToggle{display:inline-flex!important;flex:0 0 auto;white-space:nowrap;align-items:center;gap:8px;margin-left:auto}
+ :is(.platformNav,.globalHeader) .mobileMenuPanel{width:100%;max-width:100%;min-width:0}
+ :is(.platformNav,.globalHeader) .mobileMenuPanel.isOpen{display:grid;max-height:calc(100dvh - 66px);overflow-y:auto}
+}
+@media(prefers-reduced-motion:reduce){:is(.platformNav,.globalHeader) *{transition:none!important}}

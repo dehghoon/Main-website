@@ -53,3 +53,7 @@ Canonical contract: [Linkoteq Structural Core](https://github.com/dehghoon/linko
 - This declaration is a migration target, not proof that this repository's runtime dependency, API, importer mapping, or deployment has migrated.
 - Existing engineering calculation and application behavior is unchanged by this documentation update.
 - The Core `v0.6.0` GitHub Release must be verified separately from the version on `main`.
+
+## Mandatory Linkoteq Design System Contract (v1.0.0)
+
+All global navigation, logo, product menu and design tokens MUST follow the [platform design system contract](https://github.com/dehghoon/Main-website/blob/design/skyciv-inspired-platform-refresh-20261111/contracts/platform-design-system-v1.md). Before a new tool is released, its README MUST document the shared header implementation/version, canonical product registry, logo, mobile QA, build evidence and deployment status. Independent headers are temporary migration debt, not compliant completion. The canonical CSS source is `Main-website/public/design-system/linkoteq-shell-v1.css`; consumer apps must verify it is publicly deployed before relying on its URL. Existing app-specific engineering controls remain separate.
