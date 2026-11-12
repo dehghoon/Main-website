@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./brand-extra.css";
@@ -30,7 +31,7 @@ gtag('config', 'G-P8NR3ZWDSQ');`,
         />
       </head>
       <body>
-        <linkoteq-header />
+        {createElement('linkoteq-header')}
         {children}
       </body>
     </html>
