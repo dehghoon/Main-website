@@ -1,45 +1,13 @@
-name: Prepare AI engineering social news images
+# Manual creative workflow: images are created with the owner in ChatGPT.
+# Kept as a disabled legacy workflow for audit and rollback.
+name: AI news image generator (disabled - manual creative approval)
 on:
-  schedule:
-    # Retry overdue image jobs every 30 minutes.
-    # Publishing dates remain controlled by Supabase.
-    - cron: '*/30 * * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/ai-news-social-images.yml"
-      - "scripts/editorial-vector-scenes.mjs"
-      - "scripts/editorial-media.mjs"
-      - "scripts/validate-editorial-image-policy.mjs"
-      - "scripts/assets/fonts/**"
-      - "tests/editorial-media.test.mjs"
-      - "tests/fixtures/editorial-*.mjs"
-      - "scripts/prepare-ai-news-social-images.mjs"
-      - "scripts/validate-ai-news-social-contract.mjs"
-      - 'scripts/validate-shared-marketing-policy.mjs'
-      - 'contracts/marketing/seo-conversion-v1.json'
-      - "contracts/marketing/ai-news-social-automation-v1.json"
 permissions:
   contents: read
-concurrency:
-  group: linkoteq-ai-news-social-images
-  cancel-in-progress: false
 jobs:
-  prepare-images:
+  legacy-image-generation-disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Read and validate independent AI news social contract
-        run: node scripts/validate-ai-news-social-contract.mjs
-      - run: npm install --no-package-lock --no-audit --no-fund
-      - name: Verify editorial SVG v2 before processing any queue
-        run: npm run test:editorial
-      - name: Generate contextual AI news carousel images and verify JPEGs
-        env:
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/prepare-ai-news-social-images.mjs
+      - run: echo "Automatic image generation is disabled. Prepare images manually and publish only on explicit owner request."
