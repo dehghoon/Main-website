@@ -1,7 +1,7 @@
 {
   "contract_id": "linkoteq-ai-news-social-automation",
-  "version": "1.1.0",
-  "updated": "2026-11-09",
+  "version": "1.2.0",
+  "updated": "2026-11-12",
   "independent_from": "contracts/marketing/blog-automation-v1.json",
   "purpose": "Independent AI news posts for official Linkoteq Facebook, Instagram and LinkedIn; never reuse blog publication workflow",
   "source_policy": {
@@ -29,22 +29,13 @@
     "github_image_worker": {
       "must_read_before_work": true,
       "work": [
-        "Validate this contract at start of each scheduled/manual workflow",
-        "Process only pending eligible ai_news_social_assets",
-        "Generate exactly five separate square 1200x1200 JPEG carousel slides, visually specific to story and each slide",
-        "Generate a separate Facebook/LinkedIn collage JPEG; do not substitute blog 1200x630 hero",
-        "Check public Storage URLs, actual JPEG, scene diversity and Supabase readback",
-        "Leave approvals to verified Supabase publisher v4; do not self-publish",
-        "Run image_engine quality_gate before queue access; render all five slides and collage before uploads",
-        "Block jobs with non-pending publication history; decode public JPEG responses and verify dimensions"
+        "Disabled: no automatic image generation, storage upload or automatic publishing"
       ]
     },
     "supabase_publisher": {
       "work": [
-        "Apply verified creative/content gates before publishing",
-        "Instagram carousel must contain five distinct image URLs; Facebook and LinkedIn use collage image",
-        "Use Windsor.ai official accounts and reconcile ambiguous responses",
-        "Never duplicate previously published posts"
+        "No scheduled automatic publishing; owner-directed publishing uses Windsor.ai directly after explicit instruction and public media URLs",
+        "Reconcile platform IDs and avoid duplicate posts; Supabase status is not a prerequisite for owner-directed publishing"
       ]
     }
   },
@@ -66,9 +57,9 @@
     ]
   },
   "permissions": {
-    "facebook_auto_publish": true,
-    "instagram_auto_publish": true,
-    "linkedin_ai_news_auto_publish": true,
+    "facebook_auto_publish": false,
+    "instagram_auto_publish": false,
+    "linkedin_ai_news_auto_publish": false,
     "blog_auto_publish": false,
     "blog_related_social_requires_user_approval": true,
     "tiktok_video_publish": false
@@ -89,8 +80,8 @@
     "file": ".github/workflows/ai-news-social-images.yml",
     "generator": "scripts/prepare-ai-news-social-images.mjs",
     "validator": "scripts/validate-ai-news-social-contract.mjs",
-    "media_generator": "editorial SVG engine v2: independent 1200x1200 story scenes plus 1600x1200 collage",
-    "publisher": "Supabase ai-news-social-publisher v4 via Windsor.ai",
+    "media_generator": "Disabled; owner creates five 1200x1200 slides and 1600x1200 collage in ChatGPT",
+    "publisher": "Manual owner-directed Windsor.ai publication; Supabase optional for tracking",
     "retry": "Only eligible pending assets; failures explicit; never reset published posts"
   },
   "acceptance": [
@@ -170,5 +161,17 @@
     "major_version": 1,
     "required_for_future_content": true,
     "requirement": "Read from main before each run; apply relevant public SEO, social metadata, CTA and conversion rules; report missing implementation without claiming success; preserve independent workflow and publication approval gates"
+  },
+  "manual_creative_workflow": {
+    "automatic_image_generation": false,
+    "notify_owner_after_draft": true,
+    "notification_content": "News summary, primary source, five slide briefs, platform captions and pending status",
+    "owner_creates_images_in_chatgpt": true,
+    "publication_requires_explicit_owner_instruction": true,
+    "images_may_be_attached_via_public_urls_without_supabase_storage": true,
+    "external_publication_via_windsor_ai": true,
+    "do_not_require_supabase_publisher_approval_for_owner_directed_windsor_publish": true,
+    "prevent_duplicate_publications": true,
+    "preserve_existing_published_records": true
   }
 }
