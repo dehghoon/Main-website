@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import HeaderAuthBridge from "./components/header-auth-bridge";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./brand-extra.css";
@@ -32,6 +33,7 @@ gtag('config', 'G-P8NR3ZWDSQ');`,
       </head>
       <body>
         {createElement('linkoteq-header')}
+        <HeaderAuthBridge />
         {children}
       </body>
     </html>
