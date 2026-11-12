@@ -37,3 +37,14 @@ body { font-family: "Inter", "Segoe UI", Arial, sans-serif; -webkit-font-smoothi
 .refreshDisclaimer { max-width:850px;margin:24px auto 0;text-align:center;font-size:13px;line-height:1.65;color:#b9cddd; }
 @media(max-width:900px) { .refreshToolGrid { grid-template-columns:1fr; } .refreshToolCard { min-height:260px; } }
 @media(prefers-reduced-motion:reduce) { .refreshToolCard { transition:none; } .refreshToolCard:hover { transform:none; } }
+
+/* Mobile-first header safety: override legacy fixed widths and oversized navigation. */
+@media(max-width:900px) {
+ .globalHeader {width:100%;max-width:100%;min-width:0;overflow:visible}
+ .globalHeader .utilityBar {width:100%;max-width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+ .globalHeader .utilityBrand {display:flex;flex:0 1 auto;min-width:0;max-width:calc(100% - 100px)}
+ .globalHeader .utilityBrand img {display:block;width:min(155px,100%);max-width:100%;height:auto;object-fit:contain}
+ .globalHeader .utilityNav,.globalHeader .primaryBar,.globalHeader .signInMenu,.globalHeader .signedInSummary {display:none!important}
+ .globalHeader .mobileMenuToggle {display:inline-flex!important;flex:0 0 auto;white-space:nowrap}
+ .globalHeader .mobileMenuPanel {width:100%;max-width:100%;min-width:0}
+}
