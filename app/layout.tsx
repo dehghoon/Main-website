@@ -17,6 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <head>
+        <link rel="stylesheet" href="/design-system/linkoteq-shell-v1.css" />
         {/* Google tag (gtag.js) — shared by all website pages. */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P8NR3ZWDSQ" />
         <script
