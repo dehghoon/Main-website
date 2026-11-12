@@ -1,6 +1,6 @@
 {
   "contract_id": "linkoteq-blog-automation",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "owner": "Linkoteq",
   "last_reviewed": "2026-11-09",
   "scope": "Blog article drafts and their hero images only",
@@ -14,8 +14,6 @@
         "Create and read back exactly one draft with status=draft and published_at=null, regardless of image generation readiness",
         "Use project xssiwlwlsyxrwdbninqe public.blog_posts; never assume project name identifies its purpose",
         "Never claim draft/image success without readback",
-        "Write a complete article body and concise, literal cover_image_title describing the real engineering operation; the image worker receives the full body",
-        "Use image_engine v2 from GitHub main for future drafts; inspect the five recent covers and do not approve irrelevant or repeated output",
         "Do not call legacy paid image Edge Functions or reinterpret unsupported subjects as a generic frame"
       ]
     },
@@ -23,13 +21,7 @@
       "name": "GitHub Actions",
       "must_read_before_work": true,
       "responsibilities": [
-        "Validate this contract before image generation",
-        "Select existing draft missing a cover, or explicitly requested replacement draft",
-        "Generate original topic-specific engineering imagery, with distinct composition, not merely palette differences",
-        "Render and verify actual 1200x630 JPEG, upload to blog-media, attach to exact draft and read back",
-        "Fail with a clear error if any stage fails; report processed=0 explicitly, not as an image success",
-        "Run image_engine quality_gate before queue access; pass full article body through --content-file",
-        "Use bundled fonts, measured text bounds, subject-specific geometry and one of three cover compositions"
+        "Automatic image generation is disabled; owner creates and reviews images in ChatGPT on request"
       ]
     },
     "database": {
@@ -129,7 +121,8 @@
       1200,
       630
     ],
-    "publication": "Draft only; owner publishes manually"
+    "publication": "Draft-only automation; owner publishes manually from blog dashboard",
+    "image_generation": "disabled"
   },
   "automation_prompt_file": "contracts/marketing/gpt8-blog-automation-prompt.md",
   "shared_marketing_policy": {
@@ -138,5 +131,18 @@
     "major_version": 1,
     "required_for_future_content": true,
     "requirement": "Read from main before each run; apply relevant public SEO, social metadata, CTA and conversion rules; report missing implementation without claiming success; preserve independent workflow and publication approval gates"
+  },
+  "updated": "2026-11-12",
+  "manual_creative_workflow": {
+    "automatic_image_generation": false,
+    "notify_owner_after_draft": true,
+    "notification_content": "Title, summary, dashboard draft link and draft status; full article remains in blog dashboard",
+    "owner_creates_images_in_chatgpt": true,
+    "publication_requires_explicit_owner_instruction": true,
+    "images_may_be_attached_via_public_urls_without_supabase_storage": true,
+    "external_publication_via_windsor_ai": true,
+    "do_not_require_supabase_publisher_approval_for_owner_directed_windsor_publish": true,
+    "prevent_duplicate_publications": true,
+    "preserve_existing_published_records": true
   }
 }
