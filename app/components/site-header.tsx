@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Building2, ChevronDown, Clock3, Layers3, LifeBuoy, Snowflake, Tag, UsersRound } from "lucide-react";
 import { getSupabase } from "@/lib/supabase-browser";
+import { engineeringTools } from "@/lib/engineering-tools";
 
 const MODEL_3D_URL = "https://3dmodel.linkoteq.com/";
 const W_SECTION_URL = "https://wsection.linkoteq.com/";
@@ -29,6 +30,7 @@ function displayNameFor(user: SessionUser | null | undefined) {
 
 export default function SiteHeader() {
   const [employeeSignedIn, setEmployeeSignedIn] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
   const [returnTo, setReturnTo] = useState("/");
 
@@ -91,13 +93,12 @@ export default function SiteHeader() {
           <div className="navMenu">
             <button className="navMenuButton" type="button">Calculators <ChevronDown size={14} /></button>
             <div className="navDropdown">
-              <a href={MODEL_3D_URL}><Layers3 size={16} /> 3D Structural Model</a>
-              <a href={W_SECTION_URL}><Building2 size={16} /> W-Section</a>
-              <a href={SNOW_LOAD_URL}><Snowflake size={16} /> Snow Load</a>
+              {engineeringTools.map((tool) => <a key={tool.id} href={tool.href}>{tool.name}<span className="toolStatus">{tool.status}</span></a>)}
             </div>
           </div>
         </nav>
 
+        <button className="mobileMenuToggle" type="button" aria-expanded={mobileOpen} aria-controls="linkoteq-mobile-menu" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? "Close" : "Menu"} <span aria-hidden="true">{mobileOpen ? "×" : "☰"}</span></button>
         {employeeSignedIn ? (
           <div className="signedInSummary">
             <button className="navCta" type="button" onClick={signOut}>Sign Out</button><br />
@@ -114,6 +115,18 @@ export default function SiteHeader() {
         )}
       </div>
 
+      <nav id="linkoteq-mobile-menu" className={`mobileMenuPanel ${mobileOpen ? "isOpen" : ""}`} aria-label="Mobile navigation">
+        <a href="/" onClick={() => setMobileOpen(false)}>Home</a>
+        <span className="mobileGroupLabel">Engineering software</span>
+        {engineeringTools.map((tool) => <a key={tool.id} href={tool.href} onClick={() => setMobileOpen(false)}>{tool.name}<span className="toolStatus">{tool.status}</span></a>)}
+        <span className="mobileGroupLabel">Explore</span>
+        <a href="/blog" onClick={() => setMobileOpen(false)}>Blog</a>
+        <a href="/knowledge/documentation" onClick={() => setMobileOpen(false)}>Documentation</a>
+        <a href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</a>
+        <a href="/about" onClick={() => setMobileOpen(false)}>About</a>
+        <a href="/contact" onClick={() => setMobileOpen(false)}>Contact</a>
+        <a href="/customer-login" onClick={() => setMobileOpen(false)}>Client Sign In</a>
+      </nav>
       <nav className="primaryBar" aria-label="Primary navigation">
         <a href="/">Home</a>
         <a href="/#platform">AI Platform</a>
