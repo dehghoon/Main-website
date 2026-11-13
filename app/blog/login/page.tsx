@@ -70,7 +70,8 @@ export default function EmployeeWorkspacePage() {
       if (data.session) {
         const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.session.user.id).single();
         const { data: permissions, error: permissionError } = await supabase.rpc("platform_my_permissions");
-        const authorized = !profileError && !permissionError && (profile?.role === "admin" || profile?.role === "manager" || (Array.isArray(permissions) && permissions.includes("timesheet.view_own")));
+        const employeeRole = (profile as { role?: string } | null)?.role;
+        const authorized = !profileError && !permissionError && (employeeRole === "admin" || employeeRole === "manager" || (Array.isArray(permissions) && permissions.includes("timesheet.view_own")));
         if (!authorized) {
           if (profileError || permissionError) { setMessage("Could not verify employee access. Please try again."); return; }
           window.location.replace("/pricing");
