@@ -68,6 +68,13 @@ export default function EmployeeWorkspacePage() {
     if (forceTimesheet && supabase) {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.session.user.id).single();
+        const { data: permissions, error: permissionError } = await supabase.rpc("platform_my_permissions");
+        const authorized = !profileError && !permissionError && (profile?.role === "admin" || profile?.role === "manager" || (Array.isArray(permissions) && permissions.includes("timesheet.view_own")));
+        if (!authorized) {
+          setMessage(profileError || permissionError ? "Could not verify employee access. Please try again." : "Timesheet is available only to approved Linkoteq employees. Your account does not have Timesheet permission. Contact an administrator.");
+          return;
+        }
         const hash = new URLSearchParams({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
