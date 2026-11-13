@@ -35,6 +35,7 @@ export default function ClientWorkspacePage() {
   const [trialDisclaimerAccepted, setTrialDisclaimerAccepted] = useState<Record<string, boolean>>({});
   const [savedDisclaimer, setSavedDisclaimer] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(false);
+  const [preferenceLoaded, setPreferenceLoaded] = useState(false);
   const [rewardStatus, setRewardStatus] = useState<string | null>(null);
   const [rewardDates, setRewardDates] = useState<{start: string | null; end: string | null}>({start:null,end:null});
 
@@ -45,7 +46,7 @@ export default function ClientWorkspacePage() {
     async function syncUser(id: string | null) {
       if (!mounted) return;
       setUserId(id);
-      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setSavedDisclaimer({}); setTrialDisclaimerAccepted({}); setBetaChoice(null); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
+      if (!id) { setTrialActive(false); setToolAccess({}); setPendingRequests([]); setSavedDisclaimer({}); setTrialDisclaimerAccepted({}); setBetaChoice(null); setPreferenceLoaded(false); setRewardStatus(null); setRewardDates({start:null,end:null}); return; }
       const {data:{session}}=await client!.auth.getSession();
       if(session?.access_token){
         try{
@@ -76,9 +77,10 @@ export default function ClientWorkspacePage() {
       const { data, error } = await client!.from("client_beta_preferences")
         .select("beta_opt_in").eq("user_id", id).maybeSingle();
       if (!mounted) return;
-      if (error) { setMessage("Account connected, but beta preferences are temporarily unavailable."); return; }
+      if (error) { setMessage("Account connected, but beta preferences are temporarily unavailable."); setPreferenceLoaded(false); return; }
       setBetaChoice(data ? (data as Preference).beta_opt_in : null);
-      if (!data) setShowWelcome(true);
+      setPreferenceLoaded(true);
+      setShowWelcome(false);
     }
     void client.auth.getUser().then(({ data }) => syncUser(data.user?.id ?? null));
     const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
@@ -105,7 +107,7 @@ export default function ClientWorkspacePage() {
         });
         if (error) throw error;
         if (data.session && data.user) {
-          setUserId(data.user.id); setShowWelcome(true);
+          setUserId(data.user.id);
           setMessage("Account created. Please choose whether to request access to experimental tools.");
         } else {
           setNeedsConfirmation(true);
@@ -162,6 +164,7 @@ export default function ClientWorkspacePage() {
         if(acceptError||accepted!==true)throw acceptError??new Error("Disclaimer acknowledgment could not be saved.");
         setSavedDisclaimer(current=>({...current,[toolKey]:true}));
       }
+      if(pendingRequests.includes(toolKey)||toolAccess[toolKey]){setMessage("An access request is already pending or approved.");return;}
       const {error}=await client.from("customer_tool_access_requests").insert({customer_id:userId,tool_key:toolKey,access_type:accessType});
       if(error)throw error;
       setPendingRequests(current=>[...current,toolKey]);
@@ -181,35 +184,35 @@ export default function ClientWorkspacePage() {
     {!supabaseClient() && <p role="alert">Account service is not configured in this environment. Please contact <a href="mailto:hello@linkoteq.com">hello@linkoteq.com</a>.</p>}
     {userId ? <>
       <p>You are signed in. Verified, generally available tools will appear here as they become available.</p>
-      {(showWelcome || betaChoice === null) && <div role="group" aria-label="Experimental tool preference">
+      {preferenceLoaded && betaChoice === null && <div role="group" aria-label="Experimental tool preference">
         <h2>Would you like early access to tools still under development?</h2>
-        <p><strong>Warning: These tools are still being developed and may not work properly.</strong> Some features may be missing, results may be incorrect, and availability may be interrupted. Use them only for evaluation and feedback, never for engineering decisions or production work. Opting in only records your interest; it does not grant access.</p>
+        <details style={{margin:"12px 0 18px"}}><summary style={{cursor:"pointer",fontWeight:700,color:"#a65a18"}}>Read important beta access information</summary><p><strong>Warning: These tools are still being developed and may not work properly.</strong> Some features may be missing, results may be incorrect, and availability may be interrupted. Use them only for evaluation and feedback, never for engineering decisions or production work. Opting in only records your interest; it does not grant access.</p></details>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>void chooseBeta(true)}>Yes, request in-development tool access</button><button type="button" disabled={busy} onClick={()=>void chooseBeta(false)}>No, hide in-development tools</button></div>
       </div>}
-      {betaChoice !== null && <div>
-        <p><strong>In-development tool access preference:</strong> {betaChoice ? "Requested" : "Hidden"}</p>
-        {betaChoice && <div role="note" style={{border:"1px solid #b7791f",borderRadius:10,padding:14,margin:"12px 0"}}>
+      {preferenceLoaded && betaChoice !== null && <div>
+        <p><strong>In-development tool access preference:</strong> {betaChoice ? "Already requested" : "Hidden"}</p>
+        {betaChoice && <details style={{border:"1px solid #b7791f",borderRadius:10,padding:14,margin:"12px 0"}}><summary style={{cursor:"pointer",fontWeight:700}}>Important information about experimental access</summary>
           <strong>Important: Experimental tools are unfinished and may not work correctly.</strong>
           <p>These tools are under active development. Features may be missing, calculations or outputs may be incorrect, and the service may be interrupted. They are provided for evaluation and feedback only, not for professional engineering, safety-critical decisions, or production work. Independently verify all results. Your feedback helps us improve them.</p>
           <p>{trialActive ? "Your trial is active. Individual tools will appear only when their access integration is ready." : "Your request is pending Owner approval. No experimental tools are unlocked."}</p>
-        </div>}
-        <button type="button" disabled={busy} onClick={()=>setShowWelcome(true)}>Change experimental access preference</button>
+        </details>}
+        <button type="button" disabled={busy} onClick={()=>void chooseBeta(!betaChoice)}> {betaChoice ? "Hide in-development tools" : "Request in-development tool access"} </button>
       </div>}
       <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
         <h2>Your engineering tools</h2>
         <p>Approved tools open directly. Each tool requires its own active entitlement.</p>
         {ENGINEERING_TOOLS.map(tool=><div key={tool.key} style={{padding:"10px 0",borderBottom:"1px solid #ddd"}}>
           <strong>{tool.name}</strong> — {toolAccess[tool.key]?"Approved":"Access not active"}
-          {tool.readiness==="released" && <div role="note" style={{border:"1px solid #a87b28",borderRadius:8,padding:12,margin:"8px 0"}}>
+          {tool.readiness==="released" && !savedDisclaimer[tool.key] && <details style={{border:"1px solid #a87b28",borderRadius:8,padding:12,margin:"8px 0"}}><summary style={{cursor:"pointer",fontWeight:700}}>Read engineering disclaimer — {tool.name}</summary>
             <strong>Engineering calculation disclaimer — {tool.name}</strong>
             <p>All inputs, assumptions, applicable codes, calculation results, and engineering decisions must be independently reviewed and verified by the responsible qualified engineer. Linkoteq software is an aid, not a substitute for professional engineering judgment. The engineer remains responsible for the suitability, accuracy, and safe use of the results. Do not rely on an unverified output for design or construction.</p>
             <label><input type="checkbox" checked={trialDisclaimerAccepted[tool.key]===true} onChange={event=>setTrialDisclaimerAccepted(current=>({...current,[tool.key]:event.target.checked}))}/> I have read and understand this disclaimer for {tool.name}.</label>
             {savedDisclaimer[tool.key] && <p>Acknowledgment recorded for this account.</p>}
-          </div>}
+          </details>}
           <div>{toolAccess[tool.key] && tool.url ? savedDisclaimer[tool.key]===true || tool.readiness!=="released" ? <a href={tool.url}>Open {tool.name}</a> : <span>Read and acknowledge the disclaimer above to continue.</span> : pendingRequests.includes(tool.key) ? <span>Request pending Owner approval</span> : <button type="button" disabled={busy || (tool.readiness==="released" && !savedDisclaimer[tool.key] && trialDisclaimerAccepted[tool.key]!==true)} onClick={()=>void requestTool(tool.key,tool.readiness==="released"?"trial":"beta")}>Request {tool.readiness==="released"?"30-day Trial":"Beta Access"}</button>}</div>
         </div>)}
       </div>
-      <div style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}>
+      <details style={{padding:16,marginTop:20,border:"1px solid #ccd8e0",borderRadius:12}}><summary style={{cursor:"pointer",fontWeight:700}}>Trial access and Customer Discovery reward details</summary>
         <h2>Completed tools — trial access</h2>
         <p>Trials of completed, released tools are separate from early access to unfinished tools. Choosing not to try unfinished tools does not prevent you from requesting a trial of completed tools. Completed-tool trials require their own Owner approval and product entitlement; no tool is unlocked merely by selecting an interest preference.</p>
         <h2>Customer Discovery reward</h2>
@@ -217,7 +220,7 @@ export default function ClientWorkspacePage() {
         <a href={discoveryUrl}>Request the Customer Discovery questionnaire</a>
         <p>After completing the questionnaire, request verification here. Verification reserves eligibility only. Your two free months start after official Pro product launch and activation, not on questionnaire completion.</p>
         {rewardStatus ? <div role="status"><p>Reward status: <strong>{rewardStatus === "verified" ? "Reserved — starts after official Pro launch" : rewardStatus === "granted" ? "Activated" : rewardStatus === "pending" ? "Pending verification" : rewardStatus}</strong></p>{rewardStatus === "granted" && rewardDates.start && rewardDates.end && <p>Free Pro period: {new Date(rewardDates.start).toLocaleDateString()} to {new Date(rewardDates.end).toLocaleDateString()}.</p>}</div> : <button type="button" disabled={busy} onClick={()=>void requestReward()}>I completed the questionnaire — request verification</button>}
-      </div>
+      </details>
       <button type="button" onClick={()=>void signOut()} style={{marginTop:20}}>Sign out</button>
     </> : <>
       <p>Sign up for a client account. You can choose whether to see experimental tools after confirming your email and signing in.</p>
