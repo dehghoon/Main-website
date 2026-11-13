@@ -2,11 +2,11 @@
 (()=>{"use strict";
 const base="https://linkoteq.com";
 const tools=[["3D Structural Model","https://3dmodel.linkoteq.com/","Beta"],["W-Section","https://wsection.linkoteq.com/","Trial"],["Snow Load","https://snow.linkoteq.com/","Trial"]];
-const links=[["Home",base+"/"],["Pricing",base+"/pricing"],["Knowledge Center",base+"/knowledge/documentation"],["Blog",base+"/blog"],["Contact",base+"/contact"],["Employee Sign In",base+"/blog/login"],["Client Sign In",base+"/customer-login"]];
+const links=[["Home",base+"/"],["Pricing",base+"/pricing"],["Knowledge Center",base+"/knowledge/documentation"],["Blog",base+"/blog"],["Contact",base+"/contact"],["Employee Sign In",base+"/blog/login"],["Client Plans & Access",base+"/pricing"]];
 class LinkoteqHeader extends HTMLElement{
  static get observedAttributes(){return ["account-name"];}
  attributeChangedCallback(){this.updateAccount();}
- updateAccount(){if(!this.accountArea)return;const name=this.getAttribute("account-name");this.accountArea.replaceChildren();if(name){const label=document.createElement("span");label.textContent="Hello "+name;const button=document.createElement("button");button.type="button";button.textContent="Sign Out";button.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));this.accountArea.append(label,button)}else{const a=document.createElement("a");a.href=base+"/customer-login";a.textContent="Client Sign In";this.accountArea.append(a)}}
+ updateAccount(){if(!this.accountArea)return;const name=this.getAttribute("account-name");this.accountArea.replaceChildren();if(name){const label=document.createElement("span");label.textContent="Hello "+name;const button=document.createElement("button");button.type="button";button.textContent="Sign Out";button.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));this.accountArea.append(label,button)}else{const a=document.createElement("a");a.href=base+"/pricing";a.textContent="Client Plans & Access";this.accountArea.append(a)}}
  connectedCallback(){
   if(this.shadowRoot)return;
   const root=this.attachShadow({mode:"open"});
