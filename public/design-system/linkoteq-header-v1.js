@@ -23,7 +23,28 @@ const toggle=document.createElement("button");toggle.className="menu-toggle";tog
 const signDrop=drop("Sign In",[["Employee Sign In","https://timesheet.linkoteq.com/"],["Client Sign In",base+"/customer-login"]],top);signDrop.classList.add("sign-drop");signDrop.querySelector("button").className="sign";this.signDrop=signDrop;
 const second=document.createElement("nav");second.className="second";second.setAttribute("aria-label","Platform navigation");link("Home",base+"/",second);link("AI Platform",base+"/#platform",second);link("Roadmap",base+"/#roadmap",second);drop("Knowledge Center",[["Documentation",base+"/knowledge/documentation"],["Structural Labeling",base+"/structural-labeling"],["RegionKit",base+"/structural-labeling/regionkit"]],second);link("Blog",base+"/blog",second);
 const drawer=document.createElement("nav");drawer.className="drawer";drawer.id="linkoteq-mobile";drawer.setAttribute("aria-label","Mobile navigation");link("Home",base+"/",drawer);const group=(name)=>{const e=document.createElement("div");e.className="group";e.textContent=name;drawer.append(e)};group("Engineering Software");tools.forEach(([name,url,status])=>{const a=link(name,url,drawer);const badge=document.createElement("span");badge.className="tag";badge.textContent=status;a.append(badge)});group("Explore");[["Blog",base+"/blog"],["Documentation",base+"/knowledge/documentation"],["Pricing",base+"/pricing"],["About",base+"/about"],["Contact",base+"/contact"],["Client Sign In",base+"/customer-login"]].forEach(([n,u])=>link(n,u,drawer));const out=document.createElement("button");out.className="signout";out.textContent="Sign Out";out.hidden=true;out.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));drawer.append(out);this.mobileSignOut=out;
-toggle.addEventListener("click",()=>{const open=!drawer.hasAttribute("open");drawer.toggleAttribute("open",open);toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"Close ×":"Menu ☰"});header.append(top,second,drawer);root.append(style,header);this.renderAccount();}
+toggle.addEventListener("click",()=>{const open=!drawer.hasAttribute("open");drawer.toggleAttribute("open",open);toggle.setAttribute("aria-expanded",String(open));toggle.textContent=open?"Close ×":"Menu ☰"});header.append(top,second,drawer);root.append(style,header);this.renderAccount();
+if(location.hostname!=="linkoteq.com"){
+ const frame=document.createElement("iframe");
+ frame.title="Linkoteq account status";frame.setAttribute("aria-hidden","true");
+ frame.tabIndex=-1;frame.style.cssText="position:absolute;width:0;height:0;border:0;visibility:hidden";
+ frame.src=base+"/header-session-bridge";
+ this._authFrame=frame;
+ const request=()=>{if(frame.contentWindow)frame.contentWindow.postMessage({type:"linkoteq:auth-request:v1"},base)};
+ const receive=(event)=>{if(event.origin!==base||event.source!==frame.contentWindow||event.data?.type!=="linkoteq:auth-state:v1")return;
+ const name=typeof event.data.name==="string"?event.data.name.trim().slice(0,80):"";
+ if(name)this.setAttribute("account-name",name);else this.removeAttribute("account-name");
+ };
+ window.addEventListener("message",receive);
+ frame.addEventListener("load",request);
+ this._authCleanup=()=>window.removeEventListener("message",receive);
+ this.addEventListener("linkoteq-signout",()=>{frame.contentWindow?.postMessage({type:"linkoteq:signout:v1"},base)});
+ root.append(frame);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)request()});
+ window.addEventListener("focus",request);
+}
+}
+disconnectedCallback(){this._authCleanup?.();}
 renderAccount(){if(!this.accountArea)return;const name=this.getAttribute("account-name");this.accountArea.replaceChildren();this.mobileName.textContent=name?"Hi, "+name:"";this.mobileSignOut.hidden=!name;this.signDrop.style.display=name?"none":"";if(name){const label=document.createElement("span");label.textContent="Hello "+name;const out=document.createElement("button");out.type="button";out.textContent="Sign Out";out.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));this.accountArea.append(label,out)}}
 }
 customElements.define("linkoteq-header",LinkoteqHeader);
