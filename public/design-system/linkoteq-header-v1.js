@@ -19,6 +19,7 @@ const aboutLinks = [
  ["Team Timesheet", "https://timesheet.linkoteq.com/"],
 ];
 const knowledgeLinks = [
+ ["News & Updates", accountOrigin + "/news"],
  ["Documentation", base + "/knowledge/documentation"],
  ["Structural Labeling", base + "/structural-labeling"],
  ["RegionKit", base + "/structural-labeling/regionkit"],
