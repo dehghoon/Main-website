@@ -47,12 +47,7 @@ export default async function ToolPreviewPage({ params }: Props) {
           <span className={styles.badge}>{tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}</span>
           <h1>{tool.name}</h1>
           <p>{tool.description}</p>
-          <ToolPreviewAnalytics key={tool.key} toolKey={tool.key} trialDays={tool.trialDays} />
-          <p className={styles.note}>
-            {tool.trialDays
-              ? "Create an account or sign in, accept the engineering disclaimer, and submit a request for approval."
-              : "Create an account or sign in, opt in to experimental tools, and submit a Beta request for approval."}
-          </p>
+          <ToolPreviewAnalytics key={tool.key} toolKey={tool.key} trialDays={tool.trialDays} url={tool.url} />
         </header>
         {tool.preview ? (
           <section className={styles.example} aria-labelledby="example-title">

@@ -40,8 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         {createElement("linkoteq-header", { "public-tool-previews": "" })}
-        <HeaderAuthBridge />
-        {children}
+        <HeaderAuthBridge>{children}</HeaderAuthBridge>
       </body>
     </html>
   );
