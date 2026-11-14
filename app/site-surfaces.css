@@ -1,0 +1,33 @@
+.heroActions .secondaryButton {
+  border-color: var(--line) !important;
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+}
+
+.heroActions .secondaryButton:hover {
+  background: var(--sage) !important;
+}
+
+:is(.blogPage, .publicArticle, .authShell) {
+  background: var(--paper);
+}
+
+:is(.blogCard, .articleShell, .authCard) {
+  border-color: var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--soft-shadow);
+}
+
+.blogHeader {
+  background: var(--surface);
+}
+
+:is(.blogHeader .authorLink, .authForm button) {
+  border-radius: 10px;
+  background: var(--ink);
+}
+
+.authCard input:not([type="checkbox"]):not([type="radio"]), .authCard textarea {
+  font-family: var(--font-body);
+}
