@@ -23,7 +23,7 @@
   background: var(--surface);
 }
 
-:is(.blogHeader .authorLink, .authForm button) {
+:is(.blogHeader .authorLink, :where(.authCard) .authForm button) {
   border-radius: 10px;
   background: var(--ink);
 }
