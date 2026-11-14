@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     {url:origin+"/",changeFrequency:"monthly",priority:1},
     {url:origin+"/blog",changeFrequency:"daily",priority:0.9},
+    {url:origin+"/news",changeFrequency:"weekly",priority:0.7},
     {url:origin+"/pricing",changeFrequency:"monthly",priority:0.5},
     {url:origin+"/tools",changeFrequency:"monthly",priority:0.8},
     ...PUBLIC_TOOLS.map(tool => ({url: origin + toolPreviewPath(tool), changeFrequency: "monthly" as const, priority: 0.7})),

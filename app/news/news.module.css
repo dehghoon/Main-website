@@ -1,0 +1,21 @@
+.shell {
+  max-width: 1260px;
+  min-height: 65vh;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 76px) clamp(18px, 5vw, 48px);
+}
+
+.intro { max-width: 690px; margin-bottom: 28px; }
+.intro h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -.04em; }
+.intro p { margin: 0; font-size: 1.2rem; line-height: 1.55; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+.card, .state { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.card { max-width: 540px; overflow: hidden; display: flex; flex-direction: column; }
+.image { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; background: var(--sage); }
+.copy { display: flex; flex: 1; flex-direction: column; padding: 20px; }
+.copy time { color: var(--muted); font-size: .95rem; }
+.copy h2 { margin: 8px 0; font-size: clamp(1.25rem, 2.5vw, 1.55rem); line-height: 1.25; overflow-wrap: anywhere; }
+.copy p { margin: 0 0 18px; color: var(--muted); line-height: 1.55; overflow-wrap: anywhere; }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: auto; }
+.links a { display: inline-flex; gap: 4px; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .18em; color: #124f94; font-weight: 650; }
+.state { padding: 18px 20px; color: var(--muted); }

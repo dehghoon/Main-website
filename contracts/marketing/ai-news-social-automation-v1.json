@@ -1,9 +1,9 @@
 {
   "contract_id": "linkoteq-ai-news-social-automation",
-  "version": "1.2.0",
-  "updated": "2026-11-12",
+  "version": "1.3.0",
+  "updated": "2026-11-14",
   "independent_from": "contracts/marketing/blog-automation-v1.json",
-  "purpose": "Independent AI news posts for official Linkoteq Facebook, Instagram and LinkedIn; never reuse blog publication workflow",
+  "purpose": "Independent AI news for official Linkoteq social channels and the News & Updates website feed, separate from the blog workflow",
   "source_policy": {
     "primary_sources_required": true,
     "real_company_and_date": true,
@@ -20,10 +20,10 @@
         "Fetch this exact contract from dehghoon/Main-website main before researching or writing",
         "Research timely AI news across AEC; check duplicate slugs and existing publications",
         "Create evidence-backed platform-specific English copy and an original 5-slide creative_brief in ai_news_social_assets",
-        "Write distinct pending publication records for facebook, instagram and linkedin only when safe idempotency and publisher guards are in place",
-        "Read back all rows; never directly duplicate worker publishing or claim success from pending records",
-        "For each new story use creative_brief_policy and image_engine v2; never use paid image-generation Edge Functions or blog hero reuse",
-        "Keep the five scene descriptions specific to the actual reported event; unsupported visual topics require an authored scene extension and explicit blocked status, not unrelated fallback"
+        "Prepare draft content and assets privately. Do not publish a website card, create a publication queue, or initiate a social write during the scheduled draft run",
+        "When the owner explicitly approves publication of a specific story, use website_syndication for the website and the existing owner-directed Windsor workflow for authorized social channels",
+        "Draft five scene descriptions specific to the reported event using creative_brief_policy. Image production remains manual and keeps the existing editorial quality standards",
+        "Read back authorized writes. Report website and each social platform independently and never infer publication from pending records"
       ]
     },
     "github_image_worker": {
@@ -88,10 +88,12 @@
     "Read contract on every GPT-8 run and GitHub run",
     "Five genuinely different topical visual scenes, not just five differently colored templates",
     "All 5 public square JPEGs and collage verified",
-    "Exactly 3 distinct platform records per new story, with correct media_urls",
+    "When the owner approves social publication, keep results independent per requested platform and verify the correct media and each external post ID",
     "No publishing until existing publisher quality checks pass",
     "Platform IDs verified before reporting published",
-    "Blog automation untouched"
+    "Blog automation untouched",
+    "The website lists only approved and published cards, with one card per asset",
+    "Verified platform permalinks are added to the same website card without resending social posts"
   ],
   "image_engine": {
     "id": "linkoteq-editorial-svg",
@@ -173,5 +175,30 @@
     "do_not_require_supabase_publisher_approval_for_owner_directed_windsor_publish": true,
     "prevent_duplicate_publications": true,
     "preserve_existing_published_records": true
+  },
+  "website_syndication": {
+    "route": "https://www.linkoteq.com/news",
+    "menu": "Knowledge Center > News & Updates",
+    "table": "public.ai_news_website_feed",
+    "enabled_for_new_stories": true,
+    "publish_only_after_owner_approval": true,
+    "same_story_approval_as_social": true,
+    "stable_key": "asset_id",
+    "fields": [
+      "asset_id",
+      "slug",
+      "title",
+      "summary",
+      "source_url",
+      "image_url",
+      "image_alt",
+      "social_links",
+      "published_at"
+    ],
+    "write_access": "Authorized Supabase connection only. Public Data API can read public fields of already-published cards.",
+    "first_publication": "After explicit owner publication instruction for this story, read the matching private asset, verify the English title and summary, original HTTPS source and approved topic-specific cover JPEG. Check actual JPEG bytes and public HTTPS reachability. Use one publicly reachable image on Linkoteq /marketing/ or the public blog-media bucket. Insert one card keyed by the existing asset_id and preserve its slug and original website publication time on future updates. An empty social_links object is valid if no platform publication is verified yet. An insert retry must use ON CONFLICT (asset_id) DO NOTHING and read back the existing card.",
+    "social_links": "Add links only for platforms whose exact post ID and public permalink were confirmed through the platform or a trusted connector. Update only those platform keys on the same card, preserving previously verified links. Retain the existing social deduplication rules and never repost just to populate a card. Merge verified keys atomically with social_links = social_links || <verified platform object> in one update.",
+    "readback": "Read back the saved card and verify the live website link at /news#<slug>. Report website and each social channel independently. If write or live verification fails, state the blocker and whether a write already happened so retry can safely reconcile.",
+    "scope": "Future approved AI-news stories only. No automatic backfill, no scheduled public writes, no changes to blog publishing, media generation or account permissions."
   }
 }
