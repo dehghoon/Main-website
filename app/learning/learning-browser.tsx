@@ -1,0 +1,135 @@
+'use client';
+
+import { type MouseEvent, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { ArrowUpRight } from 'lucide-react';
+import {
+  filterLearningTopics,
+  levels,
+  publicFolderTree,
+  type LearningTopic,
+  type Level,
+  type PublicFolder,
+} from '@/lib/learning/catalog';
+import styles from './learning.module.css';
+
+type TopicId = LearningTopic['id'];
+
+function FolderList({
+  folders,
+  onTopicClick,
+}: {
+  folders: readonly PublicFolder[];
+  onTopicClick: (event: MouseEvent<HTMLAnchorElement>, id: TopicId) => void;
+}) {
+  return (
+    <ul className={styles.tree}>
+      {folders.map((folder) => (
+        <li key={folder.label}>
+          <details className={styles.folder}>
+            <summary>{folder.label}</summary>
+            <div className={styles.folderContents}>
+              {'children' in folder ? (
+                <FolderList folders={folder.children} onTopicClick={onTopicClick} />
+              ) : (
+                <a href={`#${folder.topic}`} onClick={(event) => onTopicClick(event, folder.topic)}>
+                  {folder.linkLabel}
+                </a>
+              )}
+            </div>
+          </details>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function LearningBrowser() {
+  const [query, setQuery] = useState('');
+  const [level, setLevel] = useState<Level | ''>('');
+  const filtered = filterLearningTopics(query, level);
+
+  function resetFilters() {
+    setQuery('');
+    setLevel('');
+  }
+
+  function navigateToTopic(event: MouseEvent<HTMLAnchorElement>, id: TopicId) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    // Restore a filtered-out target before the browser follows its fragment link.
+    if (!filtered.some((topic) => topic.id === id)) flushSync(resetFilters);
+    document.getElementById(id)?.focus({ preventScroll: true });
+  }
+
+  return (
+    <>
+      <section className={styles.section} aria-labelledby="topics">
+        <h2 id="topics" tabIndex={-1}>Browse by Topic</h2>
+        <div className={styles.controls} role="search" aria-label="Learning topic filters">
+          <div>
+            <label htmlFor="learning-search">Search topics and software</label>
+            <input
+              id="learning-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Try ETABS, diaphragm or Revit"
+            />
+          </div>
+          <div>
+            <label htmlFor="learning-level">Difficulty</label>
+            <select
+              id="learning-level"
+              value={level}
+              onChange={(event) => {
+                const selected = event.target.value;
+                setLevel(levels.find((option) => option === selected) ?? '');
+              }}
+            >
+              <option value="">All levels</option>
+              {levels.map((option) => <option key={option}>{option}</option>)}
+            </select>
+          </div>
+          <button type="button" className={styles.reset} onClick={resetFilters}>Reset Filters</button>
+        </div>
+        <p className={styles.count} role="status" aria-live="polite" aria-atomic="true">
+          {filtered.length} {filtered.length === 1 ? 'topic' : 'topics'} shown
+          {filtered.length === 0 && '. Try another search term or difficulty.'}
+        </p>
+        <div className={styles.grid}>
+          {filtered.map((topic) => (
+            <article
+              className={styles.card}
+              id={topic.id}
+              key={topic.id}
+              tabIndex={-1}
+              aria-labelledby={`${topic.id}-title`}
+            >
+              <span className={styles.level}>{topic.level}</span>
+              <h3 id={`${topic.id}-title`}>{topic.title}</h3>
+              <p>{topic.summary}</p>
+              <ul>{topic.subtopics.map((item) => <li key={item}>{item}</li>)}</ul>
+              <div className={styles.references}>
+                <h4>Official references</h4>
+                {topic.references.map(({ title, url }) => (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                    {title}
+                    <ArrowUpRight size={15} aria-hidden="true" />
+                    <span className={styles.srOnly}> (opens in a new tab)</span>
+                  </a>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="folders">
+        <h2 id="folders" tabIndex={-1}>Browse by Folder</h2>
+        <p className={styles.lead}>Expand a folder to find its related learning topics.</p>
+        <FolderList folders={publicFolderTree} onTopicClick={navigateToTopic} />
+      </section>
+    </>
+  );
+}
