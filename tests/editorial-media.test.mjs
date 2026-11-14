@@ -56,7 +56,13 @@ test('publication contracts and worker boundaries remain intact',async()=>{
  const blog=JSON.parse(await readFile('contracts/marketing/blog-automation-v1.json'));
  const news=JSON.parse(await readFile('contracts/marketing/ai-news-social-automation-v1.json'));
  assert.equal(blog.roles.publisher.automation_may_publish,false);
- assert.equal(news.permissions.instagram_auto_publish,true);assert.equal(news.permissions.linkedin_ai_news_auto_publish,true);
+ for(const channel of ['facebook_auto_publish','instagram_auto_publish','linkedin_ai_news_auto_publish']){
+  assert.equal(news.permissions[channel],false);
+ }
+ assert.equal(news.manual_creative_workflow.publication_requires_explicit_owner_instruction,true);
+ assert.equal(news.website_syndication.publish_only_after_owner_approval,true);
+ assert.equal(news.website_syndication.same_story_approval_as_social,true);
+ assert.equal(news.website_syndication.stable_key,'asset_id');
  const worker=await readFile('scripts/prepare-ai-news-social-images.mjs','utf8');
  assert.match(worker,/image_status=eq.pending&image_url=is.null/);assert.match(worker,/status=eq.pending/);
  assert.ok(worker.indexOf('const plans=planCarousel(a)')<worker.indexOf('/storage/v1/object/blog-media/'));
@@ -74,12 +80,13 @@ test('contracts pin the real renderer catalog, dimensions, narrative shots and f
  const {validateEditorialImagePolicy}=await import('../scripts/validate-editorial-image-policy.mjs');
  for(const [kind,path] of [['blog','blog'],['news','ai-news-social']]){
   const c=JSON.parse(await readFile(`contracts/marketing/${path}-automation-v1.json`));
-  assert.equal(c.version,'1.1.0');validateEditorialImagePolicy(c,kind);
+  assert.match(c.version,/^1\.\d+\.\d+$/);validateEditorialImagePolicy(c,kind);
   for(const change of [x=>x.image_engine.version=1,x=>x.image_engine.no_paid_image_api=false,x=>x.image_engine.supported_subjects.pop(),x=>x.image_engine.preserve_historical_assets=false]){
    const broken=structuredClone(c);change(broken);assert.throws(()=>validateEditorialImagePolicy(broken,kind),/EDITORIAL IMAGE POLICY/);
   }
   const yml=await readFile(c.workflow.file,'utf8');
-  assert.ok(yml.includes('scripts/editorial-vector-scenes.mjs'));assert.ok(yml.includes('scripts/editorial-media.mjs'));
-  assert.ok(yml.indexOf('run: npm run test:editorial')<yml.indexOf('SUPABASE_SERVICE_ROLE_KEY:'));
+  assert.match(yml,/if:\s*\$\{\{ false \}\}/);
+  assert.doesNotMatch(yml,/SUPABASE_SERVICE_ROLE_KEY:|WINDSOR_API_KEY:/);
+  assert.doesNotMatch(yml,/^\s*schedule:/m);
  }
 });
