@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import HeaderAuthBridge from "./components/header-auth-bridge";
+import { headerAccountPath } from "@/lib/header-account";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./brand-extra.css";
@@ -21,13 +22,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script defer src="/design-system/linkoteq-header-v1.js" />
         {/* Google tag (gtag.js) — shared by all website pages. */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-P8NR3ZWDSQ" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-P8NR3ZWDSQ');`,
+            __html: `if (window.location.pathname !== ${JSON.stringify(headerAccountPath)}) {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', 'G-P8NR3ZWDSQ');
+  const tag = document.createElement('script');
+  tag.async = true;
+  tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-P8NR3ZWDSQ';
+  document.head.appendChild(tag);
+}`,
           }}
         />
       </head>
