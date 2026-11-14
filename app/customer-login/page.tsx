@@ -7,6 +7,7 @@ import { trackToolFunnel } from "@/lib/tool-funnel-analytics";
 import { FormEvent, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabase-browser";
+import { signOutHeaderAccount } from "@/lib/header-account";
 
 const pendingSignupKey = "linkoteq.tool-signup";
 
@@ -250,8 +251,7 @@ export default function ClientWorkspacePage() {
   }
 
   async function signOut() {
-    await supabaseClient()?.auth.signOut();
-    setUserId(null); setAccessLoaded(false); setPendingRequests([]); setBetaChoice(null); setMessage("Signed out.");
+    setMessage(await signOutHeaderAccount() ? "Signed out." : "Sign-out could not be completed. Please try again.");
   }
 
   return <main className="authShell"><section className="authCard">

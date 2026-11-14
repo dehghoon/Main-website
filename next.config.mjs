@@ -1,5 +1,14 @@
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  async headers() {
+    return [{
+      source: "/account/header-session",
+      headers: [{
+        key: "Content-Security-Policy",
+        value: "frame-ancestors https://snow.linkoteq.com https://wsection.linkoteq.com https://3dmodel.linkoteq.com",
+      }],
+    }];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.alias = {
