@@ -33,12 +33,12 @@
   margin-top: 24px;
   padding: 0 18px;
   border-radius: 10px;
-  background: var(--accent);
+  background: var(--primary-action);
   color: white;
   font-weight: 700;
 }
 
-.modelEngineLink:hover { background: var(--accent-hover); }
+.modelEngineLink:hover { background: var(--primary-action-hover); }
 
 .modelEnginePreview {
   position: relative;

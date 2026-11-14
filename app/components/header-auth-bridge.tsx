@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { headerAccountPath, signOutHeaderAccount, subscribeHeaderAccount } from "@/lib/header-account";
 
-export default function HeaderAuthBridge() {
+const InternalToolsContext = createContext(false);
+
+export function useInternalToolsAccess() {
+  return useContext(InternalToolsContext);
+}
+
+export default function HeaderAuthBridge({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [error, setError] = useState(false);
+  const [internalTools, setInternalTools] = useState(false);
 
   useEffect(() => {
     if (window.location.pathname === headerAccountPath) return;
@@ -14,6 +21,7 @@ export default function HeaderAuthBridge() {
     if (!header) return;
 
     const unsubscribe = subscribeHeaderAccount(({ name, internalTools }) => {
+      setInternalTools(internalTools);
       header.toggleAttribute("internal-tools", internalTools);
       if (name) header.setAttribute("account-name", name);
       else header.removeAttribute("account-name");
@@ -36,5 +44,10 @@ export default function HeaderAuthBridge() {
     };
   }, [router]);
 
-  return error ? <p role="alert">Sign-out could not be completed. Please try again.</p> : null;
+  return (
+    <InternalToolsContext.Provider value={internalTools}>
+      {error && <p role="alert">Sign-out could not be completed. Please try again.</p>}
+      {children}
+    </InternalToolsContext.Provider>
+  );
 }

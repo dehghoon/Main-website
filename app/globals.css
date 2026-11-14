@@ -24,7 +24,8 @@
   --sage: #e8eee5;
   --line: #d5dbcf;
   --accent: #a64733;
-  --accent-hover: #873624;
+  --primary-action: #1765bb;
+  --primary-action-hover: #124f94;
   --mint: #c3d8c8;
   --blue: #376751;
   --muted: #4d6257;
@@ -109,8 +110,8 @@ main { overflow: visible; }
 .hero p { max-width:700px; margin:0; color:var(--muted); font-size:clamp(18px,2vw,22px); line-height:1.65; }
 .heroActions { display:flex; flex-wrap:wrap; gap:14px; margin-top:34px; }
 .primaryButton,.secondaryButton { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 22px; border-radius:10px; font-weight:700; text-align:center; }
-.primaryButton { color:white; background:var(--accent); }
-.primaryButton:hover { background:var(--accent-hover); }
+.primaryButton { color:white; background:var(--primary-action); }
+.primaryButton:hover { background:var(--primary-action-hover); }
 .secondaryButton { border:1px solid var(--line); background:var(--surface); }
 .heroMetrics { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:52px; }
 .heroMetrics div { padding-top:18px; border-top:1px solid var(--line); }
