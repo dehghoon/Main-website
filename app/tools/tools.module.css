@@ -1,0 +1,141 @@
+.shell {
+  max-width: 1150px;
+  min-height: 70vh;
+  margin: 0 auto;
+  padding: clamp(30px, 6vw, 80px) clamp(18px, 4vw, 40px);
+}
+
+.back {
+  color: #155d80;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.previewLayout {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 6vw, 68px);
+  align-items: center;
+  margin-top: 30px;
+}
+
+.intro h1 {
+  margin: .3em 0 .2em;
+  font-size: clamp(2.2rem, 5.5vw, 4.25rem);
+  line-height: 1.07;
+  letter-spacing: -.045em;
+}
+
+.intro p {
+  margin: 14px 0 20px;
+  max-width: 52ch;
+  line-height: 1.55;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 11px;
+  color: #175e6c;
+  background: #e3f2f3;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.example, .model, .card {
+  padding: clamp(18px, 3.5vw, 32px);
+  border: 1px solid #d8e4ec;
+  border-radius: 20px;
+  background: white;
+}
+
+.example h2, .card h2 {
+  margin: .45em 0 .65em;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+}
+
+.example h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.inputs {
+  margin: 8px 0 14px;
+}
+
+.inputs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2eaf0;
+}
+
+.inputs dd, .result dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+
+.inputs dd {
+  text-align: right;
+}
+
+.result {
+  margin: 0;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: #edf6fa;
+}
+
+.result dd {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.note, .model figcaption {
+  color: #405d70;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.model {
+  margin: 0;
+  padding: 10px;
+}
+
+.model img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.model figcaption {
+  padding: 8px 5px 3px;
+}
+
+.warning {
+  padding: 14px 18px;
+  border: 1px solid #dec78c;
+  border-radius: 12px;
+  margin: 24px 0 0;
+  background: #fff8e7;
+  color: #614a21;
+}
+
+.catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(245px, 100%), 1fr));
+  gap: 16px;
+  margin: 24px 0 32px;
+}
+
+.card p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .previewLayout { grid-template-columns: 1fr; }
+}

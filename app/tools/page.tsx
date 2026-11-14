@@ -1,17 +1,40 @@
-import { ENGINEERING_TOOLS } from "../../lib/tool-access/catalog";
+import type { Metadata } from "next";
+import { PUBLIC_TOOLS, SITE_ORIGIN, toolPreviewPath } from "@/lib/tool-discovery";
+import { ENGINEERING_TOOLS } from "@/lib/tool-access/catalog";
+import styles from "./tools.module.css";
+
+const title = "Structural Engineering Tools | Linkoteq";
+const description = "Explore sample outputs for Snow Load and W-Section and preview the 3D Structural Model Beta.";
+const canonical = `${SITE_ORIGIN}/tools`;
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical },
+  openGraph: { title, description, url: canonical, images: [`${SITE_ORIGIN}/tools/snow-load-preview.jpg`] },
+};
 
 export default function ToolsPage() {
- return <main style={{maxWidth:1100,margin:"0 auto",padding:"64px 24px 96px"}}>
-  <h1>Explore Linkoteq engineering tools</h1>
-  <p>Explore our engineering software before registering. Tool descriptions are public; calculations, editing, uploads and exports require verified sign-in and approved access. Starter, Pro and Company subscriptions are not yet active.</p>
-  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:20,marginTop:32}}>
-   {ENGINEERING_TOOLS.map(tool=><article key={tool.key} style={{border:"1px solid #d4dce5",borderRadius:16,padding:24,background:"white"}}>
-    <h2 style={{fontSize:22}}>{tool.name}</h2>
-    <p><strong>{tool.readiness==="released"?"30-day Trial by approval":"Beta — under development"}</strong></p>
-    <p>{tool.readiness==="released"?"Request a limited trial after accepting the engineering disclaimer.":"Evaluation access only. Features may be incomplete and results unverified."}</p>
-    <a href={"/tool-access?tool="+encodeURIComponent(tool.key)} style={{textDecoration:"underline",fontWeight:700}}>Explore and request access</a>
-   </article>)}
-  </div>
-  <p style={{marginTop:28}}>Registration does not grant automatic access. Owner approval is required for Trial and Beta.</p>
- </main>;
+  return (
+    <main className={styles.shell}>
+      <h1>Structural engineering tools</h1>
+      <p>See sample calculations and preview the 3D workspace before creating an account.</p>
+      <div className={styles.catalog}>
+        {PUBLIC_TOOLS.map(tool => (
+          <article className={styles.card} key={tool.key}>
+            <span className={styles.badge}>{tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}</span>
+            <h2>{tool.name}</h2>
+            <p>{tool.description}</p>
+            <a className={styles.back} href={toolPreviewPath(tool)}>
+              {tool.trialDays ? `See the ${tool.name} sample` : "Preview the 3D workspace"}
+            </a>
+          </article>
+        ))}
+      </div>
+      <section aria-labelledby="development-title">
+        <h2 id="development-title">In development</h2>
+        <p>{ENGINEERING_TOOLS.filter(tool => !tool.url).map(tool => tool.name).join(" and ")} are in development.</p>
+      </section>
+    </main>
+  );
 }

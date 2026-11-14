@@ -4,6 +4,8 @@ on:
     paths:
       - 'app/blog/**'
       - 'app/sitemap.ts'
+      - 'app/tools/**'
+      - 'lib/tool-discovery.ts'
       - 'app/robots.ts'
       - 'contracts/marketing/**'
       - 'scripts/validate-*contract.mjs'

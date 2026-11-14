@@ -32,7 +32,7 @@ gtag('config', 'G-P8NR3ZWDSQ');`,
         />
       </head>
       <body>
-        {createElement('linkoteq-header')}
+        {createElement("linkoteq-header", { "public-tool-previews": "" })}
         <HeaderAuthBridge />
         {children}
       </body>
