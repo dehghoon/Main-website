@@ -189,7 +189,7 @@
 .structural-labeling-shell .structural-annotation-workspace.is-focused {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 1260;
   width: 100% !important;
   height: 100dvh !important;
   max-width: none !important;
@@ -215,6 +215,16 @@
 @media (max-width: 640px) {
   .structural-labeling-shell .structural-annotation-toolbar {
     padding: 8px !important;
+  }
+  .structural-labeling-shell .structural-annotation-toolbar button,
+  .structural-labeling-shell .structural-annotation-toolbar label {
+    min-height: 44px;
+  }
+  .structural-labeling-shell .structural-annotation-toolbar button {
+    min-width: 44px;
+  }
+  .structural-labeling-shell .structural-annotation-workspace.is-focused .structural-annotation-toolbar {
+    position: relative !important;
   }
   .structural-labeling-shell .structural-annotation-viewport {
     height: clamp(320px, 55dvh, 650px) !important;

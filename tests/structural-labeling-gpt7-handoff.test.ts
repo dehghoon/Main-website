@@ -98,9 +98,12 @@ test("annotated preview uses explicit readable class badges and stored export pa
   );
 
   assert.match(renderer, /toUpperCase\(\)/);
-  assert.match(renderer, /fill-opacity="0\.96"/);
-  assert.match(renderer, /font-weight="700"/);
-  assert.match(previewServer, /readable-labels-v2/);
+  assert.match(renderer, /const FONT:Record<string,string\[\]>/);
+  assert.match(renderer, /glyphs\(label,bx\+pad,by\+pad,p\)/);
+  assert.match(previewServer, /ANNOTATED_PREVIEW_RENDERER_VERSION = "bitmap-labels-v4"/);
+  assert.match(previewServer, /renderer_version: ANNOTATED_PREVIEW_RENDERER_VERSION/);
+  assert.match(previewRoute, /renderer_version === ANNOTATED_PREVIEW_RENDERER_VERSION/);
+  assert.match(previewRoute, /renderer_version === "readable-labels-v2"/);
   assert.match(previewRoute, /gpt7_export_path/);
   assert.match(previewRoute, /exportPath/);
 });

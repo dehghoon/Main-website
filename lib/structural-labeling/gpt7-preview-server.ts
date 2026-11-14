@@ -1,5 +1,7 @@
 import { renderReadableAnnotatedPreviewPng } from "./gpt7-preview-renderer";
 
+export const ANNOTATED_PREVIEW_RENDERER_VERSION = "bitmap-labels-v4";
+
 type PreviewCommitInput = {
   candidateId: string;
   pageIndex: number;
@@ -121,7 +123,7 @@ export async function commitGpt7AnnotatedPreview(
       path: previewPath,
       mime_type: "image/png",
       purpose: "human-qa-only",
-      renderer_version: "bitmap-labels-v4",
+      renderer_version: ANNOTATED_PREVIEW_RENDERER_VERSION,
     },
   ];
 

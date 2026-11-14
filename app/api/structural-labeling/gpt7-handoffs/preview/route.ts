@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAuthenticatedUser } from "../../../../../lib/structural-labeling/server";
 import {
+  ANNOTATED_PREVIEW_RENDERER_VERSION,
   commitGpt7AnnotatedPreview,
   loadGpt7Image,
   renderAnnotatedPreviewPng,
@@ -91,7 +92,10 @@ function readablePreviewPath(manifest: Manifest, pageIndex: number): string | nu
   const item = manifest.preview_files.find((value) => {
     if (!value || typeof value !== "object") return false;
     const typed = value as { page_index?: unknown; renderer_version?: unknown };
-    return typed.page_index === pageIndex && typed.renderer_version === "readable-labels-v2";
+    return typed.page_index === pageIndex && (
+      typed.renderer_version === ANNOTATED_PREVIEW_RENDERER_VERSION ||
+      typed.renderer_version === "readable-labels-v2"
+    );
   });
 
   if (!item || typeof item !== "object") return null;

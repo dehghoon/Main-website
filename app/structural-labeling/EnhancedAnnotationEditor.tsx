@@ -10,7 +10,7 @@ import RotatedAnnotationOverlay from "./RotatedAnnotationOverlay";
 
 type C={id:string;page_index:number|null;workflow_state:string;transform_metadata:unknown};
 type R={annotations:Annotation[];transform_metadata:TransformMetadata;revision_no:number;revision_kind:string};
-type Tool="draw"|"select";
+type Tool="draw"|"select"|"pan";
 const clone=(a:Annotation[])=>a.map(x=>({...x,bbox:{...x.bbox},oriented_bbox:x.oriented_bbox?{...x.oriented_bbox}:undefined,flags:{...x.flags}}));
 function valid(v:unknown):v is TransformMetadata{
  if(!v||typeof v!=="object")return false;const x=v as Partial<TransformMetadata>;
@@ -22,8 +22,9 @@ export default function EnhancedAnnotationEditor({candidate,revisions,canEdit,on
  const latest=revisions.at(-1),ct=valid(candidate.transform_metadata)?candidate.transform_metadata:null,t=latest?.transform_metadata??ct;
  const [focused,setFocused]=useState(false),[a,setA]=useState<Annotation[]>(clone(latest?.annotations??[])),[hist,setHist]=useState<Annotation[][]>([]),[cls,setCls]=useState<LabelClass>("column"),[tool,setTool]=useState<Tool>("draw"),[rotate,setRotate]=useState(false),[selected,setSelected]=useState<string|null>(null),[line,setLine]=useState(3),[font,setFont]=useState(12),[zoom,setZoom]=useState(100),[start,setStart]=useState<Point2D|null>(null),[dragEnd,setDragEnd]=useState<Point2D|null>(null),[w,setW]=useState(0),[rotBase,setRotBase]=useState<Annotation[]|null>(null);
  const host=useRef<HTMLDivElement>(null);
- useEffect(()=>{setA(clone(latest?.annotations??[]));setHist([]);setSelected(null);setTool("draw");setRotate(false);setStart(null);setDragEnd(null)},[candidate.id,latest?.revision_no]);
- useEffect(()=>{const n=host.current;if(!n)return;const f=()=>setW(n.clientWidth);f();const o=new ResizeObserver(f);o.observe(n);return()=>o.disconnect()},[]);
+ const drawPointer = useRef<{id: number; start: Point2D} | null>(null);
+ useEffect(()=>{setA(clone(latest?.annotations??[]));setHist([]);setSelected(null);setTool("draw");setRotate(false);cancelDraw()},[candidate.id,latest?.revision_no]);
+ useEffect(()=>{const n=host.current;if(!n)return;const f=()=>setW(n.clientWidth);f();const o=new ResizeObserver(f);o.observe(n);return()=>o.disconnect()},[Boolean(t)]);
  useEffect(()=>{if(!focused)return;const onKey=(e:KeyboardEvent)=>{if(e.key==="Escape")setFocused(false)};window.addEventListener("keydown",onKey);return()=>window.removeEventListener("keydown",onKey)},[focused]);
  useEffect(()=>{if(!focused)return;const previous=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=previous}},[focused]);
  if(!t)return <p>Pixel-only or unvalidated source. Labeling is blocked until a reversible PDF-point transform is validated.</p>;
@@ -33,36 +34,116 @@ export default function EnhancedAnnotationEditor({candidate,revisions,canEdit,on
  const point=(e:PE<HTMLDivElement>)=>{const r=e.currentTarget.getBoundingClientRect();return{x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale}};
  const preview=start&&dragEnd?{left:Math.min(start.x,dragEnd.x)*scale,top:Math.min(start.y,dragEnd.y)*scale,width:Math.abs(dragEnd.x-start.x)*scale,height:Math.abs(dragEnd.y-start.y)*scale}:null;
  const sourcePoint=(e:PE<SVGSVGElement>)=>{const r=e.currentTarget.getBoundingClientRect();return applyAffine(t.raster_to_source_page_affine,{x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale})};
- const finish=(e:PE<HTMLDivElement>)=>{if(!canEdit||tool!=="draw"||!start)return;setDragEnd(null);const q=point(e),rb:PdfPointBBox={xmin:Math.min(start.x,q.x),ymin:Math.min(start.y,q.y),xmax:Math.max(start.x,q.x),ymax:Math.max(start.y,q.y)},bbox=rasterBBoxToSourcePage(rb,t),width=bbox.xmax-bbox.xmin,height=bbox.ymax-bbox.ymin;if(!(width>0&&height>0)){onMessage("Annotation box must have positive width and height.");setStart(null);return}const n:Annotation={annotation_id:crypto.randomUUID(),class:cls,bbox,annotation_spec_version:rotate?"v0.3":"v0.2",flags:{}};if(rotate)n.oriented_bbox={center_x:(bbox.xmin+bbox.xmax)/2,center_y:(bbox.ymin+bbox.ymax)/2,width,height,rotation_deg:0};commit([...a,n]);setStart(null)};
- const cancelDraw=()=>{setStart(null);setDragEnd(null)};
+ function cancelDraw() {
+  drawPointer.current = null;
+  setStart(null);
+  setDragEnd(null);
+ }
+
+ function beginDraw(event: PE<HTMLDivElement>) {
+  if (tool === "select" && event.target === event.currentTarget) setSelected(null);
+  if (!canEdit || tool !== "draw" || event.button !== 0 || drawPointer.current) return;
+  const start = point(event);
+  drawPointer.current = {id: event.pointerId, start};
+  event.currentTarget.setPointerCapture(event.pointerId);
+  setStart(start);
+  setDragEnd(start);
+ }
+
+ function finishDraw(event: PE<HTMLDivElement>) {
+  const pointer = drawPointer.current;
+  if (pointer?.id !== event.pointerId) return;
+  cancelDraw();
+  if (!canEdit || tool !== "draw" || !t) return;
+  const end = point(event);
+  const rb: PdfPointBBox = {
+   xmin: Math.min(pointer.start.x, end.x),
+   ymin: Math.min(pointer.start.y, end.y),
+   xmax: Math.max(pointer.start.x, end.x),
+   ymax: Math.max(pointer.start.y, end.y),
+  };
+  const bbox = rasterBBoxToSourcePage(rb, t);
+  const width = bbox.xmax - bbox.xmin;
+  const height = bbox.ymax - bbox.ymin;
+  if (!(width > 0 && height > 0)) {
+   onMessage("Annotation box must have positive width and height.");
+   return;
+  }
+  const annotation: Annotation = {
+   annotation_id: crypto.randomUUID(),
+   class: cls,
+   bbox,
+   annotation_spec_version: rotate ? "v0.3" : "v0.2",
+   flags: {},
+  };
+  if (rotate) annotation.oriented_bbox = {
+   center_x: (bbox.xmin + bbox.xmax) / 2,
+   center_y: (bbox.ymin + bbox.ymax) / 2,
+   width,
+   height,
+   rotation_deg: 0,
+  };
+  commit([...a, annotation]);
+ }
+
+ function cancelPointer(event: PE<HTMLDivElement>) {
+  if (drawPointer.current?.id === event.pointerId) cancelDraw();
+ }
  const del=()=>{if(canEdit&&selected){commit(a.filter(x=>x.annotation_id!==selected));setSelected(null)}};
  const beginRotate=(e:PE<SVGCircleElement>,id:string)=>{if(!canEdit||!rotate)return;e.preventDefault();e.stopPropagation();setSelected(id);setRotBase(clone(a));e.currentTarget.setPointerCapture(e.pointerId)};
  const moveRotate=(e:PE<SVGSVGElement>)=>{if(!rotBase||!selected||!rotate)return;const cur=a.find(x=>x.annotation_id===selected);if(!cur)return;const base=obb(cur),p=sourcePoint(e),angle=Math.atan2(p.y-base.center_y,p.x-base.center_x)*180/Math.PI,next:OrientedBBox={...base,rotation_deg:normalizeRotationDeg(angle+90)},bbox=bboxFromOrientedBBox(next);if(validateOrientedBBox(next,bbox,t.effective_page_width_pt,t.effective_page_height_pt).length)return;setA(items=>items.map(x=>x.annotation_id===selected?{...x,bbox,oriented_bbox:next,annotation_spec_version:"v0.3"}:x))};
  const endRotate=(e:PE<SVGSVGElement>)=>{if(!rotBase)return;e.preventDefault();setHist(h=>[...h,clone(rotBase)].slice(-100));setRotBase(null)};
+ const isDrawing = canEdit && tool === "draw";
+ const canSelect = tool === "select" || (tool === "draw" && rotate);
  const save=async()=>{try{validateRoundTrip(t,.01);assertAnnotationsValid(a,t);await labelingApi("/api/structural-labeling/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({candidateId:candidate.id,action:"save-revision",annotations:a,transform:t})});onMessage("Annotation revision saved.");onSaved()}catch(e){onMessage(e instanceof Error?e.message:"Save failed")}};
 
  return <section className={`structural-annotation-workspace${focused?" is-focused":""}`} style={{width:"100%",background:"#fff"}}>
   <div className="structural-annotation-toolbar" style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",padding:"10px 0",position:"sticky",top:0,zIndex:20,background:"#fff"}}>
-   <button type="button" className="structural-focus-toggle" onClick={()=>setFocused(v=>!v)} aria-pressed={focused}>{focused?"Exit focus (Esc)":"Focus workspace"}</button>
+   <button type="button" className="structural-focus-toggle" onClick={()=>setFocused(v=>!v)} aria-pressed={focused}>{focused?"Exit focus":"Focus workspace"}</button>
+   <button type="button" aria-pressed={tool === "pan"} onClick={() => {cancelDraw();setTool("pan")}}>Pan</button>
    <strong>Label:</strong>
-   {LABEL_CLASSES.map(x=><button key={x} disabled={!canEdit} aria-pressed={tool==="draw"&&cls===x} onClick={()=>{setCls(x);setTool("draw");setSelected(null)}}>{x}</button>)}
+   {LABEL_CLASSES.map(x=><button key={x} disabled={!canEdit} aria-pressed={tool==="draw"&&cls===x} onClick={()=>{cancelDraw();setCls(x);setTool("draw");setSelected(null)}}>{x}</button>)}
    <label style={{display:"inline-flex",gap:6,alignItems:"center",padding:"4px 7px",border:"1px solid #94a3b8",borderRadius:6}}>
     <input type="checkbox" checked={rotate} disabled={!canEdit} onChange={e=>{const v=e.target.checked;setRotate(v);cancelDraw();if(v)setTool("select")}}/>Rotate box
    </label>
    <button disabled={!canEdit} aria-pressed={tool==="select"} onClick={()=>{setTool(tool==="select"?"draw":"select");cancelDraw()}}>{tool==="select"?"Exit select":"Select"}</button>
    <button disabled={!canEdit||!selected} onClick={del}>Delete selected</button>
-   <label>Box line <input type="range" min={1} max={8} value={line} onChange={e=>setLine(+e.target.value)}/>{line}px</label>
-   <label>Label font <input type="range" min={8} max={24} value={font} onChange={e=>setFont(+e.target.value)}/>{font}px</label>
-   <button onClick={()=>setZoom(z=>Math.max(10,z-10))}>−</button><input aria-label="Zoom percentage" type="range" min={10} max={500} step={10} value={zoom} onChange={e=>setZoom(+e.target.value)}/><strong>{zoom}%</strong><button onClick={()=>setZoom(z=>Math.min(500,z+10))}>+</button>
+   <label title="Display only">Box line <input type="range" min={1} max={8} value={line} onChange={e=>setLine(+e.target.value)}/>{line}px</label>
+   <label title="Display only">Label font <input type="range" min={8} max={24} value={font} onChange={e=>setFont(+e.target.value)}/>{font}px</label>
+   <button type="button" aria-label="Zoom out" onClick={()=>setZoom(z=>Math.max(10,z-10))}>−</button><input aria-label="Zoom percentage" type="range" min={10} max={500} step={10} value={zoom} onChange={e=>setZoom(+e.target.value)}/><strong>{zoom}%</strong><button type="button" aria-label="Zoom in" onClick={()=>setZoom(z=>Math.min(500,z+10))}>+</button>
    <button disabled={!canEdit||!hist.length} onClick={undo}>Undo</button>{canEdit&&<button onClick={()=>void save()}>Save revision</button>}
   </div>
-  <p>{rotate?"Rotation enabled: select a label box and drag its circular rotation handle.":tool==="select"?"Select mode: click a label box, then delete it if needed.":"Draw mode: choose a class and drag a box."} Line width and font size are display-only.</p>
+  <p>{tool === "pan" || !canEdit
+   ? "Swipe or scroll to move around the drawing. Use the zoom controls to change the scale."
+   : rotate
+    ? "Select a label box and drag its circular rotation handle."
+    : tool === "select"
+     ? "Tap or click a label box to select it."
+     : "Choose a label and drag a box. Choose Pan to move around the drawing."}</p>
   <div ref={host} className="structural-annotation-viewport" style={{width:"100%",height:"72vh",minHeight:520,overflow:"auto",border:"1px solid #94a3b8",background:"#e2e8f0"}}>
-   <div onPointerDown={e=>{if(canEdit&&tool==="draw"){const p=point(e);setStart(p);setDragEnd(p);e.currentTarget.setPointerCapture(e.pointerId)}else if(tool==="select"&&e.target===e.currentTarget)setSelected(null)}} onPointerMove={e=>{if(start&&tool==="draw")setDragEnd(point(e))}} onPointerUp={e=>{finish(e);if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId)}} onPointerCancel={cancelDraw} style={{position:"relative",width:dw,height:dh,margin:"0 auto",background:"#fff",touchAction:"none",cursor:tool==="draw"?"crosshair":"default"}}>
+   <div
+    className="structural-annotation-surface"
+    onPointerDown={beginDraw}
+    onPointerMove={event => {
+     if (drawPointer.current?.id === event.pointerId) setDragEnd(point(event));
+    }}
+    onPointerUp={finishDraw}
+    onPointerCancel={cancelPointer}
+    onLostPointerCapture={cancelPointer}
+    style={{
+     position: "relative",
+     width: dw,
+     height: dh,
+     margin: "0 auto",
+     background: "#fff",
+     touchAction: isDrawing ? "none" : "auto",
+     cursor: isDrawing ? "crosshair" : "default",
+    }}
+   >
     <PrivateSourceCanvas candidateId={candidate.id} pageIndex={candidate.page_index} transform={t} displayWidth={dw} displayHeight={dh} onError={onMessage}/>
     {preview&&<div aria-hidden="true" style={{position:"absolute",left:preview.left,top:preview.top,width:preview.width,height:preview.height,border:"2px dashed #2563eb",background:"rgba(37,99,235,0.12)",boxSizing:"border-box",pointerEvents:"none",zIndex:2}}/>}
-    <svg width={dw} height={dh} viewBox={`0 0 ${dw} ${dh}`} onPointerMove={moveRotate} onPointerUp={endRotate} onPointerCancel={endRotate} style={{position:"absolute",inset:0,overflow:"visible",pointerEvents:tool==="select"||rotate?"auto":"none"}}>
-     {a.map(x=><RotatedAnnotationOverlay key={x.annotation_id} annotation={x} transform={t} scale={scale} lineWidth={line} fontSize={font} selected={selected===x.annotation_id} interactive={tool==="select"||rotate} rotationEnabled={rotate} onSelect={()=>setSelected(x.annotation_id)} onBeginRotate={e=>beginRotate(e,x.annotation_id)}/>)}
+    <svg width={dw} height={dh} viewBox={`0 0 ${dw} ${dh}`} onPointerMove={moveRotate} onPointerUp={endRotate} onPointerCancel={endRotate} style={{position:"absolute",inset:0,overflow:"visible",pointerEvents:canSelect?"auto":"none"}}>
+     {a.map(x=><RotatedAnnotationOverlay key={x.annotation_id} annotation={x} transform={t} scale={scale} lineWidth={line} fontSize={font} selected={selected===x.annotation_id} interactive={canSelect} rotationEnabled={canEdit && canSelect && rotate} onSelect={()=>setSelected(x.annotation_id)} onBeginRotate={e=>beginRotate(e,x.annotation_id)}/>)}
     </svg>
    </div>
   </div>

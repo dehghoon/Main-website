@@ -130,7 +130,7 @@ export default function RotatedAnnotationOverlay({
             fill="#fff"
             stroke="#111827"
             strokeWidth={2}
-            style={{ cursor: "grab" }}
+            style={{ cursor: "grab", touchAction: "none" }}
             onPointerDown={onBeginRotate}
           />
         </>

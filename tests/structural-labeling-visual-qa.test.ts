@@ -18,21 +18,27 @@ test("RegionKit remains an external handoff and visual QA stays in LinkoTech", (
 });
 
 test("visual QA reuses the existing private-source overlay editor", () => {
-  const editor = source("app/structural-labeling/AnnotationEditor.tsx");
+  const shell = source("app/structural-labeling/AnnotationEditor.tsx");
+  const editor = source("app/structural-labeling/EnhancedAnnotationEditor.tsx");
+  const drawing = source("app/structural-labeling/PrivateSourceCanvas.tsx");
+  const overlay = source("app/structural-labeling/RotatedAnnotationOverlay.tsx");
   const workspace = source("app/structural-labeling/StructuralLabelingWorkspace.tsx");
 
-  assert.match(editor, /\/api\/structural-labeling\/source\/\$\{candidate\.id\}/);
+  assert.match(shell, /<EnhancedAnnotationEditor \{\.\.\.props\}/);
+  assert.match(editor, /<PrivateSourceCanvas candidateId=\{candidate.id\}/);
+  assert.match(drawing, /\/api\/structural-labeling\/source\/\$\{candidateId\}/);
+  assert.match(drawing, /Authorization: `Bearer \$\{token\}`/);
   assert.match(editor, /validateRoundTrip/);
-  assert.match(editor, /transform_validation_state!==?"validated"|transform_validation_state!=="validated"/);
-  assert.match(editor, /source_page_to_raster_affine/);
+  assert.match(editor, /transform_validation_state\s*===\s*"validated"/);
+  assert.match(overlay, /source_page_to_raster_affine/);
   assert.match(editor, /LABEL_CLASSES\.map/);
-  assert.match(editor, /annotations\.map/);
+  assert.match(editor, /a\.map\(x=><RotatedAnnotationOverlay/);
 
-  assert.match(workspace, /Submit for Owner QA/);
+  assert.match(workspace, /Submit saved labels for Owner QA/);
   assert.match(workspace, /Owner QA/);
   assert.match(workspace, /Revision Required/);
   assert.match(workspace, /reason\.trim\(\)/);
-  assert.match(workspace, /Pending GPT-7 Admission/);
+  assert.match(workspace, /busy \|\| savedLabelCount === 0/);
 });
 
 test("visual QA workflow preserves the approved labeling classes and authority boundary", () => {
@@ -53,5 +59,8 @@ test("RegionKit labeling page exposes the existing authenticated upload path for
   assert.match(uploadPanel, /labeling\.upload/);
   assert.match(uploadPanel, /Upload and Create Candidates/);
   assert.match(uploadRoute, /projectGroupId/);
-  assert.match(uploadRoute, /labeling\.upload/);
+  assert.match(uploadRoute, /requireAuthenticatedUser/);
+  assert.match(uploadRoute, /"labeling_create_source_candidates"/);
+  const uploadRpc = source("supabase/migrations/20261004000700_structural_labeling_milestone2_upload_batch.sql");
+  assert.match(uploadRpc, /labeling_require\('labeling\.upload','employee'\)/);
 });
