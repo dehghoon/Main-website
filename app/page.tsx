@@ -5,7 +5,7 @@ import {
   Snowflake, Sparkles, UsersRound, Wrench, BookOpen,
 } from "lucide-react";
 import ThreeDModelShowcase from "./components/three-d-model-showcase";
-import { engineeringTools } from "@/lib/engineering-tools";
+import { PUBLIC_TOOLS, toolPreviewPath } from "@/lib/tool-discovery";
 
 const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
 const TIMESHEET_URL = "https://timesheet.linkoteq.com/";
@@ -41,7 +41,7 @@ export default function Home() {
           <span className="eyebrow"><Sparkles size={16} /> Engineering Intelligence, Connected</span>
           <h1>Turn Engineering Information Into Decisions, Models, And Reusable Digital Workflows.</h1>
           <p>LinkoTech Is Building An AI-Enabled Engineering Platform That Connects Drawing Intelligence, Validated Calculation Engines, Interactive Applications, And Professional Reporting.</p>
-          <div className="heroActions"><a className="primaryButton" href="#3d-model">Create A 3D Structural Model <ArrowRight size={18} /></a><a className="secondaryButton" href="#tools">View Engineering Tools</a></div>
+          <div className="heroActions"><a className="primaryButton" href="#3d-model">Preview the 3D Structural Model <ArrowRight size={18} /></a><a className="secondaryButton" href="#tools">View Engineering Tools</a></div>
           <div className="heroMetrics"><div><strong>2D → 3D</strong><span>Drawing-To-Model Roadmap</span></div><div><strong>Reusable</strong><span>Shared Engineering Engines</span></div><div><strong>Traceable</strong><span>Checks, Ratios, References, Reports</span></div></div>
         </div>
         <div className="heroVisual heroImagePanel"><Image src="/engineering-hero.svg" alt="Engineering Building Model Transitioning From Wireframe To Physical Structure" fill sizes="(max-width: 980px) 100vw, 45vw" priority /></div>
@@ -54,13 +54,13 @@ export default function Home() {
       <section className="section toolsSection" id="tools">
         <div className="sectionIntro"><span className="eyebrow">Engineering Software</span><h2>Find the right tool for your workflow.</h2><p>Explore our structural engineering applications. Access is subject to each product's current Trial or Beta eligibility and verification status.</p></div>
         <div className="refreshToolGrid">
-          {engineeringTools.map((tool) => <article className="refreshToolCard" key={tool.id}>
-            <div className="refreshToolCardTop"><span className="refreshToolIcon" aria-hidden="true">{tool.id === "model" ? <Layers3 size={28} /> : tool.id === "wsection" ? <Building2 size={28} /> : <Snowflake size={28} />}</span><span className="refreshStatus">{tool.status}</span></div>
+          {PUBLIC_TOOLS.map((tool) => <article className="refreshToolCard" key={tool.key}>
+            <div className="refreshToolCardTop"><span className="refreshToolIcon" aria-hidden="true">{tool.key === "3d_model" ? <Layers3 size={28} /> : tool.key === "w_section" ? <Building2 size={28} /> : <Snowflake size={28} />}</span><span className="refreshStatus">{tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}</span></div>
             <h3>{tool.name}</h3><p>{tool.description}</p>
-            <a href={tool.href} className="refreshToolLink">Explore tool <ArrowRight size={17} /></a>
+            <a href={toolPreviewPath(tool)} className="refreshToolLink">Preview {tool.name} <ArrowRight size={17} /></a>
           </article>)}
         </div>
-        <p className="refreshDisclaimer">Tools are at different stages of validation and access. Beta features are not a substitute for independently verified professional engineering design.</p>
+        <p className="refreshDisclaimer"><a href="/tools">Browse all tools and see what’s in development</a></p>
       </section>
 
       <section className="vision" id="roadmap"><div><span className="eyebrow">Roadmap</span><h2>From Drawings To Engineering-Ready Digital Objects.</h2></div><p>LinkoTech’s Core Roadmap Is To Recognize Grids, Columns, Beams, Loads, And Relationships From 2D Engineering Documents, Then Assemble Structured 3D Models And Route Each Object Through Validated Engineering Tools.</p></section>

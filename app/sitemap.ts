@@ -1,13 +1,16 @@
 import type { MetadataRoute } from "next";
+import { PUBLIC_TOOLS, SITE_ORIGIN, toolPreviewPath } from "@/lib/tool-discovery";
 
 export const dynamic = "force-dynamic";
-const origin = "https://www.linkoteq.com";
+const origin = SITE_ORIGIN;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     {url:origin+"/",changeFrequency:"monthly",priority:1},
     {url:origin+"/blog",changeFrequency:"daily",priority:0.9},
     {url:origin+"/pricing",changeFrequency:"monthly",priority:0.5},
+    {url:origin+"/tools",changeFrequency:"monthly",priority:0.8},
+    ...PUBLIC_TOOLS.map(tool => ({url: origin + toolPreviewPath(tool), changeFrequency: "monthly" as const, priority: 0.7})),
   ];
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
