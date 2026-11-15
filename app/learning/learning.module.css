@@ -273,3 +273,18 @@
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
+
+.resourceGroup {
+  margin-top: 20px;
+}
+
+.resourceGroup > summary {
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.resourceGroup .resources {
+  margin-top: 6px;
+}

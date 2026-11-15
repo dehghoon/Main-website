@@ -5,7 +5,7 @@ import LearningBrowser from './learning-browser';
 import styles from './learning.module.css';
 
 const title = 'Structural Engineering Learning & Resources | Linkoteq';
-const description = 'Explore structural analysis and design loads, steel connections, concrete and anchorage, and BIM model exchange with official engineering resources.';
+const description = 'Explore 174 structural engineering resources on design loads, steel connections, concrete, anchorage and BIM workflows, with links to official guidance.';
 const canonical = `${SITE_ORIGIN}/learning`;
 
 export const metadata: Metadata = {

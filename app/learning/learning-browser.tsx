@@ -1,6 +1,6 @@
 'use client';
 
-import { type MouseEvent, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ArrowUpRight } from 'lucide-react';
 import {
@@ -33,16 +33,15 @@ function FolderList({
   return (
     <ul className={styles.tree}>
       {folders.map((folder) => (
-        <li key={folder.label}>
+        <li key={folder.resource ?? folder.topic}>
           <details className={styles.folder}>
             <summary>{folder.label}</summary>
             <div className={styles.folderContents}>
-              {'children' in folder ? (
+              <a href={`#${folder.resource ?? folder.topic}`} onClick={(event) => onTopicClick(event, folder.resource ?? folder.topic)}>
+                View {folder.label}
+              </a>
+              {folder.children && folder.children.length > 0 && (
                 <FolderList folders={folder.children} onTopicClick={onTopicClick} />
-              ) : (
-                <a href={`#${folder.resource ?? folder.topic}`} onClick={(event) => onTopicClick(event, folder.resource ?? folder.topic)}>
-                  {folder.linkLabel}
-                </a>
               )}
             </div>
           </details>
@@ -52,10 +51,31 @@ function FolderList({
   );
 }
 
+function revealResource(id: string) {
+  const target = document.getElementById(id);
+  const parent = target?.closest('details');
+  if (parent instanceof HTMLDetailsElement) parent.open = true;
+  return target;
+}
+
 export default function LearningBrowser() {
   const [query, setQuery] = useState('');
   const [level, setLevel] = useState<Level | ''>('');
   const filtered = filterLearningTopics(query, level);
+
+  const resourceCount = filtered.reduce((total, topic) => total + topic.resources.length, 0);
+
+  useEffect(() => {
+    function revealFragment() {
+      const id = window.location.hash.slice(1);
+      const target = revealResource(id);
+      if (target?.closest('details')) target.scrollIntoView();
+    }
+
+    revealFragment();
+    window.addEventListener('hashchange', revealFragment);
+    return () => window.removeEventListener('hashchange', revealFragment);
+  }, []);
 
   function resetFilters() {
     setQuery('');
@@ -67,7 +87,7 @@ export default function LearningBrowser() {
 
     // Restore a filtered-out target before the browser follows its fragment link.
     if (!filtered.some((topic) => topic.id === id || topic.resources.some((resource) => resource.id === id))) flushSync(resetFilters);
-    document.getElementById(id)?.focus({ preventScroll: true });
+    revealResource(id)?.focus({ preventScroll: true });
   }
 
   return (
@@ -102,7 +122,7 @@ export default function LearningBrowser() {
           <button type="button" className={styles.reset} onClick={resetFilters}>Reset Filters</button>
         </div>
         <p className={styles.count} role="status" aria-live="polite" aria-atomic="true">
-          {filtered.length} {filtered.length === 1 ? 'topic' : 'topics'} shown
+          {resourceCount} {resourceCount === 1 ? 'resource' : 'resources'} across {filtered.length} {filtered.length === 1 ? 'category' : 'categories'}
           {filtered.length === 0 && '. Try another search term or difficulty.'}
         </p>
         <div className={styles.grid}>
@@ -123,7 +143,9 @@ export default function LearningBrowser() {
                 <OfficialReferences references={topic.references} />
               </div>
               {topic.resources.length > 0 && (
-                <div className={styles.resources}>
+                <details className={styles.resourceGroup} open={query.trim() || level ? true : undefined}>
+                  <summary>Explore {topic.resources.length} {topic.resources.length === 1 ? 'resource' : 'resources'}</summary>
+                  <div className={styles.resources}>
                   {topic.resources.map((resource) => (
                     <section key={resource.id} id={resource.id} tabIndex={-1}
                       aria-labelledby={`${resource.id}-title`} className={styles.resource}>
@@ -136,7 +158,8 @@ export default function LearningBrowser() {
                       </div>
                     </section>
                   ))}
-                </div>
+                  </div>
+                </details>
               )}
             </article>
           ))}
