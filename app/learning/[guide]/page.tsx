@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { workbooks, workbookPath } from '@/lib/workbooks/catalog';
 import { learningRobots } from '@/lib/learning/seo';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import styles from '../learning.module.css';
@@ -37,6 +38,7 @@ export default async function GuidePage({ params }: Props) {
   const { guide } = await params;
   const entry = guides[guide];
   if (!entry) notFound();
+  const relatedWorkbooks = workbooks.filter(({ guides }) => guides.includes(guide));
 
   return (
     <main className={styles.page}>
@@ -98,6 +100,14 @@ export default async function GuidePage({ params }: Props) {
             ))}
           </ul>
         </section>
+        {relatedWorkbooks.length > 0 && (
+          <section aria-labelledby="related-workbooks">
+            <h2 id="related-workbooks">Related Calculation Workbooks</h2>
+            <ul>{relatedWorkbooks.map(({ id, title }) => (
+              <li key={id}><Link href={workbookPath(id)}>{title}</Link></li>
+            ))}</ul>
+          </section>
+        )}
         {entry.video && (
           <section aria-labelledby="video">
             <h2 id="video">Related Video</h2>

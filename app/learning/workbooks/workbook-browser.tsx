@@ -1,0 +1,45 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { filterWorkbooks, workbookCategories, workbookPath } from '@/lib/workbooks/catalog';
+import styles from './workbooks.module.css';
+
+export default function WorkbookBrowser() {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('');
+  const results = filterWorkbooks(query, category);
+
+  return (
+    <section className={styles.browser} aria-label="Browse calculation workbooks">
+      <div className={styles.controls} role="search" aria-label="Workbook filters">
+        <label>Search workbooks
+          <input type="search" value={query} placeholder="Try wind pressure, corbel or weld"
+            onChange={(event) => setQuery(event.target.value)} />
+        </label>
+        <label>Category
+          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+            <option value="">All categories</option>
+            {Object.entries(workbookCategories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </label>
+        <button type="button" className="secondaryButton" onClick={() => {
+          setQuery('');
+          setCategory('');
+        }}>Reset filters</button>
+      </div>
+      <p role="status">{results.length} {results.length === 1 ? 'workbook' : 'workbooks'} found
+        {results.length === 0 && '. Try another term or category.'}
+      </p>
+      <div className={styles.grid}>
+        {results.map((workbook) => (
+          <article className={styles.card} key={workbook.id}>
+            <span>{workbookCategories[workbook.category]}</span>
+            <h2><Link href={workbookPath(workbook.id)}>{workbook.title}</Link></h2>
+            <p>{workbook.summary}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
