@@ -1,11 +1,5 @@
-import type { Metadata } from 'next';
-import ResourcesWorkspace from './resources-workspace';
-
-export const metadata: Metadata = {
-  title: 'Resources Workspace | Linkoteq',
-  robots: { index: false, follow: false },
-};
+import { redirect } from 'next/navigation';
 
 export default function ResourcesWorkspacePage() {
-  return <ResourcesWorkspace />;
+  redirect('/learning#resources-workspace');
 }

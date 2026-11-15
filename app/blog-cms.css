@@ -60,3 +60,11 @@
   .cmsDashboard .wordToolbar > button { min-width: 44px; }
   .cmsDashboard .cmsHeading { flex-wrap: wrap; }
 }
+
+.learningWorkspace {
+  margin-top: 42px;
+  scroll-margin-top: 24px;
+}
+.learningWorkspace .dashboardTop h2 { margin: 0; }
+.learningWorkspace .cmsLayout { min-width: 0; }
+.learningWorkspace .authForm fieldset { border: 0; padding: 0; min-inline-size: 0; }

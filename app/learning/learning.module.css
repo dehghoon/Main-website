@@ -350,21 +350,6 @@
   white-space: pre-wrap;
 }
 
-.workspaceEntry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 42px;
-  padding: clamp(18px, 3vw, 28px);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--sage);
-}
-.workspaceEntry h2, .workspaceEntry p { margin: 0; }
-.workspaceEntry p { margin-top: 6px; color: var(--ink-soft); }
-
 @media (min-width: 960px) {
   .discoveryControls {
     grid-template-columns: minmax(205px, 2fr) minmax(170px, 1.25fr) minmax(110px, .75fr) auto auto;

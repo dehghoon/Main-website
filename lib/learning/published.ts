@@ -1,3 +1,6 @@
+import 'server-only';
+import { cache } from 'react';
+import { learningResourceId } from './seo';
 import { type LearningResource } from './catalog';
 import { articleFields, type LearningArticle, type LearningCategory, type LearningSubtopic } from './workspace-types';
 
@@ -52,8 +55,8 @@ export async function publishedLearningCards(): Promise<PublishedLearningCard[]>
   });
 }
 
-export async function publishedLearningArticle(id: string) {
-  if (!/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id)) return null;
+export const publishedLearningArticle = cache(async (id: string) => {
+  if (!learningResourceId.test(id)) return null;
   const [article] = await publicRows<LearningArticle>('learning_articles', {
     select: articleFields, id: `eq.${id}`, published_at: 'not.is.null', limit: '1',
   });
@@ -64,4 +67,20 @@ export async function publishedLearningArticle(id: string) {
     publicRows<LearningSubtopic>('learning_subtopics', { select: 'id,category_id,title', id: `eq.${article.subtopic_id}` }),
   ]);
   return { ...article, category: category?.title, subtopic: subtopic?.title };
+});
+
+export async function publishedLearningSitemapRows() {
+  const records: Array<{ id: string; published_at: string }> = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await publicRows<(typeof records)[number]>('learning_articles', {
+      select: 'id,published_at',
+      published_at: 'not.is.null',
+      order: 'id.asc',
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    records.push(...page.filter(({ id, published_at }) => learningResourceId.test(id) && Number.isFinite(Date.parse(published_at))));
+    if (page.length < pageSize) return records;
+  }
 }

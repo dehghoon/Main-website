@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { learningRobots } from '@/lib/learning/seo';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import styles from '../learning.module.css';
 import guide from './guide.module.css';
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical },
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  robots: learningRobots(),
   openGraph: { type: 'article', title, description, url: canonical },
 };
 
