@@ -319,3 +319,33 @@
   .discoveryControls { grid-template-columns: minmax(0, 1fr); }
   .discoveryControls .reset { justify-self: start; }
 }
+
+.quickSearches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 16px;
+}
+
+.quickSearches button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.quickSearches button:hover,
+.quickSearches button[aria-pressed='true'] {
+  background: var(--sage);
+}
+
+.articleBody {
+  margin: 32px auto 0;
+  max-width: 72ch;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

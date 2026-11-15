@@ -20,6 +20,7 @@ const aboutLinks = [
 ];
 const knowledgeLinks = [
  ["News & Updates", accountOrigin + "/news"],
+ ["Resources & Learning", base + "/learning"],
  ["Documentation", base + "/knowledge/documentation"],
  ["Structural Labeling", base + "/structural-labeling"],
  ["RegionKit", base + "/structural-labeling/regionkit"],
