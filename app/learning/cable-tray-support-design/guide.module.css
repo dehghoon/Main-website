@@ -1,0 +1,105 @@
+.article {
+  max-width: 58rem;
+  margin-inline: auto;
+}
+
+.article section {
+  margin-block: clamp(2rem, 5vw, 3.5rem);
+  scroll-margin-top: 1.5rem;
+  line-height: 1.65;
+}
+
+.article section h2 {
+  line-height: 1.2;
+}
+
+.article :is(section, footer) a,
+.contents a {
+  color: var(--primary-action-hover);
+  text-underline-offset: .18em;
+}
+
+.contents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.2rem;
+  margin-block: 1.25rem;
+}
+
+.figure {
+  margin: 1.5rem 0;
+}
+
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow li {
+  position: relative;
+  padding: .8rem;
+  border: 1px solid var(--line);
+  border-radius: .55rem;
+  background: var(--sage);
+}
+
+.flow li:not(:last-child)::after {
+  position: absolute;
+  inset-inline-end: -1.12rem;
+  inset-block-start: 50%;
+  width: .8rem;
+  height: .5rem;
+  background: var(--primary-action-hover);
+  clip-path: polygon(0 30%, 65% 30%, 65% 0, 100% 50%, 65% 100%, 65% 70%, 0 70%);
+  content: '';
+}
+
+.flow span {
+  display: block;
+}
+
+.figure figcaption {
+  margin-top: .75rem;
+  color: var(--muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.table caption {
+  text-align: start;
+  font-weight: 700;
+}
+
+.table :is(th, td) {
+  padding: .65rem;
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+}
+
+.result {
+  padding: .85rem;
+  background: var(--sage);
+  border-radius: .55rem;
+}
+
+@media (max-width: 680px) {
+  .flow {
+    grid-template-columns: 1fr;
+  }
+
+  .flow li:not(:last-child)::after {
+    inset-inline-end: auto;
+    inset-inline-start: 1.2rem;
+    inset-block-start: auto;
+    inset-block-end: -.95rem;
+    transform: rotate(90deg);
+  }
+}

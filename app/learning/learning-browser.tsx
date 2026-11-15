@@ -2,6 +2,7 @@
 
 import { type MouseEvent, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
+import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import {
   filterLearningTopics,
@@ -152,6 +153,9 @@ export default function LearningBrowser() {
                       <h4 id={`${resource.id}-title`}>{resource.title}</h4>
                       <span className={styles.level}>{resource.level}</span>
                       <p>{resource.summary}</p>
+                      {resource.id === 'cable-tray-and-support-systems' && (
+                        <p><Link href="/learning/cable-tray-support-design">Read the cable tray support design guide and worked example</Link></p>
+                      )}
                       <p><strong>Keywords:</strong> {resource.keywords.join(', ')}</p>
                       <div className={styles.references}>
                         <OfficialReferences references={resource.references} />
