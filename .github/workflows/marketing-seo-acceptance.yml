@@ -3,14 +3,17 @@ on:
   pull_request:
     paths:
       - 'app/blog/**'
+      - 'app/learning/**'
       - 'app/sitemap.ts'
       - 'app/tools/**'
       - 'lib/tool-discovery.ts'
+      - 'lib/learning/**'
       - 'app/robots.ts'
       - 'contracts/marketing/**'
       - 'scripts/validate-*contract.mjs'
       - 'scripts/validate-shared-marketing-policy.mjs'
       - 'tests/marketing-seo-contract.test.mjs'
+      - 'tests/learning-catalog.test.ts'
       - 'package.json'
   workflow_dispatch:
 permissions:
@@ -24,3 +27,4 @@ jobs:
         with:
           node-version: '22'
       - run: npm run test:marketing-seo
+      - run: node --experimental-strip-types --test tests/learning-catalog.test.ts
