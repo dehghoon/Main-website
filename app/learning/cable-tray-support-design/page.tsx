@@ -102,10 +102,10 @@ export default function CableTraySupportGuide() {
           </ul>
         </section>
 
-        <footer className={styles.notice}>
-          <p>For project design, confirm the applicable jurisdiction and code edition, manufacturer ratings and the capacity of the receiving structure.</p>
-          <Link href="/learning#analysis">Explore structural analysis and design loads</Link>
-        </footer>
+        <p className={styles.notice}>
+          Before selecting a support, check the project’s load requirements, the manufacturer’s ratings
+          for your layout, and the capacity of the beam, slab, or wall that carries it.
+        </p>
       </article>
     </main>
   );
