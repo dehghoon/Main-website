@@ -35,6 +35,14 @@ export default function LearningPage() {
         </nav>
       </header>
 
+      <section className={styles.section} aria-labelledby="worked-guides">
+        <h2 id="worked-guides">Worked Guides</h2>
+        <Link href="/learning/cable-tray-support-design" className="secondaryButton">
+          Cable Tray Support Design and Installation
+        </Link>
+        <p className={styles.lead}>Calculate a support reaction and follow the load into the supporting structure.</p>
+      </section>
+
       <LearningBrowser />
 
       <aside className={styles.notice}>
