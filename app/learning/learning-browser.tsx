@@ -5,6 +5,8 @@ import { type MouseEvent, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import {
   filterLearningTopics,
+  levels,
+  type Level,
   publicFolderTree,
   topicCategories,
   type PublicFolder,
@@ -44,15 +46,16 @@ export default function LearningBrowser({ published }: { published: PublishedLea
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [withGuide, setWithGuide] = useState(false);
+  const [level, setLevel] = useState<Level | ''>('');
   const categories: Record<string, string> = { ...topicCategories };
   for (const { category: title } of published) {
     if (!Object.values(categories).includes(title)) categories[`published:${title}`] = title;
   }
   const staticResults = category.startsWith('published:') ? []
-    : filterLearningTopics(query, category as TopicCategory | '', withGuide);
+    : filterLearningTopics(query, category as TopicCategory | '', withGuide, level);
   const searchTerms = query.toLowerCase().match(/[a-z0-9]+/g) ?? [];
   const publishedResults = published.filter((article) => {
-    if (withGuide || (category && article.category !== categories[category])) return false;
+    if ((level && article.level !== level) || withGuide || (category && article.category !== categories[category])) return false;
     const searchable = [article.title, article.summary, article.category, article.subtopic, ...article.keywords]
       .join(' ').toLowerCase();
     return searchTerms.every((term) => searchable.includes(term));
@@ -66,6 +69,7 @@ export default function LearningBrowser({ published }: { published: PublishedLea
     setQuery('');
     setCategory('');
     setWithGuide(false);
+    setLevel('');
   }
 
   useEffect(() => {
@@ -95,6 +99,15 @@ export default function LearningBrowser({ published }: { published: PublishedLea
             <select id="learning-category" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="">All topics</option>
               {Object.entries(categories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="learning-difficulty">Difficulty</label>
+            <select id="learning-difficulty" value={level} onChange={(event) => {
+              setLevel(levels.find((item) => item === event.target.value) ?? '');
+            }}>
+              <option value="">All levels</option>
+              {levels.map((item) => <option key={item}>{item}</option>)}
             </select>
           </div>
           <label className={styles.guideFilter}>

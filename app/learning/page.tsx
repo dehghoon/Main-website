@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import { publishedLearningCards } from '@/lib/learning/published';
+import WorkspaceEntry from './workspace-entry';
 import LearningBrowser from './learning-browser';
 import styles from './learning.module.css';
 
@@ -41,6 +42,7 @@ export default async function LearningPage() {
       </header>
 
       <LearningBrowser published={published} />
+      <WorkspaceEntry />
 
       <aside className={styles.notice}>
         Confirm the applicable code edition, jurisdiction and publisher guidance before using

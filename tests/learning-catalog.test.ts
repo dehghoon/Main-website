@@ -53,3 +53,10 @@ test('the preview remains noindex and local source paths remain private', () => 
     assert.doesNotMatch(read(path), /(?:[a-z]:\\|file:\/\/|evidence_paths|original_path|fromhassan|\.(?:zip|dwg|rvt|s2k)\b)/i);
   }
 });
+
+test('difficulty combines with subject, query and worked-guide filters', () => {
+  const resources = filterLearningTopics('', 'loads', true, 'Intermediate');
+  assert.ok(resources.length);
+  assert.ok(resources.every((resource) => resource.level === 'Intermediate' && resource.guideHref));
+  assert.deepEqual(filterLearningTopics('roof snow loads', 'loads', true, 'Beginner'), []);
+});

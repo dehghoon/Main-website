@@ -20,7 +20,7 @@ const aboutLinks = [
 ];
 const knowledgeLinks = [
  ["News & Updates", accountOrigin + "/news"],
- ["Resources & Learning", base + "/learning"],
+ ["Resources & Learning", (toolOrigins.includes(window.location.origin) ? accountOrigin : "") + "/learning"],
  ["Documentation", base + "/knowledge/documentation"],
  ["Structural Labeling", base + "/structural-labeling"],
  ["RegionKit", base + "/structural-labeling/regionkit"],
