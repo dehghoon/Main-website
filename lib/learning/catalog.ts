@@ -301,15 +301,24 @@ function foldersFor(parent: string | null): PublicFolder[] {
 
 export const publicFolderTree = foldersFor(null);
 
-export function filterLearningTopics(query: string, category: TopicCategory | '' = '', withGuide = false) {
+export function filterLearningTopics(
+  query: string,
+  category: TopicCategory | '' = '',
+  withGuide = false,
+  level: Level | '' = '',
+) {
   const normalized = query.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ').trim();
   const terms = normalized.split(' ').filter(Boolean);
   const cable = /^(?:cable(?: tray)? supports?|cable tray and support systems|conduit supports?)(?: (?:design|guide|loads?))?$/.test(normalized);
-  const exact = learningResources.filter((resource) => [resource.title, ...resource.keywords]
+  const eligible = learningResources.filter((resource) =>
+    (!category || resource.category === category) &&
+    (!withGuide || resource.guideHref) &&
+    (!level || resource.level === level),
+  );
+  const exact = eligible.filter((resource) => [resource.title, ...resource.keywords]
     .some((term) => term.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() === normalized));
 
-  return learningResources.filter((resource) => {
-    if ((category && resource.category !== category) || (withGuide && !resource.guideHref)) return false;
+  return eligible.filter((resource) => {
     if (cable) return resource.id === 'cable-tray-and-support-systems';
     if (normalized && exact.length) return exact.includes(resource);
     const searchable = [
