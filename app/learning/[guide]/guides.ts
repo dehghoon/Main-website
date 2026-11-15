@@ -164,5 +164,107 @@ export const guides: Readonly<Record<string, Guide>> = {
       "Robot model",
       "Reaction comparison"
     ]
+  },
+  "anchor-selection": {
+    "title": "Post-Installed Concrete Anchor Selection and Review",
+    "description": "Review post-installed concrete anchor layouts, manufacturer data and installation conditions with a worked anchor-reaction example.",
+    "level": "Intermediate",
+    "keywords": [
+      "concrete anchor design",
+      "post-installed anchors",
+      "anchor group reactions",
+      "Hilti"
+    ],
+    "intro": "Review post-installed concrete anchor layouts, manufacturer data and installation conditions with a worked anchor-reaction example.",
+    "principleTitle": "Design and Review Workflow",
+    "diagram": [
+      "Connection actions",
+      "Anchor group",
+      "Concrete substrate",
+      "Installation checks"
+    ],
+    "steps": [
+      "Record the actions at the attachment and any load eccentricity.",
+      "Verify concrete condition, edge distance, anchor spacing and embedment against the applicable design basis and product scope.",
+      "Review installation requirements and identify field checks that affect acceptance."
+    ],
+    "exampleTitle": "Worked Example for a Centered Anchor Group",
+    "example": "A hypothetical centered 12 kN service tension acts through a rigid plate with four identical anchors. With equal stiffness, uniform engagement and no applied moment, the initial equilibrium check gives 3 kN per anchor. Eccentricity or plate deformation can change the distribution.",
+    "check": "Check all relevant failure modes using the governing design basis and verified product data. Record the substrate, installation method and inspection criteria.",
+    "references": [
+      [
+        "Hilti specifications and CAD details",
+        "https://www.hilti.ca/content/hilti/W1/CA/en/business/business/engineering/specifications-and-cad-details.html",
+        "Open the anchor and rebar section to locate installation details for the selected system."
+      ]
+    ]
+  },
+  "structural-corrosion-and-durability": {
+    "title": "Structural Corrosion Inspection and Durability Review",
+    "description": "Build a corrosion inspection record and use a worked thickness comparison to plan structural follow-up.",
+    "level": "Intermediate",
+    "keywords": [
+      "structural corrosion inspection",
+      "steel section loss",
+      "concrete repair",
+      "condition assessment"
+    ],
+    "intro": "Build a corrosion inspection record and use a worked thickness comparison to plan structural follow-up.",
+    "principleTitle": "Design and Review Workflow",
+    "diagram": [
+      "Exposure",
+      "Observations",
+      "Thickness measurements",
+      "Structural follow-up"
+    ],
+    "steps": [
+      "Identify the member, exposure and coating condition. Mark observations on a sketch.",
+      "Distinguish coating breakdown, general loss and localized pitting. Record measurement locations and the thickness used for comparison.",
+      "Use the location and distribution of deterioration to scope assessment and decide where more measurements are needed."
+    ],
+    "exampleTitle": "Worked Example for a Thickness Comparison",
+    "example": "A hypothetical steel plate has a documented reference thickness of 10.0 mm. One location reads 8.6 mm. The local difference is 1.4 mm, or 14% of the reference thickness. Record the location, instrument and repeat readings before treating the measurement as representative.",
+    "check": "Evaluate structural resistance using the actual geometry, loading and deterioration pattern. In reinforced concrete, document cracking, delamination and evidence of exposure before choosing an investigation or repair method.",
+    "references": [
+      [
+        "ACI concrete repair resources",
+        "https://www.concrete.org/topicsinconcrete/topicdetail/repair",
+        "Use the publisher’s repair resources for the reinforced-concrete assessment branch."
+      ]
+    ]
+  },
+  "masonry-structural-design": {
+    "title": "Structural Masonry Wall Design and Detailing",
+    "description": "Trace a masonry wall load path, calculate an idealized support reaction and review how reinforcement continuity is documented.",
+    "level": "Intermediate",
+    "keywords": [
+      "masonry structural design",
+      "reinforced masonry",
+      "masonry detailing",
+      "wall load path"
+    ],
+    "intro": "Trace a masonry wall load path, calculate an idealized support reaction and review how reinforcement continuity is documented.",
+    "principleTitle": "Design and Review Workflow",
+    "diagram": [
+      "Lateral load",
+      "Wall strip",
+      "Top and bottom restraints",
+      "Supporting structure"
+    ],
+    "steps": [
+      "Identify the assumed spanning direction and verify the restraints shown on the drawings.",
+      "Read reinforcement, grout and connection details together. Follow continuity around openings and at supports.",
+      "Record the applicable masonry standard, edition and design assumptions."
+    ],
+    "exampleTitle": "Worked Example for a Vertically Spanning Masonry Strip",
+    "example": "A hypothetical one-metre-wide wall strip is simply supported at the top and bottom. A uniform pressure of 1.2 kPa over the 3 m height gives 3.6 kN of lateral load. Each support receives 1.8 kN in this idealized example.",
+    "check": "Compare the reactions with the attachment details. Review strength, serviceability and load transfer around openings using the adopted design basis.",
+    "references": [
+      [
+        "National Building Code of Canada 2020, Division B Part 4",
+        "https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf",
+        "Locate the masonry structural design provisions and the referenced standard for that edition."
+      ]
+    ]
   }
 };

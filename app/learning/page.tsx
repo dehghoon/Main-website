@@ -5,7 +5,7 @@ import LearningBrowser from './learning-browser';
 import styles from './learning.module.css';
 
 const title = 'Structural Engineering Learning & Resources | Linkoteq';
-const description = 'Explore 174 structural engineering resources on design loads, steel connections, concrete, anchorage and BIM workflows, with links to official guidance.';
+const description = 'Explore practical structural engineering guides and references on design loads, steel connections, concrete, anchorage and BIM workflows, with links to official guidance.';
 const canonical = `${SITE_ORIGIN}/learning`;
 
 export const metadata: Metadata = {
@@ -34,14 +34,6 @@ export default function LearningPage() {
           <a className="secondaryButton" href="#folders">Browse by Folder</a>
         </nav>
       </header>
-
-      <section className={styles.section} aria-labelledby="worked-guides">
-        <h2 id="worked-guides">Worked Guides</h2>
-        <Link href="/learning/cable-tray-support-design" className="secondaryButton">
-          Cable Tray Support Design and Installation
-        </Link>
-        <p className={styles.lead}>Calculate a support reaction and follow the load into the supporting structure.</p>
-      </section>
 
       <LearningBrowser />
 

@@ -153,11 +153,8 @@ export default function LearningBrowser() {
                       <h4 id={`${resource.id}-title`}>{resource.title}</h4>
                       <span className={styles.level}>{resource.level}</span>
                       <p>{resource.summary}</p>
-                      {["load-combinations","steel-deck-span","reinforcement-detailing","revit-robot-exchange"].includes(resource.id) && (
-                        <p><Link href={`/learning/${resource.id}`}>Read the guide and worked example</Link></p>
-                      )}
-                      {resource.id === 'cable-tray-and-support-systems' && (
-                        <p><Link href="/learning/cable-tray-support-design">Read the cable tray support design guide and worked example</Link></p>
+                      {resource.guideHref && (
+                        <p><Link href={resource.guideHref} className="secondaryButton">Read the worked guide</Link></p>
                       )}
                       <p><strong>Keywords:</strong> {resource.keywords.join(', ')}</p>
                       <div className={styles.references}>

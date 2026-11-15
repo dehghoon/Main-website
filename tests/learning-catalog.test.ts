@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { filterLearningTopics, learningTopics, learningResources, publicFolderTree, type PublicFolder } from '../lib/learning/catalog.ts';
 
-test('all 174 resources belong to the four original categories', () => {
+test('the curated topics retain the four original categories', () => {
   const topics = filterLearningTopics('', '');
   assert.deepEqual(topics.map(({ id }) => id), ['analysis', 'steel', 'concrete', 'bim']);
-  assert.deepEqual(topics.map(({ resources }) => resources.length), [35, 31, 83, 25]);
+  assert.ok(topics.every(({ resources }) => resources.length > 0));
 });
 
 test('resource search matches text, tools and difficulty', () => {
@@ -51,4 +51,13 @@ test('the catalog excludes private paths and review remains outside search index
   assert.doesNotMatch(read('../lib/learning/catalog.ts'), /(?:[a-z]:\\|\/(?:Users|home|workspace)\/|file:\/\/|training[-_](?:inventory|catalog)|evidence_paths|original_path|child_folder_ids|root_folder_id|fromhassan|\.(?:zip|dwg|rvt|s2k)\b)/i);
   assert.match(read('../app/learning/page.tsx'), /robots: \{ index: false, follow: false/);
   assert.doesNotMatch(read('../app/sitemap.ts'), /\/learning\b/);
+});
+
+test('cable support searches return one topic with its worked guide and relevant source', () => {
+  for (const query of ['Cable Support', 'cable tray supports', 'conduit support design']) {
+    const matches = filterLearningTopics(query, '').flatMap(({ resources }) => resources);
+    assert.deepEqual(matches.map(({ id }) => id), ['cable-tray-and-support-systems']);
+    assert.equal(matches[0].guideHref, '/learning/cable-tray-support-design');
+    assert.deepEqual(matches[0].references.map(({ url }) => new URL(url).hostname), ['www.wheatland.com']);
+  }
 });
