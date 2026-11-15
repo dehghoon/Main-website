@@ -1,64 +1,37 @@
 /** Publication allowlist only: educational text and approved external links. */
 export const levels = ['Beginner', 'Intermediate', 'Advanced'] as const;
 export type Level = (typeof levels)[number];
-export type LearningTopic = {
-  id: 'analysis' | 'steel' | 'concrete' | 'bim';
+export type LearningResource = {
+  id: string;
   title: string;
   level: Level;
   summary: string;
   keywords: readonly string[];
-  subtopics: readonly string[];
   references: readonly { title: string; url: string }[];
-};
-
-export const learningTopics: readonly LearningTopic[] = [
-  {
-    id: 'analysis', title: 'Structural Analysis and Design Loads', level: 'Beginner',
-    summary: 'Trace a load path, check model reactions and record which code edition governs the combinations.',
-    keywords: ['ETABS', 'NBCC', 'wind', 'seismic', 'load cases', 'load combinations', 'SAP2000'],
-    subtopics: ['Load cases and combinations', 'Model idealization and verification', 'Dynamic response and serviceability'],
-    references: [
-      { title: 'CSI ETABS documentation', url: 'https://docs.csiamerica.com/help-files/etabs/Introduction/Welcome_to_ETABS.htm' },
-      { title: 'National Building Code of Canada 2025 (NRC)', url: 'https://nrc-publications.canada.ca/eng/view/object/?id=adf1ad94-7ea8-4b08-a19f-653ebb7f45f6' },
-    ],
-  },
-  {
-    id: 'steel', title: 'Steel Design and Connections', level: 'Intermediate',
-    summary: 'Follow the load from deck to support. Distinguish span and deflection checks from in-plane diaphragm load transfer.',
-    keywords: ['steel', 'deck', 'joists', 'welding', 'bolts', 'diaphragm', 'CISC', 'IDEA StatiCa'],
-    subtopics: ['Member behavior and limit states', 'Connections, detailing and fabrication', 'Steel deck and diaphragm systems'],
-    references: [
-      { title: 'CISC technical resources', url: 'https://www.cisc-icca.ca/technical-resources/' },
-      { title: 'Canam steel deck technical guide (PDF)', url: 'https://www.canam.com/wp-content/uploads/2024/12/steel-deck-canada-canam-2.pdf' },
-    ],
-  },
-  {
-    id: 'concrete', title: 'Concrete, Masonry and Anchors', level: 'Intermediate',
-    summary: 'Compare slab support conditions and identify which substrate, loads and installation assumptions govern an anchorage detail.',
-    keywords: ['Hilti', 'masonry', 'concrete', 'reinforcement', 'anchors', 'slab', 'foundations'],
-    subtopics: ['Slabs, foundations and reinforcement', 'Masonry and joint detailing', 'Fastening, embedment and load transfer'],
-    references: [
-      { title: 'Hilti specifications and CAD details', url: 'https://www.hilti.ca/content/hilti/W1/CA/en/business/business/engineering/specifications-and-cad-details.html' },
-    ],
-  },
-  {
-    id: 'bim', title: 'Structural BIM and Model Exchange', level: 'Intermediate',
-    summary: 'Compare connectivity, axes, releases and loads before relying on a structural model transferred between applications.',
-    keywords: ['Revit', 'Dynamo', 'Robot', 'Advance Steel', 'BIM', 'SAP2000', 'IFC', 'model exchange'],
-    subtopics: ['Analytical and physical models', 'Model exchange and interoperability', 'Drawings, schedules and coordination'],
-    references: [
-      { title: 'Autodesk structural modeling resources', url: 'https://www.autodesk.com/learn/ondemand/collection/building-structural-engineering' },
-      { title: 'Dynamo Primer', url: 'https://primer2.dynamobim.org/' },
-    ],
-  },
-] as const;
-
-export type LearningResource = Pick<LearningTopic, 'title' | 'level' | 'summary' | 'keywords' | 'references'> & {
-  id: string;
   guideHref?: string;
 };
 
 const publishers = {
+  guide_nbc: { title: "NRC National Building Code of Canada 2020", url: "https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf" },
+  guide_asce: { title: "ASCE 7 design loads", url: "https://www.asce.org/publications-and-news/asce-7" },
+  guide_aisc: { title: "AISC Engineering Journal: walking-induced floor vibration", url: "https://ej.aisc.org/index.php/engj/article/view/1151" },
+  guide_naamm: { title: "NAAMM Metal Bar Grating Manual", url: "https://naamm.org/publications/metal-bar-grating-manual/" },
+  guide_pci: { title: "PCI design guides and manuals", url: "https://www.pci.org/PCI/PCI/Design_Resources/Guides_and_Manuals/Guides_and_Manuals.aspx" },
+  guide_usg: { title: "USG ceiling seismic FAQs", url: "https://www.usg.com/en-US/learning-reference/performance/seismic/faqs" },
+  guide_fhwa: { title: "FHWA Hydraulics publications and HEC-22", url: "https://www.fhwa.dot.gov/engineering/hydraulics/library_arc.cfm?id=189&pub_number=22" },
+  guide_osha: { title: "OSHA fall protection system criteria", url: "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.502" },
+  guide_sap: { title: "CSI SAP2000 capabilities", url: "https://www.csiamerica.com/products/sap2000" },
+  guide_csi: { title: "CSI analysis reference documentation", url: "https://web.wiki.csiamerica.com/wiki/spaces/doc/pages/1245505" },
+  guide_weld: { title: "CISC steel construction technical resources", url: "https://www.cisc-icca.ca/technical-resources/" },
+  guide_hilti: { title: "Hilti technical details for fastening and supports", url: "https://www.hilti.ca/content/hilti/W1/CA/en/business/business/engineering/specifications-and-cad-details.html" },
+  guide_atkore: { title: "Atkore Unistrut support systems", url: "https://www.atkore.com/about-us/brands/unistrut" },
+  guide_wood: { title: "Canadian Wood Council Wood Design Manual", url: "https://cwc.ca/publication/wood-design-manual/" },
+  guide_aci: { title: "ACI repair resources", url: "https://www.concrete.org/topicsinconcrete/topicdetail/repair" },
+  guide_math: { title: "PTC Mathcad worksheet guidance", url: "https://support.ptc.com/help/mathcad/r12.0/en/PTC_Mathcad_Help/about_using_mathcad.html" },
+  guide_aci360: { title: "ACI Committee 360 — slabs on ground", url: "https://www.concrete.org/getinvolved/committees/directoryofcommittees/acommitteehome.aspx?committee_code=C0036000" },
+  guide_robot: { title: "Autodesk structural modeling and analysis", url: "https://www.autodesk.com/learn/ondemand/collection/building-structural-engineering" },
+  guide_dynamo: { title: "Dynamo Primer", url: "https://primer2.dynamobim.org/" },
+  guide_ul: { title: "UL rated assemblies and listings", url: "https://www.ul.com/thecodeauthority/knowledge/ul-listed-certified-database-product-iq" },
   wheatland: { title: 'Wheatland rigid metal conduit weight table (PDF)', url: 'https://www.wheatland.com/wp-content/uploads/2022/05/Rigid-Metal-Conduit-Submittal-Sheet-%E2%80%93-Canada-English.pdf' },
   simpson: { title: "Simpson Strong-Tie manufacturer resources", url: "https://www.strongtie.com/" },
   atkore: { title: "Atkore Unistrut support systems", url: "https://www.atkore.com/about-us/brands/unistrut" },
@@ -85,58 +58,52 @@ const publishers = {
   civil: { title: "Engineers Canada civil engineering syllabus", url: "https://engineerscanada.ca/regulatory-excellence/examination-syllabi/civil-engineering-syllabus" },
 } as const;
 
+
+export const topicCategories = {
+  "loads": "Design Loads & Codes",
+  "analysis": "Structural Analysis & Serviceability",
+  "steel": "Steel Design & Connections",
+  "concrete": "Concrete, Masonry & Foundations",
+  "industrial": "Industrial Structures & Equipment Supports",
+  "envelope": "Building Envelope & Nonstructural Components",
+  "anchors": "Anchors, Fasteners & Penetrations",
+  "inspection": "Inspection, Assessment & Repair",
+  "civil": "Civil & Site Engineering",
+  "safety": "Construction Safety & Access",
+  "workflow": "Software, BIM & Engineering Workflows",
+  "wood": "Wood Design"
+} as const;
+export type TopicCategory = keyof typeof topicCategories;
+
 type CatalogEntry = readonly [
   id: string, title: string, level: Level, summary: string,
   keywords: readonly string[], publisher: keyof typeof publishers, parent: string | null,
 ];
 
-const catalogEntries: Record<LearningTopic['id'], readonly CatalogEntry[]> = {
-  analysis: [
-    ["cable-tray-and-support-systems","Cable Support","Intermediate","Trace cable tray and conduit loads through rails, hangers and attachments. Work through cable weight and support reactions, then review clamp selection, seismic bracing and installation clearances.",["cable support","cable tray support","conduit support","cable weight","tributary load","strut","Atkore","seismic bracing","support calculation","Mathcad","STAAD.Pro","field coordination"],"wheatland",null],
-    ["structural-calculation-notes","Structural Calculation Notes","Intermediate","The source materials discuss reinforcement, structural steel, bolts and load combinations. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Structural Calculation Notes","reinforcement","structural steel","bolts","load combinations","Mathcad"],"nbc",null],
-    ["canam-for-structural-calculation-notes","Canam Joist Calculation Notes","Advanced","The source materials discuss steel joists, deflection, reinforcement and fabrication. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Canam Joist Calculation Notes","steel joists","deflection","reinforcement","fabrication"],"nbc","structural-calculation-notes"],
-    ["lighting-pole","Lighting Pole","Intermediate","The source materials discuss wind loads, concrete breakout, bolts and anchor bolts. Trace the source assumptions to a model input or review decision and record one independent check.",["Lighting Pole","wind loads","concrete breakout","bolts","anchor bolts","Mathcad"],"nbc","structural-calculation-notes"],
-    ["masonry-for-structural-calculation-notes","Masonry for Structural Calculation Notes","Intermediate","The source materials discuss masonry, bolts, load combinations and structural steel. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Masonry for Structural Calculation Notes","masonry","bolts","load combinations","structural steel","Mathcad"],"nbc","structural-calculation-notes"],
-    ["ceiling-support-systems","Ceiling Support Systems","Advanced","The source materials discuss seismic design, cable trays, inspection and torsion. Trace the source assumptions to a model input or review decision and record one independent check.",["Ceiling Support Systems","seismic design","cable trays","inspection","torsion","Revit"],"nbc",null],
-    ["building-problems","Building Problems","Beginner","The source materials discuss reinforcement, foundations, control joints and strength design. Trace the source assumptions to a model input or review decision and record one independent check.",["Building Problems","reinforcement","foundations","control joints","strength design"],"nbc",null],
-    ["fall-protection","Fall Protection","Advanced","The source materials discuss material properties, deflection, time history and response spectrum. Trace the source assumptions to a model input or review decision and record one independent check.",["Fall Protection","material properties","deflection","time history","response spectrum","SAP2000"],"civil",null],
-    ["structural-inspection-and-condition-assessment","Structural Inspection and Condition Assessment","Intermediate","The source materials discuss repair, inspection, corrosion and masonry. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Structural Inspection and Condition Assessment","repair","inspection","corrosion","masonry"],"repair",null],
-    ["engineering-inspection-presentations","Engineering Inspection Presentations","Intermediate","The source materials discuss automation and inspection. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Engineering Inspection Presentations","automation","inspection","AutoCAD"],"repair",null],
-    ["movies-for-engineering-inspection-presentations","Movies for Engineering Inspection Presentations","Intermediate","The source materials discuss inspection. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Movies for Engineering Inspection Presentations","inspection"],"repair","engineering-inspection-presentations"],
-    ["microstation-for-movies","MicroStation for Movies","Intermediate","The source materials discuss inspection. Trace the source assumptions to a model input or review decision and record one independent check.",["MicroStation for Movies","inspection"],"repair","movies-for-engineering-inspection-presentations"],
-    ["leed-and-sustainable-construction","LEED and Sustainable Construction","Beginner","The source materials discuss LEED, inspection, visual inspection and sustainability. Trace the source assumptions to a model input or review decision and record one independent check.",["LEED and Sustainable Construction","LEED","inspection","visual inspection","sustainability"],"leed",null],
-    ["mathcad-engineering-worksheets","Mathcad Engineering Worksheets","Advanced","The source materials discuss bolts, engineering calculations, structural steel and seismic design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Mathcad Engineering Worksheets","bolts","engineering calculations","structural steel","seismic design","Mathcad","STAAD.Pro"],"math",null],
-    ["samples-for-mathcad-engineering-worksheets","Samples for Mathcad Engineering Worksheets","Advanced","The source materials discuss bolts, engineering calculations, structural steel and seismic design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Samples for Mathcad Engineering Worksheets","bolts","engineering calculations","structural steel","seismic design","Mathcad","STAAD.Pro"],"math","mathcad-engineering-worksheets"],
-    ["floor-for-samples","Floor for Samples","Intermediate","The source materials discuss bolts and structural steel. Trace the source assumptions to a model input or review decision and record one independent check.",["Floor for Samples","bolts","structural steel","Mathcad"],"math","samples-for-mathcad-engineering-worksheets"],
-    ["pump-for-samples","Pump for Samples","Advanced","The source materials discuss bolts, welding, corrosion and torsion. Trace the source assumptions to a model input or review decision and record one independent check.",["Pump for Samples","bolts","welding","corrosion","torsion","Mathcad"],"math","samples-for-mathcad-engineering-worksheets"],
-    ["supports-for-samples","Supports for Samples","Advanced","The source materials discuss engineering calculations, load combinations, bolts and anchor bolts. Trace the source assumptions to a model input or review decision and record one independent check.",["Supports for Samples","engineering calculations","load combinations","bolts","anchor bolts","Mathcad","STAAD.Pro"],"math","samples-for-mathcad-engineering-worksheets"],
-    ["panels-for-supports","Panels for Supports","Intermediate","The source materials discuss bolts, anchor bolts, material properties and engineering calculations. Trace the source assumptions to a model input or review decision and record one independent check.",["Panels for Supports","bolts","anchor bolts","material properties","engineering calculations"],"math","supports-for-samples"],
+const catalogEntries: Record<TopicCategory, readonly CatalogEntry[]> = {
+  loads: [
     ["load-combinations","Canadian Building Code Loads","Intermediate","Use an introductory loading example to separate the actions on a structure from the combinations used to check it. Record the model-code edition and jurisdiction before comparing an older handout with current provisions.",["Canadian Building Code Loads","load combinations","wind loads","strength design","stability"],"nbc",null],
-    ["pipe-support-engineering","Pipe Support Engineering","Advanced","The source materials discuss welding, structural steel, load rating and bolts. Trace the source assumptions to a model input or review decision and record one independent check.",["Pipe Support Engineering","welding","structural steel","load rating","bolts","Mathcad","STAAD.Pro"],"hilti",null],
-    ["pipe-support-arrangement-review","Pipe Support Arrangement Review","Intermediate","The source materials discuss welding, fabrication, repair and inspection. Trace the source assumptions to a model input or review decision and record one independent check.",["Pipe Support Arrangement Review","welding","fabrication","repair","inspection"],"hilti","pipe-support-engineering"],
-    ["legacy-pipe-support-coordination","Legacy Pipe Support Coordination","Intermediate","The source materials discuss bolts, welding, load rating and structural steel. Trace the source assumptions to a model input or review decision and record one independent check.",["Legacy Pipe Support Coordination","bolts","welding","load rating","structural steel"],"hilti","pipe-support-engineering"],
-    ["underground-piping-and-civil-coordination","Underground Piping and Civil Coordination","Beginner","The source materials discuss buckling, corrosion, inspection and deflection. Trace the source assumptions to a model input or review decision and record one independent check.",["Underground Piping and Civil Coordination","buckling","corrosion","inspection","deflection"],"civil",null],
-    ["pump-support-and-equipment-loads","Pump Support and Equipment Loads","Advanced","The source materials discuss vibration, modal analysis, inspection and deflection. Trace the source assumptions to a model input or review decision and record one independent check.",["Pump Support and Equipment Loads","vibration","modal analysis","inspection","deflection"],"civil",null],
-    ["modal-response","S-FRAME Structural Analysis","Advanced","The source materials discuss structural analysis, shear strength, structural steel and structural design. Trace the source assumptions to a model input or review decision and record one independent check.",["S-FRAME Structural Analysis","structural analysis","shear strength","structural steel","structural design","SAP2000"],"csi",null],
     ["solar-mounting-and-structural-loads","Solar Mounting and Structural Loads","Intermediate","The source materials discuss drift, snow loads, solar panels and worked examples. Trace the source assumptions to a model input or review decision and record one independent check.",["Solar Mounting and Structural Loads","drift","snow loads","solar panels","worked examples"],"asce",null],
-    ["wind-load-path","ASCE Loads","Intermediate","The source materials discuss drift, snow loads, solar panels and worked examples. Trace the source assumptions to a model input or review decision and record one independent check.",["ASCE Loads","drift","snow loads","solar panels","worked examples"],"asce","solar-mounting-and-structural-loads"],
-    ["engineering-spreadsheets","Engineering Spreadsheets","Intermediate","The source materials discuss bolts, reinforcement, foundations and foundation design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Engineering Spreadsheets","bolts","reinforcement","foundations","foundation design"],"math",null],
-    ["structural-vibration-and-serviceability","Structural Vibration and Serviceability","Advanced","The source materials discuss vibration, deflection, serviceability and foundations. Trace the source assumptions to a model input or review decision and record one independent check.",["Structural Vibration and Serviceability","vibration","deflection","serviceability","foundations"],"csi",null],
-    ["wood-structural-design-and-detailing","Wood Structural Design and Detailing","Advanced","The source materials discuss material properties, concrete design, load cases and load combinations. Trace the source assumptions to a model input or review decision and record one independent check.",["Wood Structural Design and Detailing","material properties","concrete design","load cases","load combinations","ETABS","SAP2000","AutoCAD"],"wood",null],
+    ["wind-load-path","Wind Loads and Lateral Load Paths","Intermediate","Trace wind pressures from the envelope through the lateral system.",["wind loads","lateral loads","ASCE 7","NBC"],"guide_asce","solar-mounting-and-structural-loads"],
+    ["roof-snow-loads","Roof Snow Loads and Snow Drift","Intermediate","Build a roof load map with climate data, roof geometry and the adopted code basis.",["roof snow loads","snow drift","snow load calculator","NBC","NBCC"],"guide_nbc",null],
+  ],
+  analysis: [
+    ["building-problems","Building Problems","Beginner","The source materials discuss reinforcement, foundations, control joints and strength design. Trace the source assumptions to a model input or review decision and record one independent check.",["Building Problems","reinforcement","foundations","control joints","strength design"],"nbc",null],
+    ["underground-piping-and-civil-coordination","Underground Piping and Civil Coordination","Beginner","The source materials discuss buckling, corrosion, inspection and deflection. Trace the source assumptions to a model input or review decision and record one independent check.",["Underground Piping and Civil Coordination","buckling","corrosion","inspection","deflection"],"civil",null],
+    ["modal-response","Modal Response and Structural Model Verification","Advanced","Check the mass source, restraining conditions and mode shapes before interpreting modal results.",["response spectrum","modal analysis","S-FRAME","structural dynamics"],"guide_csi",null],
+    ["floor-vibration","Floor Vibration and Serviceability","Advanced","Review whether a floor model represents the participating mass, stiffness and excitation relevant to serviceability.",["floor vibration","walking vibration","frequency","acceleration","serviceability"],"guide_aisc",null],
   ],
   steel: [
     ["steel-deck-and-diaphragms","Steel Deck and Diaphragms","Intermediate","The source materials discuss steel deck, welding, steel joists and structural steel. Use a simple load path or detail to identify which assumptions need an independent check.",["Steel Deck and Diaphragms","steel deck","welding","steel joists","structural steel","Hilti PROFIS","PROFIS Engineering"],"sdi",null],
     ["steel-deck-span","Canam Steel Deck Span and Deflection","Intermediate","Use deck calculation examples to identify span, support and reinforcement assumptions. Trace which checks relate to construction loading and which relate to the completed assembly.",["Canam Steel Deck Span and Deflection","steel joists","welding","steel deck","stability"],"sdi","steel-deck-and-diaphragms"],
     ["composite-diaphragm","Composite Deck Diaphragms and Fasteners","Intermediate","Trace in-plane forces through the deck and attachments to the vertical lateral system. Use the NIST worked example to identify which assumptions depend on its historical code editions.",["Composite Deck Diaphragms and Fasteners","buckling","steel deck","structural steel","corrosion","Hilti PROFIS","PROFIS Engineering"],"nist","steel-deck-and-diaphragms"],
     ["hilti-for-fasteners","Hilti for Fasteners","Intermediate","The source materials discuss buckling, steel deck, structural steel and corrosion. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Hilti for Fasteners","buckling","steel deck","structural steel","corrosion","Hilti PROFIS","PROFIS Engineering"],"sdi","composite-diaphragm"],
-    ["steel-member-checks","Canadian Steel Construction References","Intermediate","Read the section properties and restraint assumptions together when reviewing member behavior. Separate the member resistance check from serviceability and confirm the edition used for the example.",["Canadian Steel Construction References","structural steel","structural design","torsion","buckling"],"cisc",null],
+    ["steel-member-checks","W-Shape Properties and Steel Member Checks","Intermediate","Check that the selected steel section, local axes and restraint assumptions match the design model.",["W-Shape Properties","W-Section","wide flange","member stability","CISC"],"guide_weld",null],
     ["deck-design","Residential Deck Design","Beginner","The source materials discuss masonry, lateral loads, timber and reinforcement. Use a simple load path or detail to identify which assumptions need an independent check.",["Residential Deck Design","masonry","lateral loads","timber","reinforcement"],"wood",null],
     ["steel-design","Steel Design","Beginner","The source materials discuss bolts, buckling, moment connections and limit states. Use a simple load path or detail to identify which assumptions need an independent check.",["Steel Design","bolts","buckling","moment connections","limit states","S-Frame"],"cisc",null],
-    ["steel-sheet","Steel Sheet","Beginner","The source materials discuss deflection, steel framing, LEED and cold-formed steel. Use a simple load path or detail to identify which assumptions need an independent check.",["Steel Sheet","deflection","steel framing","LEED","cold-formed steel"],"cisc",null],
+    ["steel-sheet","Cold-Formed Steel Studs and Track","Intermediate","Review a metal stud designation and compare span and restraint assumptions with a manufacturer table.",["Steel Sheet","metal studs","cold-formed steel","studs and track"],"guide_weld",null],
     ["cold-formed-steel-design","Cold-Formed Steel Design","Intermediate","The source materials discuss deflection, steel framing, cold-formed steel and corrosion. Use a simple load path or detail to identify which assumptions need an independent check.",["Cold-Formed Steel Design","deflection","steel framing","cold-formed steel","corrosion"],"cisc",null],
-    ["structural-corrosion-and-durability","Structural Corrosion and Durability","Intermediate","Record exposure and deterioration observations, prioritize measurements and use the evidence to scope structural evaluation and repair.",["structural corrosion","durability","condition inspection","coating deterioration","reinforcement corrosion","concrete repair"],"repair",null],
-    ["crane-and-lifting-support-structures","Crane and Lifting Support Structures","Intermediate","The source materials discuss lifting, masonry, automation and structural design. Use a simple load path or detail to identify which assumptions need an independent check.",["Crane and Lifting Support Structures","lifting","masonry","automation","structural design","STAAD.Pro"],"cisc",null],
-    ["industrial-grating-and-walkways","Industrial Grating and Walkways","Intermediate","The source materials discuss grating, deflection, formulas and serviceability. Use a simple load path or detail to identify which assumptions need an independent check.",["Industrial Grating and Walkways","grating","deflection","formulas","serviceability"],"cisc",null],
+    ["industrial-grating-and-walkways","Steel Bar Grating and Walkway Supports","Intermediate","Use the bearing-bar direction, panel span and load type to identify an appropriate grating table.",["steel grating","bar grating","walkway","bearing bars"],"guide_naamm",null],
     ["canam-for-technical-seminars-and-manufacturer-resources","CANAM for Technical Seminars and Manufacturer Resources","Advanced","The source materials discuss deflection, cold-formed steel, load combinations and steel deck. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["CANAM for Technical Seminars and Manufacturer Resources","deflection","cold-formed steel","load combinations","steel deck"],"sdi",null],
     ["versa-dek-and-deep-dek","Versa-Dek And Deep-Dek","Advanced","The source materials discuss deflection, cold-formed steel, load combinations and steel deck. Use a simple load path or detail to identify which assumptions need an independent check.",["Versa-Dek And Deep-Dek","deflection","cold-formed steel","load combinations","steel deck"],"sdi","canam-for-technical-seminars-and-manufacturer-resources"],
     ["load-tables-lrfd","Load Tables LRFD","Advanced","The source materials discuss deflection, cold-formed steel, load combinations and structural design. Check the span, support, loading and fastening assumptions before comparing entries in a steel deck table.",["Load Tables LRFD","deflection","cold-formed steel","load combinations","structural design"],"sdi","versa-dek-and-deep-dek"],
@@ -149,44 +116,26 @@ const catalogEntries: Record<LearningTopic['id'], readonly CatalogEntry[]> = {
     ["deep-dek-acoustical","Deep Dek Acoustical","Beginner","The source materials discuss deflection, load combinations and cold-formed steel. Use a simple load path or detail to identify which assumptions need an independent check.",["Deep Dek Acoustical","deflection","load combinations","cold-formed steel"],"sdi","roof-deck"],
     ["versa-dek-roof-deck-load-tables","Versa Dek Roof Deck Load Tables","Beginner","The source materials discuss deflection, load combinations and cold-formed steel. Check the span, support, loading and fastening assumptions before comparing entries in a steel deck table.",["Versa Dek Roof Deck Load Tables","deflection","load combinations","cold-formed steel"],"sdi","roof-deck"],
     ["versa-dek-acoustical-roof-deck-load-tables","Versa Dek Acoustical Roof Deck Load Tables","Beginner","The source materials discuss deflection, load combinations and cold-formed steel. Check the span, support, loading and fastening assumptions before comparing entries in a steel deck table.",["Versa Dek Acoustical Roof Deck Load Tables","deflection","load combinations","cold-formed steel"],"sdi","roof-deck"],
-    ["uni-struct-for-technical-seminars-and-manufacturer-resources","Uni-Struct for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss design loads, bolts, deflection and fabrication. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Uni-Struct for Technical Seminars and Manufacturer Resources","design loads","bolts","deflection","fabrication"],"atkore",null],
-    ["headed-studs-and-shear-connectors","Headed Studs and Shear Connectors","Intermediate","The source materials discuss welding, shear strength, structural steel and fabrication. Use a simple load path or detail to identify which assumptions need an independent check.",["Headed Studs and Shear Connectors","welding","shear strength","structural steel","fabrication"],"cisc",null],
-    ["protective-paint-and-coatings","Protective Paint and Coatings","Intermediate","The source materials discuss coatings, masonry, LEED and structural steel. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Protective Paint and Coatings","coatings","masonry","LEED","structural steel"],"repair",null],
     ["steel-shear-plate-connections","Steel Shear Plate Connections","Advanced","The source materials discuss shear walls, finite element, buckling and reinforced concrete. Use a simple load path or detail to identify which assumptions need an independent check.",["Steel Shear Plate Connections","shear walls","finite element","buckling","reinforced concrete"],"cisc",null],
-    ["unistrut-channel-support-systems","Unistrut Channel Support Systems","Intermediate","The source materials discuss bolts, grating, cold-formed steel and fabrication. Use a simple load path or detail to identify which assumptions need an independent check.",["Unistrut Channel Support Systems","bolts","grating","cold-formed steel","fabrication"],"atkore",null],
-    ["structural-welding-references","Structural Welding References","Intermediate","The source materials discuss welding, inspection, repair and fabrication. Use a simple load path or detail to identify which assumptions need an independent check.",["Structural Welding References","welding","inspection","repair","fabrication"],"cisc",null],
+    ["structural-welding-references","Welding and Welded Connections","Intermediate","Trace force through a welded detail and record the information needed for weld design and inspection.",["welding","welded connections","fillet weld","fabrication inspection"],"guide_weld",null],
   ],
   concrete: [
-    ["anchor-bolts-and-structural-screws","Anchor Bolts and Structural Screws","Intermediate","The source materials discuss inspection, masonry, pipe supports and bolts. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Anchor Bolts and Structural Screws","inspection","masonry","pipe supports","bolts"],"hilti",null],
-    ["notes-for-anchor-bolts-and-structural-screws","Notes for Anchor Bolts and Structural Screws","Intermediate","The source materials discuss pipe supports, bolts and anchor bolts. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Notes for Anchor Bolts and Structural Screws","pipe supports","bolts","anchor bolts"],"hilti","anchor-bolts-and-structural-screws"],
-    ["civil-engineering-reference-library","Civil Engineering Reference Library","Advanced","The source materials discuss deflection, reinforcement, material properties and concrete design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Civil Engineering Reference Library","deflection","reinforcement","material properties","concrete design","SAP2000","S-Frame"],"nbc",null],
-    ["concrete-defect","Concrete Defect","Advanced","The source materials discuss repair, corrosion, concrete slabs and vibration. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Concrete Defect","repair","corrosion","concrete slabs","vibration"],"repair","civil-engineering-reference-library"],
-    ["reinforcement-detailing","Concrete Reinforcement Detailing and Crack Control","Beginner","Read reinforcement details alongside the load path and serviceability assumptions. Identify where crack control, torsion and bar continuity shape the questions a reviewer should ask.",["Concrete Reinforcement Detailing and Crack Control","reinforcement","reinforced concrete","structural steel","headed studs"],"nbc","civil-engineering-reference-library"],
-    ["precast-and-pre-stressed","Precast and Prestressed Concrete","Advanced","The source materials discuss prestressed concrete, reinforcement, torsion and shear walls. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Precast and Prestressed Concrete","prestressed concrete","reinforcement","torsion","shear walls"],"nbc","civil-engineering-reference-library"],
-    ["retaining-wall","Retaining Wall","Advanced","The source materials discuss material properties, concrete design, time history and response spectrum. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Retaining Wall","material properties","concrete design","time history","response spectrum","SAP2000"],"nbc","civil-engineering-reference-library"],
-    ["reinforcement-couplers","Reinforcement Couplers","Intermediate","The source materials discuss reinforcement, structural steel, welding and repair. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Reinforcement Couplers","reinforcement","structural steel","welding","repair"],"nbc",null],
+    ["retaining-wall","Retaining Wall Load Path and Foundation Checks","Advanced","Connect earth and water assumptions to wall and foundation checks.",["retaining wall","earth pressure","drainage","bearing"],"guide_nbc","civil-engineering-reference-library"],
+    ["reinforcement-couplers","Rebar Couplers and Mechanical Splices","Intermediate","Read a mechanical splice detail and prepare a submittal and inspection checklist.",["rebar coupler","rebar couplers","Coupler","mechanical splice","reinforcement detailing"],"guide_nbc",null],
     ["concrete-abrasion-resistance","Concrete Abrasion Resistance","Intermediate","The source materials discuss abrasion resistance, LEED and sustainability. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Concrete Abrasion Resistance","abrasion resistance","LEED","sustainability"],"nbc",null],
-    ["anchor-selection","Hilti Concrete Anchors and Post-Installed Fastening","Intermediate","Compare adhesive and mechanical anchors, verify substrate and installation limits, and trace the reactions into an anchor group before applying ratings.",["Hilti","concrete anchors","post-installed anchors","adhesive anchors","mechanical anchors","PROFIS","anchor groups","anchor installation"],"hilti",null],
-    ["idea-statica-connection-design","IDEA StatiCa Connection Design","Intermediate","The source materials discuss BIM. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["IDEA StatiCa Connection Design","BIM","Revit","SAP2000","IDEA StatiCa"],"idea",null],
     ["structural-and-concrete-joints","Structural and Concrete Joints","Intermediate","The source materials discuss expansion joints, masonry, control joints and deflection. Compare support conditions, reinforcement and serviceability assumptions before reusing a slab or concrete detail.",["Structural and Concrete Joints","expansion joints","masonry","control joints","deflection"],"nbc",null],
-    ["jordahl-anchor-channels","Jordahl Anchor Channels","Intermediate","The source materials discuss anchor channels, bolts, reinforcement and welding. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Jordahl Anchor Channels","anchor channels","bolts","reinforcement","welding"],"hilti",null],
     ["technical-seminars-and-manufacturer-resources","Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss masonry, bolts, corrosion and stability. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Technical Seminars and Manufacturer Resources","masonry","bolts","corrosion","stability","AutoCAD","Hilti PROFIS","Microsoft Excel"],"nbc",null],
     ["bekaert-for-technical-seminars-and-manufacturer-resources","Bekaert Fibre-Reinforced Concrete","Beginner","The source materials discuss reinforcement, reinforced concrete, serviceability and material properties. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Bekaert Fibre-Reinforced Concrete","reinforcement","reinforced concrete","serviceability","material properties"],"aci","technical-seminars-and-manufacturer-resources"],
     ["floor-slabs","Floor Slabs","Beginner","The source materials discuss reinforcement, reinforced concrete, serviceability and material properties. Compare support conditions, reinforcement and serviceability assumptions before reusing a slab or concrete detail.",["Floor Slabs","reinforcement","reinforced concrete","serviceability","material properties"],"aci","bekaert-for-technical-seminars-and-manufacturer-resources"],
     ["chance-for-technical-seminars-and-manufacturer-resources","CHANCE for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss foundations, buckling, corrosion and bolts. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["CHANCE for Technical Seminars and Manufacturer Resources","foundations","buckling","corrosion","bolts"],"nbc","technical-seminars-and-manufacturer-resources"],
     ["euclid-for-technical-seminars-and-manufacturer-resources","Euclid Concrete Materials and Repair","Advanced","The source materials discuss repair, reinforcement, masonry and flexural strength. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Euclid Concrete Materials and Repair","repair","reinforcement","masonry","flexural strength"],"aci","technical-seminars-and-manufacturer-resources"],
-    ["repair-products","Repair Products","Advanced","The source materials discuss repair, reinforcement, masonry and flexural strength. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Repair Products","repair","reinforcement","masonry","flexural strength"],"aci","euclid-for-technical-seminars-and-manufacturer-resources"],
     ["fyfe-for-technical-seminars-and-manufacturer-resources","Fyfe for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss material properties, stability, flexural strength and repair. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Fyfe for Technical Seminars and Manufacturer Resources","material properties","stability","flexural strength","repair"],"repair","technical-seminars-and-manufacturer-resources"],
     ["tyco-for-fyfe","Tyco for Fyfe","Beginner","The source materials discuss material properties, stability, flexural strength and repair. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Tyco for Fyfe","material properties","stability","flexural strength","repair"],"repair","fyfe-for-technical-seminars-and-manufacturer-resources"],
     ["data-sheets","Data Sheets","Beginner","The source materials discuss material properties, flexural strength, compressive strength and corrosion. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Data Sheets","material properties","flexural strength","compressive strength","corrosion"],"repair","tyco-for-fyfe"],
     ["composite-anchors","Composite Anchors","Beginner","The source materials discuss material properties and flexural strength. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Composite Anchors","material properties","flexural strength"],"hilti","data-sheets"],
     ["composites-for-data-sheets","Composites for Data Sheets","Beginner","The source materials discuss material properties, flexural strength, safety factors and stability. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Composites for Data Sheets","material properties","flexural strength","safety factors","stability"],"repair","data-sheets"],
     ["prefabricated-laminates","Prefabricated Laminates","Beginner","The source materials discuss safety factors, material properties, deflection and corrosion. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Prefabricated Laminates","safety factors","material properties","deflection","corrosion"],"repair","composites-for-data-sheets"],
-    ["composite-strengthening-reference-review","Composite Strengthening Reference Review","Beginner","The source materials discuss reinforcement, repair and structural design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Composite Strengthening Reference Review","reinforcement","repair","structural design"],"repair","data-sheets"],
-    ["corrosion-inhibitor","Corrosion Inhibitor","Beginner","The source materials discuss corrosion, repair, material properties and coatings. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Corrosion Inhibitor","corrosion","repair","material properties","coatings"],"repair","data-sheets"],
     ["epoxies-for-data-sheets","Epoxies for Data Sheets","Beginner","The source materials discuss material properties, compressive strength, repair and flexural strength. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Epoxies for Data Sheets","material properties","compressive strength","repair","flexural strength"],"repair","data-sheets"],
-    ["finish-coatings","Finish Coatings","Beginner","The source materials discuss masonry, corrosion, flexural strength and material properties. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Finish Coatings","masonry","corrosion","flexural strength","material properties"],"repair","data-sheets"],
-    ["fire-resistance-systems","Fire Resistance Systems","Beginner","The source materials discuss compressive strength, material properties, stability and flexural strength. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Fire Resistance Systems","compressive strength","material properties","stability","flexural strength"],"ul","data-sheets"],
     ["rebar-for-data-sheets","Reinforcement for Structural Repair","Beginner","The source materials discuss reinforcement, corrosion and flexural strength. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Reinforcement for Structural Repair","reinforcement","corrosion","flexural strength"],"repair","data-sheets"],
     ["reference-documents","Reference Documents","Beginner","The source materials discuss masonry, inspection, fire resistance and coatings. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Reference Documents","masonry","inspection","fire resistance","coatings"],"repair","data-sheets"],
     ["design-manual","Design Manual","Beginner","The source materials discuss reinforcement, compressive strength, shear strength and masonry. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Design Manual","reinforcement","compressive strength","shear strength","masonry"],"repair","tyco-for-fyfe"],
@@ -199,13 +148,40 @@ const catalogEntries: Record<LearningTopic['id'], readonly CatalogEntry[]> = {
     ["profiles-for-hard-cem","Profiles for Hard-Cem","Beginner","The source materials discuss LEED, abrasion resistance, repair and pumping. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Profiles for Hard-Cem","LEED","abrasion resistance","repair","pumping"],"aci","hard-cem-for-technical-seminars-and-manufacturer-resources"],
     ["hard-cem-safety-data-sheets","Hard-Cem Safety Data Sheets","Beginner","The source materials discuss stability. Review the scope of the manufacturer’s safety documentation and verify the current product identifier and revision before use.",["Hard-Cem Safety Data Sheets","stability"],"aci","hard-cem-for-technical-seminars-and-manufacturer-resources"],
     ["shotcrete-for-hard-cem","Shotcrete for Hard-Cem","Beginner","The source materials discuss abrasion resistance, compressive strength and wear resistance. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Shotcrete for Hard-Cem","abrasion resistance","compressive strength","wear resistance"],"aci","hard-cem-for-technical-seminars-and-manufacturer-resources"],
-    ["jordahl-for-technical-seminars-and-manufacturer-resources","Jordahl for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss anchor channels, bolts, reinforcement and welding. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Jordahl for Technical Seminars and Manufacturer Resources","anchor channels","bolts","reinforcement","welding"],"hilti","technical-seminars-and-manufacturer-resources"],
     ["lafarge-rcc","Lafarge RCC","Beginner","The source materials discuss flexural strength, control joints, inspection and sustainability. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Lafarge RCC","flexural strength","control joints","inspection","sustainability"],"nbc","technical-seminars-and-manufacturer-resources"],
     ["maccaferri-for-technical-seminars-and-manufacturer-resources","Maccaferri for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss reinforced concrete, fire resistance, reinforcement and structural design. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Maccaferri for Technical Seminars and Manufacturer Resources","reinforced concrete","fire resistance","reinforcement","structural design"],"aci","technical-seminars-and-manufacturer-resources"],
     ["maccaferri-fibres-sog","Maccaferri Fibres SOG","Beginner","The source materials discuss reinforced concrete, fire resistance, reinforcement and structural design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Maccaferri Fibres SOG","reinforced concrete","fire resistance","reinforcement","structural design"],"aci","maccaferri-for-technical-seminars-and-manufacturer-resources"],
-    ["mci-corrosion-inhibitors","MCI Corrosion Inhibitors","Beginner","The source materials discuss corrosion, reinforcement, reinforced concrete and inspection. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["MCI Corrosion Inhibitors","corrosion","reinforcement","reinforced concrete","inspection"],"repair","technical-seminars-and-manufacturer-resources"],
     ["sika-for-technical-seminars-and-manufacturer-resources","Sika Repair and Strengthening Resources","Beginner","The source materials discuss repair, reinforcement, masonry and shear strength. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Sika Repair and Strengthening Resources","repair","reinforcement","masonry","shear strength","Microsoft Excel"],"sika","technical-seminars-and-manufacturer-resources"],
     ["sika-technical-publications","Sika Technical Publications","Beginner","The source materials discuss repair, reinforcement, masonry and shear strength. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Sika Technical Publications","repair","reinforcement","masonry","shear strength","Microsoft Excel"],"sika","sika-for-technical-seminars-and-manufacturer-resources"],
+    ["masonry-structural-design","Structural Masonry Design and Detailing","Intermediate","Trace masonry loads through walls, reinforcement and supports. Review the design basis and check that the drawing shows continuous load transfer.",["masonry structural design","masonry detailing","reinforced masonry","wall load path","masonry standards","CSA S304"],"nbc",null],
+    ["slabs-on-ground","Slabs on Ground and Joint Layout","Intermediate","Build a review record for a ground-supported slab and its joints.",["slab-on-ground","floor slabs","joint layout","ACI 360"],"guide_aci360",null],
+    ["euclid-software","Euclid Software","Intermediate","The source materials discuss load cases, flexural strength, serviceability and safety factors. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Euclid Software","load cases","flexural strength","serviceability","safety factors"],"aci","slabs-on-ground"],
+    ["precast-concrete","Precast Concrete Connections and Erection","Advanced","Trace the transfer of loads during handling, erection and the final condition.",["Precast Concrete","precast connections","erection","bearing"],"guide_pci",null],
+    ["prestressed-concrete","Prestressed Concrete Load Stages and Service Checks","Advanced","Organize transfer and service checks for a prestressed member.",["prestressed concrete","pre-stressed concrete","prestress losses","camber"],"guide_pci",null],
+  ],
+  industrial: [
+    ["cable-tray-and-support-systems","Cable Support","Intermediate","Trace cable tray and conduit loads through rails, hangers and attachments. Work through cable weight and support reactions, then review clamp selection, seismic bracing and installation clearances.",["cable support","cable tray support","conduit support","cable weight","tributary load","strut","Atkore","seismic bracing","support calculation","Mathcad","STAAD.Pro","field coordination"],"wheatland",null],
+    ["lighting-pole","Lighting Pole","Intermediate","The source materials discuss wind loads, concrete breakout, bolts and anchor bolts. Trace the source assumptions to a model input or review decision and record one independent check.",["Lighting Pole","wind loads","concrete breakout","bolts","anchor bolts","Mathcad"],"nbc","structural-calculation-notes"],
+    ["pipe-support-engineering","Pipe Supports and Hangers","Intermediate","Read a piping support schedule and pass the right reactions and restraint information to structural review.",["Pipe Support","pipe hangers","thermal movement","pipe reactions"],"guide_atkore",null],
+    ["pipe-support-arrangement-review","Pipe Support Arrangement Review","Intermediate","The source materials discuss welding, fabrication, repair and inspection. Trace the source assumptions to a model input or review decision and record one independent check.",["Pipe Support Arrangement Review","welding","fabrication","repair","inspection"],"hilti","pipe-support-engineering"],
+    ["legacy-pipe-support-coordination","Legacy Pipe Support Coordination","Intermediate","The source materials discuss bolts, welding, load rating and structural steel. Trace the source assumptions to a model input or review decision and record one independent check.",["Legacy Pipe Support Coordination","bolts","welding","load rating","structural steel"],"hilti","pipe-support-engineering"],
+    ["pump-support-and-equipment-loads","Pump and Equipment Supports","Intermediate","Bring mechanical equipment operating inputs into the support and anchorage review.",["pump support","equipment supports","vibration","operating weight"],"guide_hilti",null],
+    ["crane-and-lifting-support-structures","Crane Support Structures","Advanced","Turn crane supplier reactions and positioning data into a reviewable runway load model.",["crane support","runway","crane reactions","lifting loads"],"guide_weld",null],
+    ["uni-struct-for-technical-seminars-and-manufacturer-resources","Uni-Struct for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss design loads, bolts, deflection and fabrication. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Uni-Struct for Technical Seminars and Manufacturer Resources","design loads","bolts","deflection","fabrication"],"atkore",null],
+    ["unistrut-channel-support-systems","Unistrut Channel Support Systems","Intermediate","The source materials discuss bolts, grating, cold-formed steel and fabrication. Use a simple load path or detail to identify which assumptions need an independent check.",["Unistrut Channel Support Systems","bolts","grating","cold-formed steel","fabrication"],"atkore",null],
+    ["pipe-rack","Pipe Rack Structural Coordination","Intermediate","Create a transferable load and restraint schedule for a pipe rack.",["pipe rack","Rack","rack framing","piping reactions"],"guide_csi",null],
+  ],
+  envelope: [
+    ["ceiling-support-systems","Ceiling Support and Seismic Bracing","Intermediate","Coordinate ceiling grid, hangers, seismic restraint and independent service supports.",["ceiling support","ceiling bracing","suspended ceiling","seismic ceiling grid"],"guide_usg",null],
+  ],
+  anchors: [
+    ["headed-studs-and-shear-connectors","Headed Studs and Shear Connectors","Intermediate","The source materials discuss welding, shear strength, structural steel and fabrication. Use a simple load path or detail to identify which assumptions need an independent check.",["Headed Studs and Shear Connectors","welding","shear strength","structural steel","fabrication"],"cisc",null],
+    ["anchor-bolts-and-structural-screws","Anchor Bolts and Structural Screws","Intermediate","The source materials discuss inspection, masonry, pipe supports and bolts. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Anchor Bolts and Structural Screws","inspection","masonry","pipe supports","bolts"],"hilti",null],
+    ["notes-for-anchor-bolts-and-structural-screws","Notes for Anchor Bolts and Structural Screws","Intermediate","The source materials discuss pipe supports, bolts and anchor bolts. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Notes for Anchor Bolts and Structural Screws","pipe supports","bolts","anchor bolts"],"hilti","anchor-bolts-and-structural-screws"],
+    ["anchor-selection","Hilti Concrete Anchors and Post-Installed Fastening","Intermediate","Compare adhesive and mechanical anchors, verify substrate and installation limits, and trace the reactions into an anchor group before applying ratings.",["Hilti","concrete anchors","post-installed anchors","adhesive anchors","mechanical anchors","PROFIS","anchor groups","anchor installation"],"hilti",null],
+    ["jordahl-anchor-channels","Jordahl Anchor Channels","Intermediate","The source materials discuss anchor channels, bolts, reinforcement and welding. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Jordahl Anchor Channels","anchor channels","bolts","reinforcement","welding"],"hilti",null],
+    ["fire-resistance-systems","Fire Resistance Systems","Beginner","The source materials discuss compressive strength, material properties, stability and flexural strength. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Fire Resistance Systems","compressive strength","material properties","stability","flexural strength"],"ul","data-sheets"],
+    ["jordahl-for-technical-seminars-and-manufacturer-resources","Jordahl for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss anchor channels, bolts, reinforcement and welding. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Jordahl for Technical Seminars and Manufacturer Resources","anchor channels","bolts","reinforcement","welding"],"hilti","technical-seminars-and-manufacturer-resources"],
     ["simpson-for-technical-seminars-and-manufacturer-resources","Simpson for Technical Seminars and Manufacturer Resources","Beginner","The source materials discuss masonry, bolts, corrosion and inspection. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Simpson for Technical Seminars and Manufacturer Resources","masonry","bolts","corrosion","inspection","AutoCAD"],"simpson","technical-seminars-and-manufacturer-resources"],
     ["simpson-anchoring-fastening-collection","Simpson Anchoring & Fastening Collection","Beginner","The source materials discuss masonry, bolts, corrosion and inspection. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Simpson Anchoring & Fastening Collection","masonry","bolts","corrosion","inspection","AutoCAD"],"simpson","simpson-for-technical-seminars-and-manufacturer-resources"],
     ["catalogs-for-simpson-anchoring-fastening-collection","Catalogs for Simpson Anchoring & Fastening Collection","Advanced","The source materials discuss strength design, masonry, corrosion and mechanical anchors. Use manufacturer literature to identify the product family and locate technical data for the specific installation conditions.",["Catalogs for Simpson Anchoring & Fastening Collection","strength design","masonry","corrosion","mechanical anchors"],"simpson","simpson-anchoring-fastening-collection"],
@@ -223,16 +199,48 @@ const catalogEntries: Record<LearningTopic['id'], readonly CatalogEntry[]> = {
     ["strongwall-for-simpson-technical-library","StrongWall for Simpson Technical Library","Advanced","The source materials discuss bolts, anchor bolts, reinforcement and seismic design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["StrongWall for Simpson Technical Library","bolts","anchor bolts","reinforcement","seismic design"],"simpson","simpson-technical-library-for-simpson"],
     ["submittals-for-simpson-technical-library","Submittals for Simpson Technical Library","Beginner","The source materials discuss compressive strength, masonry, deflection and inspection. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Submittals for Simpson Technical Library","compressive strength","masonry","deflection","inspection"],"simpson","simpson-technical-library-for-simpson"],
     ["techbull-for-simpson-technical-library","TechBull for Simpson Technical Library","Beginner","The source materials discuss stability, repair, masonry and coatings. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["TechBull for Simpson Technical Library","stability","repair","masonry","coatings","AutoCAD"],"simpson","simpson-technical-library-for-simpson"],
-    ["masonry-structural-design","Structural Masonry Design and Detailing","Intermediate","Trace masonry loads through walls, reinforcement and supports. Review the design basis and check that the drawing shows continuous load transfer.",["masonry structural design","masonry detailing","reinforced masonry","wall load path","masonry standards","CSA S304"],"nbc",null],
     ["firestopping-and-structural-penetrations","Firestopping and Structural Penetrations","Intermediate","The source materials discuss bolts, repair, firestop and welding. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Firestopping and Structural Penetrations","bolts","repair","firestop","welding"],"ul",null],
     ["3m-for-firestopping-and-structural-penetrations","3M for Firestopping and Structural Penetrations","Intermediate","The source materials discuss firestop and fire resistance. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["3M for Firestopping and Structural Penetrations","firestop","fire resistance"],"ul","firestopping-and-structural-penetrations"],
     ["embedded-part-ep-procedures","Embedded Part (EP) Procedures","Intermediate","The source materials discuss welding, bolts, fire rating and load combinations. Compare substrate, attachment conditions and load transfer assumptions before choosing a connection detail.",["Embedded Part (EP) Procedures","welding","bolts","fire rating","load combinations"],"ul","firestopping-and-structural-penetrations"],
     ["supplementary-penetration-coordination","Supplementary Penetration Coordination","Intermediate","The source materials discuss firestop, fire resistance and inspection. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Supplementary Penetration Coordination","firestop","fire resistance","inspection"],"ul","firestopping-and-structural-penetrations"],
     ["hilti-for-firestopping-and-structural-penetrations","Hilti for Firestopping and Structural Penetrations","Intermediate","The source materials discuss firestop and fire resistance. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Hilti for Firestopping and Structural Penetrations","firestop","fire resistance"],"ul","firestopping-and-structural-penetrations"],
-    ["slabs-on-ground","Concrete Slab Design","Advanced","Review how the ground support, application loads, reinforcement and joints relate to slab behavior. Use floor inspection references to distinguish measured flatness from a structural design check.",["Concrete Slab Design","reinforcement","concrete design","material properties","time history","SAP2000"],"aci",null],
-    ["euclid-software","Euclid Software","Intermediate","The source materials discuss load cases, flexural strength, serviceability and safety factors. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Euclid Software","load cases","flexural strength","serviceability","safety factors"],"aci","slabs-on-ground"],
   ],
-  bim: [
+  inspection: [
+    ["structural-inspection-and-condition-assessment","Structural Inspection and Condition Assessment","Intermediate","The source materials discuss repair, inspection, corrosion and masonry. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Structural Inspection and Condition Assessment","repair","inspection","corrosion","masonry"],"repair",null],
+    ["engineering-inspection-presentations","Engineering Inspection Presentations","Intermediate","The source materials discuss automation and inspection. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Engineering Inspection Presentations","automation","inspection","AutoCAD"],"repair",null],
+    ["movies-for-engineering-inspection-presentations","Movies for Engineering Inspection Presentations","Intermediate","The source materials discuss inspection. Extract the example’s application and design assumptions, then locate the current guidance for the same task.",["Movies for Engineering Inspection Presentations","inspection"],"repair","engineering-inspection-presentations"],
+    ["microstation-for-movies","MicroStation for Movies","Intermediate","The source materials discuss inspection. Trace the source assumptions to a model input or review decision and record one independent check.",["MicroStation for Movies","inspection"],"repair","movies-for-engineering-inspection-presentations"],
+    ["structural-corrosion-and-durability","Structural Corrosion and Durability","Intermediate","Record exposure and deterioration observations, prioritize measurements and use the evidence to scope structural evaluation and repair.",["structural corrosion","durability","condition inspection","coating deterioration","reinforcement corrosion","concrete repair"],"repair",null],
+    ["protective-paint-and-coatings","Protective Paint and Coatings","Intermediate","The source materials discuss coatings, masonry, LEED and structural steel. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Protective Paint and Coatings","coatings","masonry","LEED","structural steel"],"repair",null],
+    ["concrete-defect","Concrete Defect","Advanced","The source materials discuss repair, corrosion, concrete slabs and vibration. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Concrete Defect","repair","corrosion","concrete slabs","vibration"],"repair","civil-engineering-reference-library"],
+    ["repair-products","Repair Products","Advanced","The source materials discuss repair, reinforcement, masonry and flexural strength. Connect documented conditions to the observations and follow-up checks needed to assess the structure.",["Repair Products","repair","reinforcement","masonry","flexural strength"],"aci","euclid-for-technical-seminars-and-manufacturer-resources"],
+    ["composite-strengthening-reference-review","Composite Strengthening Reference Review","Beginner","The source materials discuss reinforcement, repair and structural design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Composite Strengthening Reference Review","reinforcement","repair","structural design"],"repair","data-sheets"],
+    ["corrosion-inhibitor","Corrosion Inhibitor","Beginner","The source materials discuss corrosion, repair, material properties and coatings. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Corrosion Inhibitor","corrosion","repair","material properties","coatings"],"repair","data-sheets"],
+    ["finish-coatings","Finish Coatings","Beginner","The source materials discuss masonry, corrosion, flexural strength and material properties. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["Finish Coatings","masonry","corrosion","flexural strength","material properties"],"repair","data-sheets"],
+    ["mci-corrosion-inhibitors","MCI Corrosion Inhibitors","Beginner","The source materials discuss corrosion, reinforcement, reinforced concrete and inspection. Identify the exposure condition and compare inspection observations with the stated scope of the protection system.",["MCI Corrosion Inhibitors","corrosion","reinforcement","reinforced concrete","inspection"],"repair","technical-seminars-and-manufacturer-resources"],
+    ["floor-loading-assessment","Existing Floor Loading and Capacity Assessment","Advanced","Build an evidence record for evaluating an existing floor under proposed equipment or use.",["floor loading assessment","floor loading","floor capacity","existing structure assessment"],"guide_nbc",null],
+  ],
+  civil: [
+    ["leed-and-sustainable-construction","LEED and Sustainable Construction","Beginner","The source materials discuss LEED, inspection, visual inspection and sustainability. Trace the source assumptions to a model input or review decision and record one independent check.",["LEED and Sustainable Construction","LEED","inspection","visual inspection","sustainability"],"leed",null],
+    ["civil-engineering-reference-library","Civil Engineering Reference Library","Advanced","The source materials discuss deflection, reinforcement, material properties and concrete design. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["Civil Engineering Reference Library","deflection","reinforcement","material properties","concrete design","SAP2000","S-Frame"],"nbc",null],
+    ["reinforcement-detailing","Concrete Reinforcement Detailing and Crack Control","Beginner","Read reinforcement details alongside the load path and serviceability assumptions. Identify where crack control, torsion and bar continuity shape the questions a reviewer should ask.",["Concrete Reinforcement Detailing and Crack Control","reinforcement","reinforced concrete","structural steel","headed studs"],"nbc","civil-engineering-reference-library"],
+    ["storm-drainage","Storm Drainage Flow and Inlet Capacity","Intermediate","Read a drainage worksheet and check the flow balance through a simple inlet network.",["storm drainage","inlet capacity","runoff","site drainage","HEC-22"],"guide_fhwa",null],
+  ],
+  safety: [
+    ["fall-protection","Fall Protection and Structural Anchorage Coordination","Advanced","Coordinate structural and safety responsibilities for proposed fall protection systems.",["fall protection","guardrail","fall arrest","safety anchorage"],"guide_osha",null],
+  ],
+  workflow: [
+    ["structural-calculation-notes","Structural Calculation Notes","Intermediate","The source materials discuss reinforcement, structural steel, bolts and load combinations. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Structural Calculation Notes","reinforcement","structural steel","bolts","load combinations","Mathcad"],"nbc",null],
+    ["canam-for-structural-calculation-notes","Canam Joist Calculation Notes","Advanced","The source materials discuss steel joists, deflection, reinforcement and fabrication. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Canam Joist Calculation Notes","steel joists","deflection","reinforcement","fabrication"],"nbc","structural-calculation-notes"],
+    ["masonry-for-structural-calculation-notes","Masonry for Structural Calculation Notes","Intermediate","The source materials discuss masonry, bolts, load combinations and structural steel. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Masonry for Structural Calculation Notes","masonry","bolts","load combinations","structural steel","Mathcad"],"nbc","structural-calculation-notes"],
+    ["mathcad-engineering-worksheets","Mathcad Engineering Worksheets","Advanced","The source materials discuss bolts, engineering calculations, structural steel and seismic design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Mathcad Engineering Worksheets","bolts","engineering calculations","structural steel","seismic design","Mathcad","STAAD.Pro"],"math",null],
+    ["samples-for-mathcad-engineering-worksheets","Samples for Mathcad Engineering Worksheets","Advanced","The source materials discuss bolts, engineering calculations, structural steel and seismic design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Samples for Mathcad Engineering Worksheets","bolts","engineering calculations","structural steel","seismic design","Mathcad","STAAD.Pro"],"math","mathcad-engineering-worksheets"],
+    ["floor-for-samples","Floor for Samples","Intermediate","The source materials discuss bolts and structural steel. Trace the source assumptions to a model input or review decision and record one independent check.",["Floor for Samples","bolts","structural steel","Mathcad"],"math","samples-for-mathcad-engineering-worksheets"],
+    ["pump-for-samples","Pump for Samples","Advanced","The source materials discuss bolts, welding, corrosion and torsion. Trace the source assumptions to a model input or review decision and record one independent check.",["Pump for Samples","bolts","welding","corrosion","torsion","Mathcad"],"math","samples-for-mathcad-engineering-worksheets"],
+    ["supports-for-samples","Supports for Samples","Advanced","The source materials discuss engineering calculations, load combinations, bolts and anchor bolts. Trace the source assumptions to a model input or review decision and record one independent check.",["Supports for Samples","engineering calculations","load combinations","bolts","anchor bolts","Mathcad","STAAD.Pro"],"math","samples-for-mathcad-engineering-worksheets"],
+    ["panels-for-supports","Panels for Supports","Intermediate","The source materials discuss bolts, anchor bolts, material properties and engineering calculations. Trace the source assumptions to a model input or review decision and record one independent check.",["Panels for Supports","bolts","anchor bolts","material properties","engineering calculations"],"math","supports-for-samples"],
+    ["engineering-spreadsheets","Engineering Spreadsheets","Intermediate","The source materials discuss bolts, reinforcement, foundations and foundation design. Trace units, input assumptions and governing checks before using a calculation as a comparison case.",["Engineering Spreadsheets","bolts","reinforcement","foundations","foundation design"],"math",null],
+    ["idea-statica-connection-design","IDEA StatiCa Connection Design","Intermediate","The source materials discuss BIM. Record the material or substrate, the conditions of use and the applicable design basis before adapting an example.",["IDEA StatiCa Connection Design","BIM","Revit","SAP2000","IDEA StatiCa"],"idea",null],
     ["advance-steel-detailing","Advance Steel Detailing","Intermediate","Follow a steel model from coordinated geometry to fabrication drawings. Compare member and connection information after exchange and confirm which drawings need an update.",["Advance Steel Detailing","shop drawings","bolts","structural steel","reinforcement","AutoCAD","Advance Steel"],"advance",null],
     ["engineering-software-apis","Engineering Software APIs","Intermediate","Identify the inputs exchanged between applications and compare them with the receiving model or drawing. Review the original application context and verify the source edition before use.",["Engineering Software APIs","Python","Dynamo"],"auto",null],
     ["autodesk-structural-cad-resources","Autodesk Structural CAD Resources","Advanced","The source materials discuss structural analysis, BIM, material properties and time history. Identify the inputs exchanged between applications and compare them with the receiving model or drawing.",["Autodesk Structural CAD Resources","structural analysis","BIM","material properties","time history","SAP2000","AutoCAD","ETABS"],"auto",null],
@@ -250,79 +258,63 @@ const catalogEntries: Record<LearningTopic['id'], readonly CatalogEntry[]> = {
     ["sap2000-and-etabs-model-comparison","SAP2000 and ETABS Model Comparison","Advanced","The source materials discuss material properties, deflection, concrete design and time history. Compare units, analytical connectivity and loads across the source and receiving models.",["SAP2000 and ETABS Model Comparison","material properties","deflection","concrete design","time history","Revit","ETABS","SAP2000"],"csi","model-exchange-presentation-examples"],
     ["revit-to-sap2000","Revit to SAP2000","Advanced","The source materials discuss material properties, concrete design, time history and response spectrum. Compare units, analytical connectivity and loads across the source and receiving models.",["Revit to SAP2000","material properties","concrete design","time history","response spectrum","SAP2000","Revit"],"csi","revit-robot-exchange"],
     ["comparing-sap2000-and-robot-models","Comparing SAP2000 and Robot Models","Advanced","The source materials discuss deflection, material properties, concrete design and time history. Compare units, analytical connectivity and loads across the source and receiving models.",["Comparing SAP2000 and Robot Models","deflection","material properties","concrete design","time history","SAP2000","Revit"],"robot","revit-to-sap2000"],
-    ["sap2000-and-revit-model-exchange","SAP2000 and Revit Model Exchange","Advanced","The source materials discuss time history, response spectrum, material properties and deflection. Compare units, analytical connectivity and loads across the source and receiving models.",["SAP2000 and Revit Model Exchange","time history","response spectrum","material properties","deflection","Revit","SAP2000","Navisworks"],"csi",null],
+    ["sap2000-and-revit-model-exchange","SAP2000 Model Verification and Revit Coordination","Intermediate","Verify a small SAP2000 model and coordinate the analytical data used at the model boundary.",["SAP2000","Revit","model exchange","structural analysis"],"guide_sap",null],
     ["csi-to-revit","CSI to Revit Model Exchange","Intermediate","The source materials discuss reinforcement, analytical model, torsion and load cases. Identify the inputs exchanged between applications and compare them with the receiving model or drawing.",["CSI to Revit Model Exchange","reinforcement","analytical model","torsion","load cases","Revit","ETABS","SAP2000"],"auto","sap2000-and-revit-model-exchange"],
     ["sap-for-sap2000-and-revit-model-exchange","Sap for SAP2000 and Revit Model Exchange","Advanced","The source materials discuss deflection, material properties, time history and response spectrum. Compare units, analytical connectivity and loads across the source and receiving models.",["Sap for SAP2000 and Revit Model Exchange","deflection","material properties","time history","response spectrum","Revit","SAP2000"],"csi","sap2000-and-revit-model-exchange"],
     ["structural-shop-drawing-review","Structural Shop Drawing Review","Intermediate","The source materials discuss shop drawings, inspection, structural steel and foundations. Identify the inputs exchanged between applications and compare them with the receiving model or drawing.",["Structural Shop Drawing Review","shop drawings","inspection","structural steel","foundations"],"auto",null],
   ],
+  wood: [
+    ["wood-structural-design-and-detailing","Wood Framing Load Paths and Support Detailing","Intermediate","Trace gravity forces through an illustrative wood frame and identify member and connection checks.",["wood design","timber","glulam","wood framing","CSA O86"],"guide_wood",null],
+  ],
 };
 
-// Guide routes are linked from their public topic cards.
-const guideHrefs: Readonly<Record<string, string>> = {
-  'cable-tray-and-support-systems': '/learning/cable-tray-support-design',
-  'load-combinations': '/learning/load-combinations',
-  'steel-deck-span': '/learning/steel-deck-span',
-  'reinforcement-detailing': '/learning/reinforcement-detailing',
-  'revit-robot-exchange': '/learning/revit-robot-exchange',
-  'anchor-selection': '/learning/anchor-selection',
-  'structural-corrosion-and-durability': '/learning/structural-corrosion-and-durability',
-  'masonry-structural-design': '/learning/masonry-structural-design',
+const guideIds = new Set(["roof-snow-loads","wind-load-path","floor-vibration","modal-response","steel-member-checks","structural-welding-references","industrial-grating-and-walkways","steel-sheet","reinforcement-couplers","precast-concrete","prestressed-concrete","slabs-on-ground","retaining-wall","pipe-support-engineering","pipe-rack","crane-and-lifting-support-structures","pump-support-and-equipment-loads","ceiling-support-systems","floor-loading-assessment","storm-drainage","fall-protection","sap2000-and-revit-model-exchange","wood-structural-design-and-detailing","load-combinations","steel-deck-span","reinforcement-detailing","revit-robot-exchange","anchor-selection","structural-corrosion-and-durability","masonry-structural-design"]);
+
+export type PublicTopic = LearningResource & { category: TopicCategory };
+
+export const learningResources: readonly PublicTopic[] = (
+  Object.keys(topicCategories) as TopicCategory[]
+).flatMap((category) => catalogEntries[category].map(([id, title, level, summary, keywords, publisher]) => ({
+  id,
+  title,
+  level,
+  summary,
+  category,
+  keywords,
+  references: [publishers[publisher]],
+  guideHref: id === 'cable-tray-and-support-systems' ? '/learning/cable-tray-support-design'
+    : guideIds.has(id) ? `/learning/${id}` : undefined,
+})));
+
+export type PublicFolder = {
+  id: string;
+  label: string;
+  children: readonly PublicFolder[];
 };
 
-function resourcesFor(category: LearningTopic['id']): LearningResource[] {
-  return catalogEntries[category].map(([id, title, level, summary, keywords, publisher]) => ({
-    id, title, level, summary, keywords, references: [publishers[publisher]], guideHref: guideHrefs[id],
+const allEntries = Object.values(catalogEntries).flat();
+function foldersFor(parent: string | null): PublicFolder[] {
+  return allEntries.filter((entry) => entry[6] === parent).map(([id, label]) => ({
+    id, label, children: foldersFor(id),
   }));
 }
 
-export const learningResources: Record<LearningTopic['id'], readonly LearningResource[]> = {
-  analysis: resourcesFor('analysis'),
-  steel: resourcesFor('steel'),
-  concrete: resourcesFor('concrete'),
-  bim: resourcesFor('bim'),
-};
+export const publicFolderTree = foldersFor(null);
 
-export type PublicFolder = {
-  label: string;
-  topic: LearningTopic['id'];
-  resource?: string;
-  children?: readonly PublicFolder[];
-};
+export function filterLearningTopics(query: string, category: TopicCategory | '' = '', withGuide = false) {
+  const normalized = query.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ').trim();
+  const terms = normalized.split(' ').filter(Boolean);
+  const cable = /^(?:cable(?: tray)? supports?|cable tray and support systems|conduit supports?)(?: (?:design|guide|loads?))?$/.test(normalized);
+  const exact = learningResources.filter((resource) => [resource.title, ...resource.keywords]
+    .some((term) => term.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() === normalized));
 
-function foldersFor(topic: LearningTopic['id'], parent: string | null = null): PublicFolder[] {
-  return catalogEntries[topic]
-    .filter((entry) => entry[6] === parent)
-    .map(([resource, label]) => ({
-      label, topic, resource, children: foldersFor(topic, resource),
-    }));
-}
-
-export const publicFolderTree: readonly PublicFolder[] = learningTopics.map(({ id, title }) => ({
-  label: title, topic: id, children: foldersFor(id),
-}));
-
-function matches(entry: LearningResource, terms: readonly string[], extra: readonly string[] = []) {
-  const searchable = [
-    entry.title, entry.summary, entry.level, ...entry.keywords, ...extra,
-    ...entry.references.map(({ title }) => title),
-  ].join(' ').toLowerCase();
-
-  return terms.every((term) => searchable.includes(term));
-}
-
-export function filterLearningTopics(query: string, level: Level | '') {
-  const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
-
-  const cableSupportQuery = /^(?:cable(?: tray)? supports?|cable tray and support systems|conduit supports?)(?: (?:design|guide|loads?))?$/.test(terms.join(' '));
-
-  return learningTopics.flatMap((topic) => {
-    const overviewMatches = !cableSupportQuery && (!level || topic.level === level) && matches(topic, terms, topic.subtopics);
-    const resources = learningResources[topic.id].filter((resource) =>
-      (!level || resource.level === level) &&
-      (cableSupportQuery
-        ? resource.id === 'cable-tray-and-support-systems'
-        : matches(resource, terms, [topic.title])),
-    );
-    return overviewMatches || resources.length ? [{ ...topic, resources }] : [];
+  return learningResources.filter((resource) => {
+    if ((category && resource.category !== category) || (withGuide && !resource.guideHref)) return false;
+    if (cable) return resource.id === 'cable-tray-and-support-systems';
+    if (normalized && exact.length) return exact.includes(resource);
+    const searchable = [
+      resource.title, resource.summary, topicCategories[resource.category], ...resource.keywords,
+    ].join(' ').toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+    return terms.every((term) => searchable.includes(term));
   });
 }

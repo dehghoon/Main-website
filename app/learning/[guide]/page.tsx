@@ -51,6 +51,12 @@ export default async function GuidePage({ params }: Props) {
           <h1>{entry.title}</h1>
           <p>{entry.intro}</p>
         </header>
+        {entry.inputs && (
+          <section aria-labelledby="inputs">
+            <h2 id="inputs">Inputs and Prerequisites</h2>
+            <p>{entry.inputs}</p>
+          </section>
+        )}
         <section aria-labelledby="principles">
           <h2 id="principles">{entry.principleTitle}</h2>
           <figure className={guideStyles.figure}>
@@ -63,7 +69,9 @@ export default async function GuidePage({ params }: Props) {
         <section aria-labelledby="example">
           <h2 id="example">{entry.exampleTitle}</h2>
           <p className={guideStyles.result}>{entry.example}</p>
+          <h3>Output Checks and Common Errors</h3>
           <p>{entry.check}</p>
+          {entry.tool && <p><Link href={entry.tool}>Open the related Linkoteq tool preview</Link></p>}
         </section>
         <section aria-labelledby="references">
           <h2 id="references">Official References</h2>

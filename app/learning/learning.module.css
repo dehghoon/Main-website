@@ -288,3 +288,34 @@
 .resourceGroup .resources {
   margin-top: 6px;
 }
+
+.discoveryControls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+.discoveryControls label { display: block; font-weight: 600; }
+.discoveryControls :is(input[type='search'], select) {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--muted);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+}
+.discoveryControls .guideFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.discoveryControls .reset { justify-self: end; }
+.topicLabel { font-size: .9rem; font-weight: 650; }
+@media (max-width: 600px) {
+  .discoveryControls { grid-template-columns: minmax(0, 1fr); }
+  .discoveryControls .reset { justify-self: start; }
+}

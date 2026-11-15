@@ -28,7 +28,7 @@ export default function LearningPage() {
 
       <header className={styles.hero}>
         <h1>Learning &amp; Resources</h1>
-        <p>Explore structural engineering topics, software workflows and official references.</p>
+        <p>Search engineering topics, worked guides and official references.</p>
         <nav className={styles.heroLinks} aria-label="Browse learning resources">
           <a className="primaryButton" href="#topics">Browse by Topic</a>
           <a className="secondaryButton" href="#folders">Browse by Folder</a>
