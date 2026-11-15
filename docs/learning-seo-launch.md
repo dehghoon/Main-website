@@ -1,16 +1,16 @@
-# Learning SEO launch plan
+# Learning SEO
 
-The English hub serves 174 curated entries under four categories. Keep the canonical hub and stable topic fragments. Fragments help readers reach an entry and do not create separate indexable URLs.
+Production exposes the English Learning hub, all standalone worked guides, and
+published Workspace articles to search engines. The main XML sitemap includes
+those canonical URLs. Cards without a standalone article remain on the hub and
+use fragment links. Draft articles are private, and Preview/OFF-host builds keep
+Learning pages out of their sitemap and send noindex metadata.
 
-| Hub section | Search intent | First editorial page opportunity |
-| --- | --- | --- |
-| Structural analysis and design loads | Understand loads, combinations and structural model verification | Canadian design loads and load combinations |
-| Steel design and connections | Evaluate member behavior, deck span and diaphragm load transfer | Steel deck span and diaphragm design |
-| Concrete, masonry and anchors | Understand reinforcement, slab support and fastening conditions | Post-installed concrete anchor selection |
-| Structural BIM and model exchange | Validate model transfer and coordinate structural drawings | Revit to Robot analytical model exchange |
+Members with existing employee access can open Resources Workspace from the
+Learning page to manage topics, subtopics, and drafts. Publication still
+requires the existing Learning publishing permission. The former employee
+editor URL redirects to the Workspace section.
 
-The preview stays noindex, nofollow and outside the XML sitemap. Review publisher links, software releases, code editions, confidentiality and editorial copy before enabling indexing. Search and difficulty selection use the existing route without query-generated collections.
-
-After separate release approval, add the hub to the XML sitemap and relevant site navigation. Retain the self-canonical hub URL and verify metadata, response status, mobile navigation and rendered HTML. Keep overlapping entries as hub sections. Create a separate article when it offers a distinct query intent and original, reviewed instruction. Give each approved article a unique title, meta description, canonical URL, visible breadcrumbs and appropriate markup. Link it to the hub and relevant existing content.
-
-Submit the sitemap in Search Console and inspect the hub URL after launch. Review impressions, clicks, search queries and canonical coverage by landing page. Refine content using observed performance. The editorial priorities are qualitative.
+To track search visibility, use the main sitemap in Google Search Console and
+inspect the hub and featured guide URLs. Review indexing, canonical coverage,
+impressions and clicks by landing page.

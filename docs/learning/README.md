@@ -29,11 +29,9 @@ Site credentials are unnecessary for reviewing the learning catalog.
   jurisdiction or edition references with the content owner.
 - Keep `lib/learning/catalog.ts` as the public allowlist. Review proposed
   additions as individual entries. Use publisher links and original summaries.
-- After approval to release, add the hub under Knowledge Center in the shared
-  header. Verify the link in the desktop menu and mobile drawer.
-- Obtain explicit approval to enable indexing and add the canonical URL to
-  `app/sitemap.ts`. Then verify robots metadata, the canonical URL, the apex
-  redirect and the sitemap on the released site.
+- Check the Knowledge Center link in the desktop menu and mobile drawer.
+- Verify robots metadata, canonical URLs and the sitemap after deploying
+  changes to public Learning routes.
 - If each topic later has enough distinct reviewed learning content, consider
   `/learning/structural-analysis-design-loads`,
   `/learning/steel-design-connections`,
@@ -41,3 +39,8 @@ Site credentials are unnecessary for reviewing the learning catalog.
   `/learning/structural-bim-model-exchange`. Give each approved page its own
   metadata and cross-link it from the hub. Keep filters on the hub as client
   state so search combinations have one canonical route.
+
+The hosted production hub and its public guides are indexable. The production
+sitemap automatically includes new Workspace articles after publication. Preview
+deployments remain noindex. The Resources Workspace appears below the resource
+browser on the same page.

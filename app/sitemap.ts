@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { PUBLIC_TOOLS, SITE_ORIGIN, toolPreviewPath } from "@/lib/tool-discovery";
 
+import { learningResources } from "@/lib/learning/catalog";
+import { publishedLearningSitemapRows } from "@/lib/learning/published";
+import { learningIndexable } from "@/lib/learning/seo";
+
 export const dynamic = "force-dynamic";
 const origin = SITE_ORIGIN;
 
@@ -13,6 +17,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {url:origin+"/tools",changeFrequency:"monthly",priority:0.8},
     ...PUBLIC_TOOLS.map(tool => ({url: origin + toolPreviewPath(tool), changeFrequency: "monthly" as const, priority: 0.7})),
   ];
+  if (learningIndexable()) {
+    const paths = new Set(['/learning', ...learningResources.flatMap(({ guideHref }) => guideHref ? [guideHref] : [])]);
+    for (const path of paths) entries.push({ url: origin + path });
+    for (const { id, published_at } of await publishedLearningSitemapRows()) {
+      entries.push({ url: `${origin}/learning/resources/${id}`, lastModified: published_at });
+    }
+  }
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!base || !key) return entries;

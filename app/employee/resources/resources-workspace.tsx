@@ -1,20 +1,79 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
 import { getSupabase } from '@/lib/supabase-browser';
 import { levels } from '@/lib/learning/catalog';
 import { articleFields, type LearningArticle, type LearningCategory, type LearningSubtopic } from '@/lib/learning/workspace-types';
 
-const loginUrl = '/blog/login?returnTo=%2Femployee%2Fresources';
+const loginUrl = '/blog/login?returnTo=%2Flearning%23resources-workspace';
 const emptyArticle: Omit<LearningArticle, 'id'> = {
   title: '', summary: '', body: '', category_id: '', subtopic_id: '',
   keywords: [], level: 'Intermediate', published_at: null,
 };
 
 export default function ResourcesWorkspace() {
-  const [access, setAccess] = useState<'loading' | 'signed-out' | 'denied' | 'editor' | 'error'>('loading');
-  const [canPublish, setCanPublish] = useState(false);
+  const [access, setAccess] = useState<
+    'loading' | 'signed-out' | 'denied' | 'error' | { userId: string; canPublish: boolean }
+  >('loading');
+
+  useEffect(() => {
+    const client = getSupabase();
+    if (!client) {
+      setAccess('error');
+      return;
+    }
+
+    let revision = 0;
+    let previousUser: string | undefined;
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      const userId = session?.user.id;
+      if (event === 'TOKEN_REFRESHED' && userId === previousUser) return;
+      const check = ++revision;
+      if (!userId || userId !== previousUser) setAccess(userId ? 'loading' : 'signed-out');
+      previousUser = userId;
+      if (!userId) return;
+      // Supabase authentication callbacks must return before starting another request.
+      setTimeout(async () => {
+        if (check !== revision) return;
+        try {
+          const [edit, publish] = await Promise.all([
+            client.rpc('learning_can_edit'), client.rpc('learning_can_publish'),
+          ]);
+          if (check !== revision) return;
+          if (edit.error || publish.error) setAccess('error');
+          else if (!edit.data) setAccess('denied');
+          else setAccess({ userId, canPublish: Boolean(publish.data) });
+        } catch {
+          if (check === revision) setAccess('error');
+        }
+      }, 0);
+    });
+
+    return () => {
+      ++revision;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <section id="resources-workspace" aria-labelledby="resources-workspace-title" className="cmsDashboard learningWorkspace">
+      <div className="dashboardTop">
+        <h2 id="resources-workspace-title">Resources Workspace</h2>
+        {typeof access === 'object' && <div className="cmsTopActions"><Link href="/blog/dashboard">Content Studio</Link></div>}
+      </div>
+      {access === 'loading' && <p role="status">Checking employee access…</p>}
+      {access === 'signed-out' && <p><Link className="secondaryButton" href={loginUrl}>Employee Sign In</Link></p>}
+      {access === 'denied' && <p role="status">Your account does not have employee access to this workspace. <Link href={loginUrl}>Employee Sign In</Link></p>}
+      {access === 'error' && <p role="alert">Could not verify workspace access. Refresh to try again.</p>}
+      {typeof access === 'object' && <WorkspaceEditor key={access.userId} canPublish={access.canPublish} />}
+    </section>
+  );
+}
+
+function WorkspaceEditor({ canPublish }: { canPublish: boolean }) {
+  const router = useRouter();
   const [categories, setCategories] = useState<LearningCategory[]>([]);
   const [subtopics, setSubtopics] = useState<LearningSubtopic[]>([]);
   const [articles, setArticles] = useState<LearningArticle[]>([]);
@@ -26,56 +85,37 @@ export default function ResourcesWorkspace() {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
   const [message, setMessage] = useState('');
+  const [ready, setReady] = useState(false);
   const visibleSubtopics = subtopics.filter((item) => item.category_id === form.category_id);
 
   useEffect(() => {
     const client = getSupabase();
-    if (!client) {
-      setAccess('error');
-      return;
-    }
-
+    if (!client) return;
     let active = true;
     async function load() {
       if (!client) return;
-      const { data: { user } } = await client.auth.getUser();
-      if (!active) return;
-      if (!user) return setAccess('signed-out');
-
-      const [edit, publish] = await Promise.all([
-        client.rpc('learning_can_edit'), client.rpc('learning_can_publish'),
-      ]);
-      if (!active) return;
-      if (edit.error || publish.error) return setAccess('error');
-      if (!edit.data) return setAccess('denied');
-
-      const [topicRows, subtopicRows, articleRows] = await Promise.all([
-        client.from('learning_categories').select('id,title').order('title'),
-        client.from('learning_subtopics').select('id,category_id,title').order('title'),
-        client.from('learning_articles').select(articleFields)
-          .order('published_at', { ascending: false, nullsFirst: true }).order('title'),
-      ]);
-      if (!active) return;
-      if (topicRows.error || subtopicRows.error || articleRows.error) return setAccess('error');
-
-      setCategories(topicRows.data);
-      setSubtopics(subtopicRows.data);
-      setArticles(articleRows.data);
-      setCanPublish(Boolean(publish.data));
-      setAccess('editor');
-    }
-
-    void load();
-    const { data } = client.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') {
-        active = false;
-        setAccess('signed-out');
+      try {
+        const [topicRows, subtopicRows, articleRows] = await Promise.all([
+          client.from('learning_categories').select('id,title').order('title'),
+          client.from('learning_subtopics').select('id,category_id,title').order('title'),
+          client.from('learning_articles').select(articleFields)
+            .order('published_at', { ascending: false, nullsFirst: true }).order('title'),
+        ]);
+        if (!active) return;
+        if (topicRows.error || subtopicRows.error || articleRows.error) {
+          setMessage('Could not load the workspace. Refresh to try again.');
+          return;
+        }
+        setCategories(topicRows.data);
+        setSubtopics(subtopicRows.data);
+        setArticles(articleRows.data);
+        setReady(true);
+      } catch {
+        if (active) setMessage('Could not load the workspace. Refresh to try again.');
       }
-    });
-    return () => {
-      active = false;
-      data.subscription.unsubscribe();
-    };
+    }
+    void load();
+    return () => { active = false; };
   }, []);
 
   function openArticle(article?: LearningArticle) {
@@ -142,23 +182,13 @@ export default function ResourcesWorkspace() {
     setForm(data);
     setEditingId(data.id);
     setMessage(data.published_at ? 'Article published in Resources & Learning.' : 'Draft saved.');
+    if (data.published_at) router.refresh();
   }
 
-  return (
-    <main className="dashboard cmsDashboard">
-      <div className="dashboardTop">
-        <h1>Resources Workspace</h1>
-        <div className="cmsTopActions">
-          <Link href="/blog/dashboard">Content Studio</Link>
-          <Link href="/learning">View Resources &amp; Learning</Link>
-        </div>
-      </div>
+  if (!ready) return <p role="status">{message || 'Loading topics and drafts…'}</p>;
 
-      {access === 'loading' && <p role="status">Checking employee access…</p>}
-      {access === 'signed-out' && <p><Link href={loginUrl}>Sign in to Employee Workspace</Link></p>}
-      {access === 'denied' && <p>This workspace requires employee access.</p>}
-      {access === 'error' && <p role="alert">Could not load the workspace. Refresh to try again.</p>}
-      {access === 'editor' && <>
+  return (
+    <>
         <p role="status">{message}</p>
         <div className="cmsLayout">
           <section className="dashboardPanel cmsEditor">
@@ -231,7 +261,6 @@ export default function ResourcesWorkspace() {
             ))}</div>
           </aside>
         </div>
-      </>}
-    </main>
+    </>
   );
 }

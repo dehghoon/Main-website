@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { learningRobots } from '@/lib/learning/seo';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import { publishedLearningCards } from '@/lib/learning/published';
-import WorkspaceEntry from './workspace-entry';
+import ResourcesWorkspace from '@/app/employee/resources/resources-workspace';
 import LearningBrowser from './learning-browser';
 import styles from './learning.module.css';
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical },
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  robots: learningRobots(),
   openGraph: { type: 'website', title, description, url: canonical },
   twitter: { card: 'summary', title, description },
 };
@@ -38,11 +39,12 @@ export default async function LearningPage() {
         <nav className={styles.heroLinks} aria-label="Browse learning resources">
           <a className="primaryButton" href="#learning-search">Search Resources</a>
           <a className="secondaryButton" href="#folders">Browse by Folder</a>
+          <a className="secondaryButton" href="#resources-workspace">Resources Workspace</a>
         </nav>
       </header>
 
       <LearningBrowser published={published} />
-      <WorkspaceEntry />
+      <ResourcesWorkspace />
 
       <aside className={styles.notice}>
         Confirm the applicable code edition, jurisdiction and publisher guidance before using

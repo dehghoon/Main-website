@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { learningRobots } from '@/lib/learning/seo';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import styles from '../learning.module.css';
 import guideStyles from '../cable-tray-support-design/guide.module.css';
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: entry.description,
     keywords: [...entry.keywords],
     alternates: { canonical },
-    robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+    robots: learningRobots(),
     openGraph: { type: 'article', title, description: entry.description, url: canonical },
   };
 }

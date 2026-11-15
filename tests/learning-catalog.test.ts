@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { filterLearningTopics, learningResources, publicFolderTree, topicCategories, type PublicFolder } from '../lib/learning/catalog.ts';
+import { learningIndexable } from '../lib/learning/seo.ts';
 import { guides } from '../app/learning/[guide]/guides.ts';
 
 test('search resolves the requested terms to the expected public topics', () => {
@@ -43,12 +44,16 @@ test('each linked work guide is registered and publisher URLs use HTTPS', () => 
   }
 });
 
-test('the preview remains noindex and local source paths remain private', () => {
+test('Learning is indexable only on production deployments', () => {
+  assert.equal(learningIndexable({ vercel: 'production', netlify: '' }), true);
+  assert.equal(learningIndexable({ vercel: '', netlify: 'production' }), true);
+  assert.equal(learningIndexable({ vercel: 'preview', netlify: 'production' }), false);
+  assert.equal(learningIndexable({ vercel: '', netlify: 'deploy-preview' }), false);
+  assert.equal(learningIndexable({ vercel: '', netlify: '' }), false);
+});
+
+test('local source paths remain private', () => {
   const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
-  for (const path of ['../app/learning/page.tsx','../app/learning/%5Bguide%5D/page.tsx','../app/learning/cable-tray-support-design/page.tsx']) {
-    assert.match(read(path), /index: false, follow: false/);
-  }
-  assert.doesNotMatch(read('../app/sitemap.ts'), /\/learning\b/);
   for (const path of ['../lib/learning/catalog.ts','../app/learning/%5Bguide%5D/guides.ts']) {
     assert.doesNotMatch(read(path), /(?:[a-z]:\\|file:\/\/|evidence_paths|original_path|fromhassan|\.(?:zip|dwg|rvt|s2k)\b)/i);
   }
