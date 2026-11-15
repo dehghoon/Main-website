@@ -53,7 +53,8 @@ export const guides: Readonly<Record<string, Guide>> = {
       "Tributary strip",
       "Beam",
       "Support reactions"
-    ]
+    ],
+    "inputs": "A tributary framing sketch, clear spans, separate area loads and the locally adopted design-code edition."
   },
   "steel-deck-span": {
     "title": "Steel Deck Span, Deflection and Diaphragm Design",
@@ -92,7 +93,8 @@ export const guides: Readonly<Record<string, Guide>> = {
       "Deck strip",
       "Supporting members",
       "Vertical reactions"
-    ]
+    ],
+    "inputs": "A deck layout and section, clear spans and support conditions, construction and in-service loads, and the current manufacturer’s load tables."
   },
   "reinforcement-detailing": {
     "title": "Concrete Reinforcement Detailing and Crack Control",
@@ -126,7 +128,8 @@ export const guides: Readonly<Record<string, Guide>> = {
       "Plan centerlines",
       "Section and cover",
       "Drawing check"
-    ]
+    ],
+    "inputs": "A reinforcement plan and section showing bar size, centerline spacing, concrete faces and nominal cover. Have the applicable concrete design standard available."
   },
   "revit-robot-exchange": {
     "title": "Revit to Robot Structural Analysis Model Exchange",
@@ -165,7 +168,8 @@ export const guides: Readonly<Record<string, Guide>> = {
       "Model transfer",
       "Robot model",
       "Reaction comparison"
-    ]
+    ],
+    "inputs": "A small verification model, recorded Revit and Robot releases, the applicable exchange extension or method, and a manual reaction check."
   },
   "anchor-selection": {
     "title": "Post-Installed Concrete Anchor Selection and Review",
@@ -199,7 +203,8 @@ export const guides: Readonly<Record<string, Guide>> = {
         "https://www.hilti.ca/content/hilti/W1/CA/en/business/business/engineering/specifications-and-cad-details.html",
         "Open the anchor and rebar section to locate installation details for the selected system."
       ]
-    ]
+    ],
+    "inputs": "Attachment geometry, tension and shear actions, substrate information, and current product and installation documentation."
   },
   "structural-corrosion-and-durability": {
     "title": "Structural Corrosion Inspection and Durability Review",
@@ -233,7 +238,8 @@ export const guides: Readonly<Record<string, Guide>> = {
         "https://www.concrete.org/topicsinconcrete/topicdetail/repair",
         "Use the publisher’s repair resources for the reinforced-concrete assessment branch."
       ]
-    ]
+    ],
+    "inputs": "A drawing or member sketch, original or reference dimensions, inspection notes, measurement locations and calibrated thickness measurements."
   },
   "masonry-structural-design": {
     "title": "Structural Masonry Wall Design and Detailing",
@@ -267,7 +273,8 @@ export const guides: Readonly<Record<string, Guide>> = {
         "https://publications.gc.ca/collections/collection_2022/cnrc-nrc/NR24-28-2020-eng.pdf",
         "Locate the masonry structural design provisions and the referenced standard for that edition."
       ]
-    ]
+    ],
+    "inputs": "Wall plans and sections, lateral loads, attachment details and the adopted masonry design basis."
   },
   "roof-snow-loads": {
     "title": "Roof Snow Loads and Snow Drift",
