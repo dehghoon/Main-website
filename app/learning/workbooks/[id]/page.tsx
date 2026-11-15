@@ -32,6 +32,7 @@ export default async function WorkbookPage({ params }: Props) {
   const workbook = getWorkbook(id);
   if (!workbook) notFound();
 
+  const hasGuide = Boolean(workbook.inputs && workbook.outputs);
   const preview = workbookAsset(id, 'preview');
   const download = workbookAsset(id, 'workbook');
   const configured = Boolean(process.env.WORKBOOK_GITHUB_TOKEN);
@@ -50,17 +51,19 @@ export default async function WorkbookPage({ params }: Props) {
         <p>{workbook.summary}</p>
       </header>
       <section className={styles.detail} aria-labelledby="workbook-tour">
-        <h2 id="workbook-tour">Workbook guide</h2>
+        <h2 id="workbook-tour">{hasGuide ? 'How to use this workbook' : 'Workbook availability'}</h2>
+        {hasGuide && <div className={styles.grid}>
+          <div className={styles.card}><h3>Where to start</h3><p>{workbook.inputs}</p></div>
+          <div className={styles.card}><h3>Where to find the results</h3><p>{workbook.outputs}</p></div>
+        </div>}
         {preview && configured && <figure className={styles.preview}>
           <img src={`/api/learning/workbooks/${id}?asset=preview`} alt={`Selected worksheet view from ${workbook.title}`} />
           <figcaption>Read-only worksheet excerpt</figcaption>
         </figure>}
-        <div className={styles.grid}>
-          <div className={styles.card}><h3>Where to start</h3><p>{workbook.inputs}</p></div>
-          <div className={styles.card}><h3>Where to find the results</h3><p>{workbook.outputs}</p></div>
-        </div>
         {workbook.note && <p>{workbook.note}</p>}
-        <p>Workbook calculations have not been verified. Check the applicable code edition and assumptions.</p>
+        {!hasGuide && <p>Worksheet instructions are unavailable for this file.</p>}
+        {hasGuide && workbook.category !== 'references' &&
+          <p>Workbook calculations have not been verified. Check the applicable code edition and assumptions.</p>}
         <WorkbookDownload id={id} available={Boolean(download && configured)} />
       </section>
       {guides.length > 0 && <section className={styles.detail} aria-labelledby="related-guides">

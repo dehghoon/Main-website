@@ -19,11 +19,15 @@ test('workbook search finds verified terms and respects category filters', () =>
 });
 
 test('workbook IDs and related worked guides resolve without source paths', () => {
+  assert.equal(workbooks.length, 139);
+  assert.equal(workbooks.filter(({ inputs, outputs }) => inputs && outputs).length, 130);
   const keys = new Set(workbooks.map(({ id }) => id));
   assert.equal(keys.size, workbooks.length);
   for (const item of workbooks) {
     assert.match(item.id, /^[a-z0-9]+(-[a-z0-9]+)*$/);
     assert.ok(Object.hasOwn(workbookCategories, item.category));
+    assert.equal(Boolean(item.inputs), Boolean(item.outputs));
+    assert.ok(item.summary.trim());
     assert.equal(getWorkbook(item.id), item);
     assert.equal(workbookPath(item.id), '/learning/workbooks/' + item.id);
     for (const guide of item.guides) assert.ok(Object.hasOwn(guides, guide), guide);

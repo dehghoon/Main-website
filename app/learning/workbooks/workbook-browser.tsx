@@ -35,8 +35,12 @@ export default function WorkbookBrowser() {
         {results.map((workbook) => (
           <article className={styles.card} key={workbook.id}>
             <span>{workbookCategories[workbook.category]}</span>
-            <h2><Link href={workbookPath(workbook.id)}>{workbook.title}</Link></h2>
+            <h2>{workbook.title}</h2>
             <p>{workbook.summary}</p>
+            <Link className={styles.guideLink} href={workbookPath(workbook.id)}
+              aria-label={`${workbook.inputs ? 'Read workbook guide' : 'View workbook availability'} for ${workbook.title}`}>
+              {workbook.inputs ? 'Read workbook guide' : 'View workbook availability'}
+            </Link>
           </article>
         ))}
       </div>

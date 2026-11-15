@@ -1,9 +1,12 @@
+import { additionalWorkbooks } from './additional-workbooks.ts';
+
 export const workbookCategories = {
   loads: 'Wind, Snow & Building Loads',
   analysis: 'Structural Analysis',
   steel: 'Steel & Connections',
   concrete: 'Concrete & Masonry',
   foundations: 'Foundations & Retaining Walls',
+  references: 'References & Templates',
 } as const;
 
 export type Workbook = {
@@ -12,8 +15,8 @@ export type Workbook = {
   title: string;
   summary: string;
   keywords: readonly string[];
-  inputs: string;
-  outputs: string;
+  inputs?: string;
+  outputs?: string;
   guides: readonly string[];
   note?: string;
 };
@@ -131,6 +134,7 @@ export const workbooks: readonly Workbook[] = [
     outputs: 'Read the bearing and overturning sections. Review the assumed soil case and dimensions before comparing outputs.',
     guides: ['retaining-wall'],
   },
+  ...additionalWorkbooks,
 ];
 
 export function workbookPath(id: string) {

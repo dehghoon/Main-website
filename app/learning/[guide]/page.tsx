@@ -54,6 +54,11 @@ export default async function GuidePage({ params }: Props) {
           <span className={styles.level}>{entry.level}</span>
           <h1>{entry.title}</h1>
           <p>{entry.intro}</p>
+          {relatedWorkbooks.length > 0 && (
+            <div className={styles.heroLinks}>
+              <a className="secondaryButton" href="#related-workbooks">Related calculation workbooks</a>
+            </div>
+          )}
         </header>
         {entry.photo && (
           <figure className={guideStyles.photo}>
@@ -103,8 +108,8 @@ export default async function GuidePage({ params }: Props) {
         {relatedWorkbooks.length > 0 && (
           <section aria-labelledby="related-workbooks">
             <h2 id="related-workbooks">Related Calculation Workbooks</h2>
-            <ul>{relatedWorkbooks.map(({ id, title }) => (
-              <li key={id}><Link href={workbookPath(id)}>{title}</Link></li>
+            <ul>{relatedWorkbooks.map(({ id, title, summary }) => (
+              <li key={id}><Link href={workbookPath(id)}>{title}</Link><p>{summary}</p></li>
             ))}</ul>
           </section>
         )}

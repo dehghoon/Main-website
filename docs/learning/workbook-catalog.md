@@ -1,8 +1,11 @@
 # Calculation Workbooks
 
-The searchable catalogue is available under Learning & Resources. The initial
-entries describe sections observed in privately inspected workbooks. Matching
-worked guides and workbook pages link in both directions. The catalogue stores
+The searchable catalogue is available under Learning & Resources. The catalogue
+covers the 139 uploaded spreadsheet files, including archived variants and
+duplicates. Guides describe visible worksheets and operating notes when
+available. Files with unreadable or insufficient worksheet content show an
+availability message. Matching worked guides show related workbook summaries
+and link to the workbook pages, which link back to the guides. The catalogue stores
 titles, descriptions and keywords. It has no original workbook files or
 individual source paths.
 
