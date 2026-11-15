@@ -7,20 +7,28 @@ import {
   filterLearningTopics,
   levels,
   publicFolderTree,
-  type LearningTopic,
+  type LearningResource,
   type Level,
   type PublicFolder,
 } from '@/lib/learning/catalog';
 import styles from './learning.module.css';
 
-type TopicId = LearningTopic['id'];
+function OfficialReferences({ references }: { references: LearningResource['references'] }) {
+  return references.map(({ title, url }) => (
+    <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+      {title}
+      <ArrowUpRight size={15} aria-hidden="true" />
+      <span className={styles.srOnly}> (opens in a new tab)</span>
+    </a>
+  ));
+}
 
 function FolderList({
   folders,
   onTopicClick,
 }: {
   folders: readonly PublicFolder[];
-  onTopicClick: (event: MouseEvent<HTMLAnchorElement>, id: TopicId) => void;
+  onTopicClick: (event: MouseEvent<HTMLAnchorElement>, id: string) => void;
 }) {
   return (
     <ul className={styles.tree}>
@@ -32,7 +40,7 @@ function FolderList({
               {'children' in folder ? (
                 <FolderList folders={folder.children} onTopicClick={onTopicClick} />
               ) : (
-                <a href={`#${folder.topic}`} onClick={(event) => onTopicClick(event, folder.topic)}>
+                <a href={`#${folder.resource ?? folder.topic}`} onClick={(event) => onTopicClick(event, folder.resource ?? folder.topic)}>
                   {folder.linkLabel}
                 </a>
               )}
@@ -54,11 +62,11 @@ export default function LearningBrowser() {
     setLevel('');
   }
 
-  function navigateToTopic(event: MouseEvent<HTMLAnchorElement>, id: TopicId) {
+  function navigateToTopic(event: MouseEvent<HTMLAnchorElement>, id: string) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
     // Restore a filtered-out target before the browser follows its fragment link.
-    if (!filtered.some((topic) => topic.id === id)) flushSync(resetFilters);
+    if (!filtered.some((topic) => topic.id === id || topic.resources.some((resource) => resource.id === id))) flushSync(resetFilters);
     document.getElementById(id)?.focus({ preventScroll: true });
   }
 
@@ -112,14 +120,24 @@ export default function LearningBrowser() {
               <ul>{topic.subtopics.map((item) => <li key={item}>{item}</li>)}</ul>
               <div className={styles.references}>
                 <h4>Official references</h4>
-                {topic.references.map(({ title, url }) => (
-                  <a key={url} href={url} target="_blank" rel="noopener noreferrer">
-                    {title}
-                    <ArrowUpRight size={15} aria-hidden="true" />
-                    <span className={styles.srOnly}> (opens in a new tab)</span>
-                  </a>
-                ))}
+                <OfficialReferences references={topic.references} />
               </div>
+              {topic.resources.length > 0 && (
+                <div className={styles.resources}>
+                  {topic.resources.map((resource) => (
+                    <section key={resource.id} id={resource.id} tabIndex={-1}
+                      aria-labelledby={`${resource.id}-title`} className={styles.resource}>
+                      <h4 id={`${resource.id}-title`}>{resource.title}</h4>
+                      <span className={styles.level}>{resource.level}</span>
+                      <p>{resource.summary}</p>
+                      <p><strong>Keywords:</strong> {resource.keywords.join(', ')}</p>
+                      <div className={styles.references}>
+                        <OfficialReferences references={resource.references} />
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              )}
             </article>
           ))}
         </div>

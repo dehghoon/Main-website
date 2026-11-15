@@ -251,3 +251,25 @@
     gap: 10px;
   }
 }
+
+.resources {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.resource {
+  padding: 14px;
+  scroll-margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.resource h4 {
+  margin: 0 0 8px;
+}
+
+.resource:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}

@@ -1,63 +1,58 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { filterLearningTopics, learningTopics, publicFolderTree } from '../lib/learning/catalog.ts';
+import { filterLearningTopics, learningTopics, learningResources, publicFolderTree, type PublicFolder } from '../lib/learning/catalog.ts';
 
-const ids = (query: string, level: 'Beginner' | 'Intermediate' | '' = '') =>
-  filterLearningTopics(query, level).map(({ id }) => id);
-
-test('the catalog has the four topics, in reading order', () => {
-  assert.deepEqual(ids(''), ['analysis', 'steel', 'concrete', 'bim']);
+test('the four categories retain their order and each includes three resources', () => {
+  const topics = filterLearningTopics('', '');
+  assert.deepEqual(topics.map(({ id }) => id), ['analysis', 'steel', 'concrete', 'bim']);
+  for (const topic of topics) assert.equal(topic.resources.length, 3);
 });
 
-test('search matches topics, subtopics and software with case-insensitive terms', () => {
-  assert.deepEqual(ids('  ETABS   combinations '), ['analysis']);
-  assert.deepEqual(ids('diaphragm'), ['steel']);
-  assert.deepEqual(ids('ReViT'), ['bim']);
-  assert.deepEqual(ids('SAP2000'), ['analysis', 'bim']);
-  assert.deepEqual(ids('revit welding'), []);
+test('search and difficulty expose matching resources within their categories', () => {
+  assert.deepEqual(filterLearningTopics('  MODAL   response ', 'Advanced').flatMap(({ resources }) =>
+    resources.map(({ id }) => id)), ['modal-response']);
+  assert.deepEqual(filterLearningTopics('dynamo', 'Advanced').flatMap(({ resources }) =>
+    resources.map(({ id }) => id)), ['dynamo-analysis']);
+  assert.deepEqual(filterLearningTopics('dynamo', 'Beginner'), []);
+  assert.deepEqual(filterLearningTopics('diaphragm', 'Advanced').map(({ id }) => id), ['steel']);
+  assert.deepEqual(filterLearningTopics('revit welding', ''), []);
 });
 
-test('difficulty combines with search and an empty filter includes all levels', () => {
-  assert.deepEqual(ids('', 'Beginner'), ['analysis']);
-  assert.deepEqual(ids('', 'Intermediate'), ['steel', 'concrete', 'bim']);
-  assert.deepEqual(ids('sap2000', 'Intermediate'), ['bim']);
-  assert.deepEqual(ids('etabs', 'Intermediate'), []);
+function destinations(folders: readonly PublicFolder[]): string[] {
+  return folders.flatMap((folder) => {
+    if ('children' in folder) return destinations(folder.children);
+    if (!folder.resource) return [folder.topic];
+    assert.ok(learningResources[folder.topic].some(({ id }) => id === folder.resource));
+    return [folder.resource];
+  });
+}
+
+test('the folder tree links to every resource exactly once', () => {
+  const ids = Object.values(learningResources).flat().map(({ id }) => id);
+  assert.deepEqual(destinations(publicFolderTree).sort(), ids.toSorted());
+  assert.equal(new Set(ids).size, ids.length);
+  for (const parent of ['Steel Deck and Diaphragms', 'Civil Engineering', 'Revit']) {
+    assert.ok(publicFolderTree.some((folder) => folder.label === parent && 'children' in folder));
+  }
 });
 
-test('the public tree preserves selected parent-child relationships and resolves all topic links', () => {
-  assert.deepEqual(
-    publicFolderTree.map((folder) => [
-      folder.label,
-      'children' in folder ? folder.children.map((child) => child.label) : [],
-    ]),
-    [
-      ['Canadian Building Code Loads', []],
-      ['Steel Deck and Diaphragms', ['Canam']],
-      ['Civil Engineering', ['Concrete Design']],
-      ['Revit', ['Robot to Revit']],
-    ],
-  );
-  const destinations = publicFolderTree.flatMap((folder) =>
-    'children' in folder
-      ? folder.children.map((child) => 'topic' in child && child.topic)
-      : [folder.topic],
-  );
-  assert.deepEqual(destinations, ids(''));
-});
-
-test('references point to the allowlisted HTTPS publisher hosts', () => {
-  assert.deepEqual(learningTopics.map(({ references }) => references.map(({ url }) => {
-    const reference = new URL(url);
-    assert.equal(reference.protocol, 'https:');
-    assert.equal(reference.username + reference.password, '');
-    return reference.hostname;
-  })), [
-    ['docs.csiamerica.com', 'nrc-publications.canada.ca'],
-    ['www.cisc-icca.ca', 'www.canam.com'],
-    ['www.hilti.ca'],
-    ['www.autodesk.com', 'primer2.dynamobim.org'],
+test('references point to allowlisted HTTPS publisher hosts', () => {
+  const hosts = new Set([
+    'docs.csiamerica.com', 'nrc-publications.canada.ca', 'www.cisc-icca.ca', 'www.canam.com',
+    'www.hilti.ca', 'www.autodesk.com', 'primer2.dynamobim.org', 'www.asce.org',
+    'web.wiki.csiamerica.com', 'sdi.org', 'nvlpubs.nist.gov', 'www.concrete.org',
+    'damassets.autodesk.net', 'help.autodesk.com',
   ]);
+  for (const entry of [...learningTopics, ...Object.values(learningResources).flat()]) {
+    assert.ok(entry.references.length > 0);
+    for (const { url } of entry.references) {
+      const reference = new URL(url);
+      assert.equal(reference.protocol, 'https:');
+      assert.equal(reference.username + reference.password, '');
+      assert.ok(hosts.has(reference.hostname), reference.hostname);
+    }
+  }
 });
 
 test('the catalog excludes private paths, inventory markers and source file links', () => {
