@@ -67,6 +67,24 @@
   color: var(--muted);
 }
 
+.photo {
+  margin: 1.5rem 0 2rem;
+}
+
+.photo img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 30rem;
+  border-radius: .55rem;
+}
+
+.photo figcaption {
+  margin-top: .5rem;
+  color: var(--muted);
+  font-size: .875rem;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

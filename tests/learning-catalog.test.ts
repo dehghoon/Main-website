@@ -54,7 +54,7 @@ test('Learning is indexable only on production deployments', () => {
 
 test('local source paths remain private', () => {
   const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
-  for (const path of ['../lib/learning/catalog.ts','../app/learning/%5Bguide%5D/guides.ts']) {
+  for (const path of ['../lib/learning/catalog.ts', '../app/learning/%5Bguide%5D/guides.ts', '../app/learning/%5Bguide%5D/additional-guides.ts']) {
     assert.doesNotMatch(read(path), /(?:[a-z]:\\|file:\/\/|evidence_paths|original_path|fromhassan|\.(?:zip|dwg|rvt|s2k)\b)/i);
   }
 });

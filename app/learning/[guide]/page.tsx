@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { learningRobots } from '@/lib/learning/seo';
@@ -52,6 +53,21 @@ export default async function GuidePage({ params }: Props) {
           <h1>{entry.title}</h1>
           <p>{entry.intro}</p>
         </header>
+        {entry.photo && (
+          <figure className={guideStyles.photo}>
+            <Image
+              src={entry.photo.src}
+              alt={entry.photo.alt}
+              width={entry.photo.width}
+              height={entry.photo.height}
+              sizes="(max-width: 960px) 92vw, 928px"
+            />
+            <figcaption>
+              <a href={entry.photo.source}>{entry.photo.credit}</a>
+              {entry.photo.license && <> · <a href={entry.photo.license[1]}>{entry.photo.license[0]}</a></>}
+            </figcaption>
+          </figure>
+        )}
         {entry.inputs && (
           <section aria-labelledby="inputs">
             <h2 id="inputs">Inputs and Prerequisites</h2>
@@ -82,6 +98,12 @@ export default async function GuidePage({ params }: Props) {
             ))}
           </ul>
         </section>
+        {entry.video && (
+          <section aria-labelledby="video">
+            <h2 id="video">Related Video</h2>
+            <p><a href={entry.video[1]}>{entry.video[0]} (YouTube)</a></p>
+          </section>
+        )}
       </article>
     </main>
   );

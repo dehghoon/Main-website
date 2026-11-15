@@ -1,4 +1,6 @@
-type Guide = {
+import { additionalGuides } from './additional-guides.ts';
+
+export type Guide = {
   title: string;
   inputs?: string;
   tool?: string;
@@ -13,9 +15,20 @@ type Guide = {
   check: string;
   references: readonly (readonly [title: string, url: string, readingNote: string])[];
   diagram: readonly string[];
+  video?: readonly [title: string, url: string];
+  photo?: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+    credit: string;
+    source: string;
+    license?: readonly [label: string, url: string];
+  };
 };
 
 export const guides: Readonly<Record<string, Guide>> = {
+  ...additionalGuides,
   "load-combinations": {
     "title": "Canadian Structural Design Loads and Load Combinations",
     "description": "Learn to define structural load cases, convert an area load to a beam line load, and document the adopted Canadian code basis for design combinations.",
