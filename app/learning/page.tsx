@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
+import { publishedLearningCards } from '@/lib/learning/published';
 import LearningBrowser from './learning-browser';
 import styles from './learning.module.css';
 
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
   twitter: { card: 'summary', title, description },
 };
 
-export default function LearningPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function LearningPage() {
+  const published = await publishedLearningCards();
+
   return (
     <main className={styles.page}>
       <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
@@ -30,12 +35,12 @@ export default function LearningPage() {
         <h1>Learning &amp; Resources</h1>
         <p>Search engineering topics, worked guides and official references.</p>
         <nav className={styles.heroLinks} aria-label="Browse learning resources">
-          <a className="primaryButton" href="#topics">Browse by Topic</a>
+          <a className="primaryButton" href="#learning-search">Search Resources</a>
           <a className="secondaryButton" href="#folders">Browse by Folder</a>
         </nav>
       </header>
 
-      <LearningBrowser />
+      <LearningBrowser published={published} />
 
       <aside className={styles.notice}>
         Confirm the applicable code edition, jurisdiction and publisher guidance before using

@@ -10,6 +10,7 @@ import {
   type PublicFolder,
   type TopicCategory,
 } from '@/lib/learning/catalog';
+import type { PublishedLearningCard } from '@/lib/learning/published';
 import styles from './learning.module.css';
 
 function FolderList({ folders, onNavigate }: {
@@ -37,11 +38,29 @@ function FolderList({ folders, onNavigate }: {
   );
 }
 
-export default function LearningBrowser() {
+const quickSearches = ['Snow loads', 'Steel connections', 'SAP2000', 'Revit'];
+
+export default function LearningBrowser({ published }: { published: PublishedLearningCard[] }) {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<TopicCategory | ''>('');
+  const [category, setCategory] = useState('');
   const [withGuide, setWithGuide] = useState(false);
-  const results = filterLearningTopics(query, category, withGuide);
+  const categories: Record<string, string> = { ...topicCategories };
+  for (const { category: title } of published) {
+    if (!Object.values(categories).includes(title)) categories[`published:${title}`] = title;
+  }
+  const staticResults = category.startsWith('published:') ? []
+    : filterLearningTopics(query, category as TopicCategory | '', withGuide);
+  const searchTerms = query.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+  const publishedResults = published.filter((article) => {
+    if (withGuide || (category && article.category !== categories[category])) return false;
+    const searchable = [article.title, article.summary, article.category, article.subtopic, ...article.keywords]
+      .join(' ').toLowerCase();
+    return searchTerms.every((term) => searchable.includes(term));
+  });
+  const results = [
+    ...publishedResults.map((article) => ({ ...article, isArticle: true })),
+    ...staticResults.map((resource) => ({ ...resource, category: categories[resource.category], subtopic: '', isArticle: false })),
+  ];
 
   function resetFilters() {
     setQuery('');
@@ -66,19 +85,16 @@ export default function LearningBrowser() {
         <h2 id="topics">Browse by Topic</h2>
         <div className={styles.discoveryControls} role="search" aria-label="Learning topic filters">
           <div>
-            <label htmlFor="learning-search">Search topics and software</label>
+            <label htmlFor="learning-search">Search resources</label>
             <input id="learning-search" type="search" value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Try cable tray support, snow drift or Revit" />
           </div>
           <div>
             <label htmlFor="learning-category">Topic</label>
-            <select id="learning-category" value={category} onChange={(event) => {
-              const value = event.target.value;
-              setCategory(Object.hasOwn(topicCategories, value) ? value as TopicCategory : '');
-            }}>
+            <select id="learning-category" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="">All topics</option>
-              {Object.entries(topicCategories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+              {Object.entries(categories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
           </div>
           <label className={styles.guideFilter}>
@@ -86,6 +102,14 @@ export default function LearningBrowser() {
             Has a worked guide
           </label>
           <button type="button" className={styles.reset} onClick={resetFilters}>Reset Filters</button>
+        </div>
+        <div className={styles.quickSearches} aria-label="Search suggestions">
+          {quickSearches.map((term) => (
+            <button type="button" key={term} aria-pressed={query === term} onClick={() => {
+              resetFilters();
+              setQuery(term);
+            }}>{term}</button>
+          ))}
         </div>
         <p className={styles.count} role="status">
           {results.length} {results.length === 1 ? 'topic' : 'topics'} found
@@ -95,12 +119,12 @@ export default function LearningBrowser() {
           {results.map((resource) => (
             <article className={styles.card} key={resource.id} id={resource.id} tabIndex={-1}
               aria-labelledby={`${resource.id}-title`}>
-              <p className={styles.topicLabel}>{topicCategories[resource.category]}</p>
+              <p className={styles.topicLabel}>{[resource.category, resource.subtopic].filter(Boolean).join(' / ')}</p>
               <h3 id={`${resource.id}-title`}>{resource.title}</h3>
               <p>{resource.summary}</p>
               {resource.guideHref && (
                 <p><Link href={resource.guideHref} className="secondaryButton"
-                  aria-label={`Read the worked guide for ${resource.title}`}>Read the worked guide</Link></p>
+                  aria-label={`Read ${resource.title}`}>{resource.isArticle ? 'Read article' : 'Read the worked guide'}</Link></p>
               )}
               <details className={styles.resourceGroup}>
                 <summary>References and topic details</summary>

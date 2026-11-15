@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import type { LearningArticle, LearningCategory, LearningSubtopic } from './learning/workspace-types';
+
+type Table<Row, Insert> = { Row: Row; Insert: Insert; Update: Partial<Insert>; Relationships: [] };
+
 type BlogPostRow = {
   id: string; title: string; excerpt: string | null; body: string; author_id: string; author_name: string | null; show_author_name: boolean; status: string;
   published_at: string | null; created_at: string; slug: string | null; cover_image_url: string | null; video_url: string | null;
@@ -22,9 +26,17 @@ type BlogAiSettingsRow = { id:string; brand_prompt:string; provider:string; mode
 type BlogAiSettingsInsert = { id?:string; brand_prompt:string; provider?:string; model?:string; updated_at?:string; updated_by?:string|null };
 
 type Database = { public: { Tables: {
+  learning_categories: Table<LearningCategory, Omit<LearningCategory, 'id'>>;
+  learning_subtopics: Table<LearningSubtopic, Omit<LearningSubtopic, 'id'>>;
+  learning_articles: Table<LearningArticle, Omit<LearningArticle, 'id'>>;
   blog_posts: { Row: BlogPostRow; Insert: BlogPostInsert; Update: Partial<BlogPostRow>; Relationships: [] };
   blog_ai_settings: { Row: BlogAiSettingsRow; Insert: BlogAiSettingsInsert; Update: Partial<BlogAiSettingsRow>; Relationships: [] };
-}; Views: Record<string, never>; Functions: Record<string, never>; Enums: Record<string, never>; CompositeTypes: Record<string, never> } };
+}; Views: Record<string, never>; Functions: {
+  platform_my_permissions: { Args: Record<never, never>; Returns: string[] };
+  platform_access_is_owner: { Args: Record<never, never>; Returns: boolean };
+  learning_can_edit: { Args: Record<never, never>; Returns: boolean };
+  learning_can_publish: { Args: Record<never, never>; Returns: boolean };
+}; Enums: Record<string, never>; CompositeTypes: Record<string, never> } };
 
 let client: SupabaseClient<Database> | null = null;
 export function getSupabase() {
