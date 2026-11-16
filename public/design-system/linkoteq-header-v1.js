@@ -19,6 +19,7 @@ const tools=[
 const toolSurface = {
  "3dmodel.linkoteq.com": "model",
  "wsection.linkoteq.com": "w-section",
+ "snow.linkoteq.com": "snow",
 }[window.location.hostname];
 if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
 const accountOrigin = "https://www.linkoteq.com";

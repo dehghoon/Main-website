@@ -94,3 +94,17 @@ html[data-linkoteq-surface="w-section"] :is(.toolTabs,.desktopToolTabs) button.a
   background: var(--home-action) !important;
   color: var(--home-white) !important;
 }
+html[data-linkoteq-surface="snow"] {
+  background: var(--home-paper);
+  color: var(--home-body);
+  font-family: var(--lq-body-font);
+}
+html[data-linkoteq-surface="snow"] main :is(h1,h2,h3) { font-family: var(--lq-heading-font); }
+html[data-linkoteq-surface="snow"] main .hero { background: var(--home-dark); }
+html[data-linkoteq-surface="snow"] main :is(.panel,.reportPanel) {
+  border-color: var(--home-line);
+  border-radius: var(--lq-card-radius);
+}
+html[data-linkoteq-surface="snow"] main :is(.desktopToolTabs,.mobileToolTabs) button.active {
+  background: var(--home-action);
+}
