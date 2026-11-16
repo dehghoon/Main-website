@@ -8,6 +8,10 @@
   --home-paper: #f7f4ee;
   --home-white: #fff;
   --home-dark: #0f2a26;
+  --home-dark-step: #183832;
+  --home-dark-detail: #dfece6;
+  --home-dark-line: #45675f;
+  --home-dark-accent: #9ce1ce;
   --home-line: #e2ddd3;
   --home-beta-bg: #e3f0ff;
   --home-trial-bg: #e2f4ea;
@@ -31,7 +35,7 @@ linkoteq-header[home-design] {
   --accent: var(--home-action);
   background: var(--home-paper);
   color: var(--home-body);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   line-height: 1.55;
 }
 
@@ -117,13 +121,17 @@ linkoteq-header[home-design] {
 
 .homeSplit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 24px 48px; }
 .homeRoadmap { color: var(--home-white); background: var(--home-dark); }
-.homepage .homeRoadmap h2 { color: inherit; }
-.homeRoadmap a { color: var(--home-white); text-decoration: underline; }
-.homeRoadmapList { margin: 0; padding-inline-start: 1.6em; }
-.homeRoadmapList li + li { margin-top: 12px; }
+.homepage .homeRoadmap :is(h2, h3) { color: var(--home-white); }
+.homeRoadmapList { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; list-style: none; margin: 0; padding: 0; }
+.homeRoadmapList li { display: grid; align-content: start; gap: 12px; padding: clamp(18px, 3vw, 32px); border: 1px solid var(--home-dark-line); border-radius: 14px; background: var(--home-dark-step); }
+.homeRoadmapList p { color: var(--home-dark-detail); }
+.homeStepNumber { color: var(--home-dark-accent); font: 650 clamp(2.5rem, 4vw, 3.5rem)/1 var(--font-heading); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.homeContactSection { padding-block: clamp(32px, 4.5vw, 64px); }
 .homeContact { grid-template-columns: minmax(0, 1fr) auto; }
 .homeFooter { display: block; padding: 24px 0; border-top: 1px solid var(--home-line); color: var(--home-muted); background: var(--home-paper); }
 .homeFooter .homeContainer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; }
+.homeFooterLinks { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.homeFooterLinks a { display: inline-flex; align-items: center; min-height: 44px; color: var(--home-action); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
 .homeFooter img { display: block; width: 210px; max-width: 100%; height: auto; }
 
 @media (max-width: 860px) {
@@ -132,7 +140,7 @@ linkoteq-header[home-design] {
   .homeContact .homeButton { justify-self: start; }
 }
 @media (max-width: 680px) {
-  .homeGrid, .homeMetrics { grid-template-columns: minmax(0, 1fr); }
+  .homeGrid, .homeMetrics, .homeRoadmapList { grid-template-columns: minmax(0, 1fr); }
   .homeHeroLayout { row-gap: 24px; }
   .homeHeroCopy .homeButton, .homeSecondary { width: 100%; }
 }

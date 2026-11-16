@@ -16,8 +16,8 @@ export default function ThreeDModelShowcase() {
     <div className="homeModel" id="3d-model">
       <figure className="homeModelCard">
         <Image
-          src="/homepage/3d-model.webp"
-          alt="Stylized 3D workspace view with green steel beams, blue columns and grid planes"
+          src="/homepage/structural-frame-hero.webp"
+          alt="Stylized 3D workspace view with forest-green beams, navy columns and grid planes"
           width={1200}
           height={800}
           sizes="(max-width: 860px) 92vw, 46vw"

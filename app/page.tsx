@@ -6,6 +6,14 @@ import ThreeDModelShowcase from "./components/three-d-model-showcase";
 import { PUBLIC_TOOLS, toolPreviewPath } from "@/lib/tool-discovery";
 import "./homepage.css";
 
+const CUSTOMER_DISCOVERY_URL = "https://discovery.linkoteq.com/";
+
+const roadmapSteps = [
+  { title: "Identify structural elements", detail: "Recognize grids, columns, beams and loads in 2D drawings." },
+  { title: "Assemble a 3D model", detail: "Use the relationships between elements to build a structured model." },
+  { title: "Connect relevant calculations", detail: "Route model objects to the engineering tools that apply to them." },
+];
+
 const workflowHighlights = [
   { title: "2D to 3D", detail: "Drawing-to-model roadmap", icon: Layers3 },
   { title: "Reusable", detail: "Shared calculation engines", icon: Repeat2 },
@@ -13,9 +21,9 @@ const workflowHighlights = [
 ];
 
 const toolArtwork = {
-  snow_load: { src: "/homepage/snow-load.webp", alt: "Stylized snowdrift on two roof levels" },
+  snow_load: { src: "/homepage/snow-load.webp", alt: "Stepped roof cross-section with a snowdrift and a depth arrow" },
   w_section: { src: "/homepage/w-section.webp", alt: "Stylized wide-flange steel member in the model view" },
-  "3d_model": { src: "/homepage/3d-model.webp", alt: "Stylized 3D frame with green beams, blue columns and grid planes" },
+  "3d_model": { src: "/homepage/3d-model.webp", alt: "Close-up of beam-column connections in a structural frame" },
 } as const;
 
 const products = [
@@ -125,31 +133,39 @@ export default function Home() {
       </section>
 
       <section className="homeSection homeRoadmap" id="roadmap" aria-labelledby="roadmap-heading">
-        <div className="homeContainer homeSplit">
-          <div>
+        <div className="homeContainer">
+          <header className="homeIntro">
             <h2 id="roadmap-heading">From drawings to structured 3D models</h2>
-            <p>Our roadmap starts with recognizing grids, columns, beams and loads in 2D drawings, then uses those relationships to build structured models.</p>
-          </div>
+          </header>
           <ol className="homeRoadmapList">
-            <li>Identify structural elements in drawings</li>
-            <li>Assemble a model from their relationships</li>
-            <li>Connect model objects to relevant calculation tools</li>
+            {roadmapSteps.map(({ title, detail }, index) => (
+              <li key={title}>
+                <span className="homeStepNumber" aria-hidden="true">0{index + 1}</span>
+                <h3>{title}</h3>
+                <p>{detail}</p>
+              </li>
+            ))}
           </ol>
         </div>
       </section>
 
-      <section className="homeSection homeWhite">
+      <section className="homeSection homeWhite homeContactSection">
         <div className="homeContainer homeSplit homeContact">
           <div>
             <h2>Help shape the next set of engineering tools</h2>
-            <p>Tell us what you work on and where Linkoteq could help.</p>
+            <p>Tell us about your engineering workflow in the Customer Discovery questionnaire.</p>
           </div>
-          <a className="homeButton homePrimary" href="/contact">Talk to us <ArrowRight size={18} aria-hidden="true" /></a>
+          <a className="homeButton homePrimary" href={CUSTOMER_DISCOVERY_URL}>Talk to us <ArrowRight size={18} aria-hidden="true" /></a>
         </div>
       </section>
       <footer className="homeFooter">
         <div className="homeContainer">
           <Image src="/homepage-linkoteq-logo.svg" alt="Linkoteq Engineering Technology" width={210} height={52} />
+          <nav className="homeFooterLinks" aria-label="Footer">
+            <a href="/contact">Contact</a>
+            <a href="/tools">Tools</a>
+            <a href="#roadmap">Roadmap</a>
+          </nav>
           <span>© 2026 Linkoteq. All rights reserved.</span>
         </div>
       </footer>
