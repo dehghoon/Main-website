@@ -1,34 +1,18 @@
-@font-face {
-  font-family: Geist;
-  src: url("/fonts/geist-latin.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Source Sans 3";
-  src: url("/fonts/source-sans-3-latin.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 200 900;
-  font-display: swap;
-}
-
 :root {
-  --font-body: "Source Sans 3", system-ui, sans-serif;
-  --font-heading: Geist, system-ui, sans-serif;
-  --ink: #163a32;
-  --ink-soft: #305447;
-  --paper: #f7f4ee;
-  --surface: #fffdf8;
+  --font-body: var(--lq-body-font);
+  --font-heading: var(--lq-heading-font);
+  --ink: var(--home-heading);
+  --ink-soft: var(--home-body);
+  --paper: var(--home-paper);
+  --surface: var(--home-white);
   --sage: #e8eee5;
-  --line: #d5dbcf;
-  --accent: #a64733;
-  --primary-action: #1765bb;
-  --primary-action-hover: #124f94;
+  --line: var(--home-line);
+  --accent: var(--home-action);
+  --primary-action: var(--home-action);
+  --primary-action-hover: var(--home-action-hover);
   --mint: #c3d8c8;
   --blue: #376751;
-  --muted: #4d6257;
+  --muted: var(--home-body);
   --soft-shadow: 0 10px 28px rgb(22 58 50 / 9%);
 }
 

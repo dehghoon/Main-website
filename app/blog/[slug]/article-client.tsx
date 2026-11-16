@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase-browser";
@@ -57,7 +56,6 @@ export default function ArticleClient({initialArticle}:{initialArticle:Article|n
  }
  async function shareInstagram(){await navigator.clipboard.writeText(socialPayload);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
  return <main className="publicArticle">
-  <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="Linkoteq" width={230} height={58} priority /></a>
   <article className="articleShell">
    {article.cover_image_url&&<figure className={`mediaFigure media-${article.cover_image_size||"wide"} media-${article.cover_image_position||"center"}`}><img src={article.cover_image_url} alt={article.cover_image_alt||article.title} title={article.cover_image_title||undefined}/>{article.cover_image_caption&&<figcaption>{article.cover_image_caption}</figcaption>}{article.cover_image_meta&&<div className="articleMediaMeta">{article.cover_image_meta}</div>}</figure>}
    <div className="articleMeta">{article.show_author_name&&article.author_name?<>{article.author_name} · </>:null}{new Date(article.published_at||article.created_at).toLocaleDateString()}</div><h1>{article.title}</h1>{article.excerpt&&<p className="articleLead">{article.excerpt}</p>}

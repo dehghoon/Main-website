@@ -1,6 +1,45 @@
+/* Linkoteq design tokens shared by the website and connected tool interfaces. */
+@font-face { font-family: "Source Sans 3"; src: url("../fonts/source-sans-3-latin.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: Geist; src: url("../fonts/geist-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+:root {
+  --home-heading: #14352e;
+  --home-body: #3e4f4a;
+  --home-muted: #5f706b;
+  --home-action: #1565c0;
+  --home-action-hover: #0f4c94;
+  --home-teal: #0f8f83;
+  --home-paper: #f7f4ee;
+  --home-white: #fff;
+  --home-dark: #0f2a26;
+  --home-dark-step: #183832;
+  --home-dark-detail: #dfece6;
+  --home-dark-line: #45675f;
+  --home-dark-accent: #9ce1ce;
+  --home-line: #e2ddd3;
+  --home-beta-bg: #e3f0ff;
+  --home-trial-bg: #e2f4ea;
+  --home-trial-text: #1b6b45;
+  --home-coming-bg: #ecebe6;
+  --lq-body-font: "Source Sans 3", system-ui, sans-serif;
+  --lq-heading-font: Geist, system-ui, sans-serif;
+  --lq-card-radius: 14px;
+}
+
+linkoteq-header[data-linkoteq-shell="v2"] {
+  --linkoteq-header-font-body: var(--lq-body-font);
+  --linkoteq-header-ink: var(--home-heading);
+  --linkoteq-header-ink-soft: var(--home-muted);
+  --linkoteq-header-line: var(--home-line);
+  --linkoteq-header-surface: var(--home-white);
+  --linkoteq-header-paper: var(--home-paper);
+  --linkoteq-header-sage: var(--home-paper);
+  --linkoteq-header-accent: var(--home-action);
+}
+
 /* Linkoteq shared design tokens and platform navigation. Canonical asset served by Main-website.
-   Version: 2026-11-11. Scoped to .platformNav / .globalHeader to protect engineering canvases. */
-:root{--lq-navy:#102b49;--lq-blue:#1765bb;--lq-cyan:#14a9b4;--lq-border:#dce6ee;--lq-surface:#f7fafc;--lq-font:Inter,"Segoe UI",Arial,sans-serif}
+   Version: 2026-11-16. Scoped to .platformNav / .globalHeader to protect engineering canvases. */
+:root{--lq-navy:var(--home-heading);--lq-blue:var(--home-action);--lq-cyan:var(--home-teal);--lq-border:var(--home-line);--lq-surface:var(--home-paper);--lq-font:var(--lq-body-font)}
 :is(.platformNav,.globalHeader){color:var(--lq-navy);font-family:var(--lq-font);background:#fff;border-bottom:1px solid var(--lq-border);box-shadow:0 6px 24px rgba(16,43,73,.07)}
 :is(.platformNav,.globalHeader) :is(a,button):focus-visible{outline:3px solid var(--lq-cyan);outline-offset:3px}
 :is(.platformNav,.globalHeader) .utilityBar{max-width:1500px;margin-inline:auto;min-height:76px}
@@ -18,3 +57,54 @@
  :is(.platformNav,.globalHeader) .mobileMenuPanel.isOpen{display:grid;max-height:calc(100dvh - 66px);overflow-y:auto}
 }
 @media(prefers-reduced-motion:reduce){:is(.platformNav,.globalHeader) *{transition:none!important}}
+
+
+/* Visual styles for the live editors, separate from their calculation code. */
+html[data-linkoteq-surface="model"] .modelSiteShell { font-family: var(--lq-body-font); }
+html[data-linkoteq-surface="model"] .modelSiteShell :is(h1,h2,h3) { font-family: var(--lq-heading-font); }
+html[data-linkoteq-surface="model"] {
+  --sap-panel-strong: var(--home-white);
+  --sap-line-soft: var(--home-line);
+  --sap-text: var(--home-heading);
+  --sap-muted: var(--home-muted);
+}
+html[data-linkoteq-surface="model"] body .modelEditorArea {
+  height: calc(100dvh - var(--lq-header-height, 118px)) !important;
+}
+@media (max-width:900px) {
+  html[data-linkoteq-surface="model"] body .modelEditorArea {
+    height: calc(100dvh - var(--lq-header-height, 72px)) !important;
+  }
+}
+html[data-linkoteq-surface="w-section"],
+html[data-linkoteq-surface="w-section"] body {
+  background: var(--home-paper) !important;
+  color: var(--home-body) !important;
+  font-family: var(--lq-body-font);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolIdentity h1,.panel h2,.panel h3) {
+  color: var(--home-heading) !important;
+  font-family: var(--lq-heading-font);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolTabs,.desktopToolTabs,.panel) {
+  border-color: var(--home-line) !important;
+  border-radius: var(--lq-card-radius);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolTabs,.desktopToolTabs) button.active {
+  background: var(--home-action) !important;
+  color: var(--home-white) !important;
+}
+html[data-linkoteq-surface="snow"] {
+  background: var(--home-paper);
+  color: var(--home-body);
+  font-family: var(--lq-body-font);
+}
+html[data-linkoteq-surface="snow"] main :is(h1,h2,h3) { font-family: var(--lq-heading-font); }
+html[data-linkoteq-surface="snow"] main .hero { background: var(--home-dark); }
+html[data-linkoteq-surface="snow"] main :is(.panel,.reportPanel) {
+  border-color: var(--home-line);
+  border-radius: var(--lq-card-radius);
+}
+html[data-linkoteq-surface="snow"] main :is(.desktopToolTabs,.mobileToolTabs) button.active {
+  background: var(--home-action);
+}
