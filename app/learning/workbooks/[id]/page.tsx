@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import { learningResources } from '@/lib/learning/catalog';
 import { getWorkbook, workbookCategories, workbookPath } from '@/lib/workbooks/catalog';
+import { localWorkbookPreview } from '@/lib/workbooks/previews';
 import { workbookAsset } from '@/lib/workbooks/assets';
 import WorkbookDownload from './download';
 import learningStyles from '../../learning.module.css';
@@ -33,9 +34,10 @@ export default async function WorkbookPage({ params }: Props) {
   if (!workbook) notFound();
 
   const hasGuide = Boolean(workbook.inputs && workbook.outputs);
-  const preview = workbookAsset(id, 'preview');
-  const download = workbookAsset(id, 'workbook');
   const configured = Boolean(process.env.WORKBOOK_GITHUB_TOKEN);
+  const preview = localWorkbookPreview(id) ??
+    (configured && workbookAsset(id, 'preview') ? `/api/learning/workbooks/${id}?asset=preview` : undefined);
+  const download = workbookAsset(id, 'workbook');
   const guides = learningResources.filter(({ id, guideHref }) => guideHref && workbook.guides.includes(id));
 
   return (
@@ -50,16 +52,21 @@ export default async function WorkbookPage({ params }: Props) {
         <h1>{workbook.title}</h1>
         <p>{workbook.summary}</p>
       </header>
+      <section className={styles.detail} aria-labelledby="workbook-preview">
+        <h2 id="workbook-preview">Worksheet preview</h2>
+        {preview ? (
+          <figure className={styles.preview}>
+            <img src={preview} alt={`Read-only worksheet excerpt from ${workbook.title}`} />
+            <figcaption>Read-only excerpt with example values. <a href={preview} target="_blank" rel="noopener noreferrer">View full-size image</a></figcaption>
+          </figure>
+        ) : <p>A worksheet image is not available for this workbook yet.</p>}
+      </section>
       <section className={styles.detail} aria-labelledby="workbook-tour">
         <h2 id="workbook-tour">{hasGuide ? 'How to use this workbook' : 'Workbook availability'}</h2>
         {hasGuide && <div className={styles.grid}>
           <div className={styles.card}><h3>Where to start</h3><p>{workbook.inputs}</p></div>
           <div className={styles.card}><h3>Where to find the results</h3><p>{workbook.outputs}</p></div>
         </div>}
-        {preview && configured && <figure className={styles.preview}>
-          <img src={`/api/learning/workbooks/${id}?asset=preview`} alt={`Selected worksheet view from ${workbook.title}`} />
-          <figcaption>Read-only worksheet excerpt</figcaption>
-        </figure>}
         {workbook.note && <p>{workbook.note}</p>}
         {!hasGuide && <p>Worksheet instructions are unavailable for this file.</p>}
         {hasGuide && workbook.category !== 'references' &&

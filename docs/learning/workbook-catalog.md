@@ -34,3 +34,9 @@ Before enabling production assets, verify a signed-out request is rejected,
 an authenticated account outside the list is denied and an authorized client
 receives the intended file. Workbook content and calculations, including VBA
 behavior and applicable code editions, need separate engineering validation.
+
+Reviewed worksheet images can also be registered in
+`lib/workbooks/previews.ts` and served as static PNGs under
+`public/learning/workbook-previews/`. This path requires no download credentials
+and contains only reviewed excerpts. Workbook pages show image availability
+separately from the client download.
