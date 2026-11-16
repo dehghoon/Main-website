@@ -31,26 +31,26 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
   return {
    robots:{index:false,follow:false},
    metadataBase:new URL("https://www.linkoteq.com"),
-   title:"LinkoTech Blog",
-   description:"Engineering insight from LinkoTech.",
+   title:"Linkoteq Blog",
+   description:"Engineering insight from Linkoteq.",
    alternates:{canonical},
-   openGraph:{type:"article",url:canonical,siteName:"LinkoTech",title:"LinkoTech Blog",description:"Engineering insight from LinkoTech."},
-   twitter:{card:"summary",title:"LinkoTech Blog",description:"Engineering insight from LinkoTech."}
+   openGraph:{type:"article",url:canonical,siteName:"Linkoteq",title:"Linkoteq Blog",description:"Engineering insight from Linkoteq."},
+   twitter:{card:"summary",title:"Linkoteq Blog",description:"Engineering insight from Linkoteq."}
   };
  }
  const title=article.seo_title||article.title;
- const description=article.seo_description||article.excerpt||"Engineering insight from LinkoTech.";
+ const description=article.seo_description||article.excerpt||"Engineering insight from Linkoteq.";
  const image=article.cover_image_url?.trim()||undefined;
  const alt=article.cover_image_alt||article.title;
  return {
   metadataBase:new URL("https://www.linkoteq.com"),
-  title:`${title} | LinkoTech`,
+  title:`${title} | Linkoteq`,
   description,
   alternates:{canonical},
   openGraph:{
    type:"article",
    url:canonical,
-   siteName:"LinkoTech",
+   siteName:"Linkoteq",
    title,
    description,
    images:image?[{url:image,width:1200,height:630,alt,type:"image/jpeg"}]:undefined

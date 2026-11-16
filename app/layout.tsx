@@ -13,7 +13,7 @@ import "./site-surfaces.css";
 
 
 export const metadata: Metadata = {
-  title: "LinkoTech | Engineering Intelligence",
+  title: "Linkoteq | Engineering Intelligence",
   description: "AI-powered engineering workflows, reusable calculation tools, and digital model intelligence.",
 };
 

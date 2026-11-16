@@ -67,8 +67,8 @@ export default function SiteHeader() {
   return (
     <header className="globalHeader">
       <div className="utilityBar">
-        <a className="utilityBrand" href="/" aria-label="LinkoTech home">
-          <Image src="/linko-logo-final.svg" alt="LinkoTech Engineering Technology" width={220} height={55} priority />
+        <a className="utilityBrand" href="/" aria-label="Linkoteq home">
+          <Image src="/linko-logo-final.svg" alt="Linkoteq Engineering Technology" width={220} height={55} priority />
         </a>
 
         <nav className="utilityNav" aria-label="Utility navigation">

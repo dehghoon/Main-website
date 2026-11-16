@@ -34,13 +34,13 @@ export default function Home() {
   return (
     <main>
       <ThreeDModelShowcase />
-      <aside role="note" style={{maxWidth:1180,margin:"18px auto",padding:"14px 22px",border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Early development:</strong> LinkoTech engineering tools are evolving. Some workflows, including the 3D Structural Model, may be experimental or incomplete. Confirm current functionality before using results for professional engineering decisions. <a href="/contact" style={{textDecoration:"underline"}}>Ask about early access or provide feedback</a>.</aside>
+      <aside role="note" style={{maxWidth:1180,margin:"18px auto",padding:"14px 22px",border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Early development:</strong> Linkoteq engineering tools are evolving. Some workflows, including the 3D Structural Model, may be experimental or incomplete. Confirm current functionality before using results for professional engineering decisions. <a href="/contact" style={{textDecoration:"underline"}}>Ask about early access or provide feedback</a>.</aside>
 
       <section className="hero" id="top">
         <div className="heroCopy">
           <span className="eyebrow"><Sparkles size={16} /> Engineering Intelligence, Connected</span>
           <h1>Turn Engineering Information Into Decisions, Models, And Reusable Digital Workflows.</h1>
-          <p>LinkoTech Is Building An AI-Enabled Engineering Platform That Connects Drawing Intelligence, Validated Calculation Engines, Interactive Applications, And Professional Reporting.</p>
+          <p>Linkoteq Is Building An AI-Enabled Engineering Platform That Connects Drawing Intelligence, Validated Calculation Engines, Interactive Applications, And Professional Reporting.</p>
           <div className="heroActions"><a className="primaryButton" href="#3d-model">Preview the 3D Structural Model <ArrowRight size={18} /></a><a className="secondaryButton" href="#tools">View Engineering Tools</a></div>
           <div className="heroMetrics"><div><strong>2D → 3D</strong><span>Drawing-To-Model Roadmap</span></div><div><strong>Reusable</strong><span>Shared Engineering Engines</span></div><div><strong>Traceable</strong><span>Checks, Ratios, References, Reports</span></div></div>
         </div>
@@ -63,9 +63,9 @@ export default function Home() {
         <p className="refreshDisclaimer"><a href="/tools">Browse all tools and see what’s in development</a></p>
       </section>
 
-      <section className="vision" id="roadmap"><div><span className="eyebrow">Roadmap</span><h2>From Drawings To Engineering-Ready Digital Objects.</h2></div><p>LinkoTech’s Core Roadmap Is To Recognize Grids, Columns, Beams, Loads, And Relationships From 2D Engineering Documents, Then Assemble Structured 3D Models And Route Each Object Through Validated Engineering Tools.</p></section>
+      <section className="vision" id="roadmap"><div><span className="eyebrow">Roadmap</span><h2>From Drawings To Engineering-Ready Digital Objects.</h2></div><p>Linkoteq’s Core Roadmap Is To Recognize Grids, Columns, Beams, Loads, And Relationships From 2D Engineering Documents, Then Assemble Structured 3D Models And Route Each Object Through Validated Engineering Tools.</p></section>
       <section className="cta"><div><span className="eyebrow">Build With Us</span><h2>Engineering Software Should Be Intelligent, Transparent, And Reusable.</h2></div><a className="primaryButton" href="/contact">Start A Conversation <ArrowRight size={18} /></a></section>
-      <footer><Image src="/linko-logo-final.svg" alt="LinkoTech Engineering Technology" width={210} height={53} /><p>Engineering Intelligence For Connected Digital Workflows.</p><span>© 2026 Linko Technology. All Rights Reserved.</span></footer>
+      <footer><Image src="/linko-logo-final.svg" alt="Linkoteq Engineering Technology" width={210} height={53} /><p>Engineering Intelligence For Connected Digital Workflows.</p><span>© 2026 Linkoteq. All Rights Reserved.</span></footer>
     </main>
   );
 }

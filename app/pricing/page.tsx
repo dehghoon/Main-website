@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing & Planned Engineering Software Plans | LinkoTech",
-  description: "Explore LinkoTech's proposed engineering software plans. Features and availability are under development; confirm access before relying on any engineering workflow.",
+  title: "Pricing & Planned Engineering Software Plans | Linkoteq",
+  description: "Explore Linkoteq's proposed engineering software plans. Features and availability are under development; confirm access before relying on any engineering workflow.",
   alternates: { canonical: "https://www.linkoteq.com/pricing" },
 };
 
@@ -31,7 +31,7 @@ export default function PricingPage() {
       <section style={{maxWidth:1180,margin:"0 auto"}}>
         <span className="eyebrow">Pricing</span>
         <h1 style={{fontSize:"clamp(42px,6vw,72px)",margin:"12px 0 14px",letterSpacing:"-.045em"}}>Plans for every engineering workflow.</h1>
-        <p style={{maxWidth:760,color:"#66788a",fontSize:18,lineHeight:1.7,marginBottom:34}}>Starter (including the free tier), Pro, and Company are all in development and inactive. Signing in does not activate Starter or unlock any subscription tools. Plan enrollment, upgrades, and purchases are currently disabled. LinkoTech employees receive full internal access independent of client subscription plans.</p>
+        <p style={{maxWidth:760,color:"#66788a",fontSize:18,lineHeight:1.7,marginBottom:34}}>Starter (including the free tier), Pro, and Company are all in development and inactive. Signing in does not activate Starter or unlock any subscription tools. Plan enrollment, upgrades, and purchases are currently disabled. Linkoteq employees receive full internal access independent of client subscription plans.</p>
         <div role="note" style={{maxWidth:950,padding:"16px 20px",marginBottom:28,border:"1px solid #d5b985",borderRadius:12,background:"#fff9eb",color:"#614a21",lineHeight:1.6}}><strong>Product development notice:</strong> This pricing table describes planned plan features and limits, not a guarantee that every listed capability is available today. Paid plan enrollment and billing are disabled. Access requests are limited to a 30-day trial for released tools or separate Beta Access for tools under development; both require review and backend entitlement enforcement. Please <a href="/contact" style={{textDecoration:"underline"}}>contact us</a> to confirm the current availability of any tool before relying on it for a project. Do not assume that beta functionality is validated for engineering decisions.</div>
 
         <div className="pricing-grid" style={{overflowX:"auto"}}><div className="pricing-grid-inner" style={{display:"grid",gridTemplateColumns:"minmax(220px,1.3fr) repeat(3,minmax(170px,1fr))",border:"1px solid rgba(7,21,37,.12)",borderRadius:24,overflow:"hidden",background:"white",boxShadow:"0 28px 70px rgba(7,21,37,.10)"}}>

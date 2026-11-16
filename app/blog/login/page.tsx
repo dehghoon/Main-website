@@ -191,15 +191,15 @@ export default function EmployeeWorkspacePage() {
     <main className="authShell">
       <section className="authCard">
         <a href="/">
-          <Image src="/linkotech-logo.svg" alt="LinkoTech" width={260} height={64} priority />
+          <Image src="/linkotech-logo.svg" alt="Linkoteq" width={260} height={64} priority />
         </a>
 
         <span className="eyebrow">Employee Access</span>
         <h1>Employee Workspace</h1>
         <p>
           {forTimesheet
-            ? "Sign in once with your LinkoTech employee account to continue to Timesheet."
-            : "One employee identity for LinkoTech internal tools. Employee authorization is managed separately from signup."}
+            ? "Sign in once with your Linkoteq employee account to continue to Timesheet."
+            : "One employee identity for Linkoteq internal tools. Employee authorization is managed separately from signup."}
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "18px 0" }}>
@@ -261,7 +261,7 @@ export default function EmployeeWorkspacePage() {
 
         <p style={{ marginTop: 20 }}>
           {forTimesheet ? (
-            <a href="/">Back to LinkoTech</a>
+            <a href="/">Back to Linkoteq</a>
           ) : returnTo ? (
             <a href={returnTo}>Back to previous page</a>
           ) : (

@@ -10,7 +10,7 @@ export default function OwnerAccessRequestsPage() {
       }}
     >
       <p style={{ margin: 0, color: "#64748b", fontWeight: 700 }}>
-        LinkoTech Owner Administration
+        Linkoteq Owner Administration
       </p>
       <h1 style={{ margin: "8px 0 12px", fontSize: 36 }}>
         Employee Access Requests

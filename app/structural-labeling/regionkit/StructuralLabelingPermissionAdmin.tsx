@@ -124,7 +124,7 @@ export default function StructuralLabelingPermissionAdmin() {
         {available === null ? (
           <p>Checking permission administration access …</p>
         ) : employees.length === 0 ? (
-          <p>No employee accounts are available. Create or assign an employee account through the existing LinkoTech identity workflow first.</p>
+          <p>No employee accounts are available. Create or assign an employee account through the existing Linkoteq identity workflow first.</p>
         ) : (
           <>
             <label style={{ display: "block", marginBottom: 16 }}>

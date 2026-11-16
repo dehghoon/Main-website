@@ -134,7 +134,7 @@ export default function AccessManager() {
   finally{setLabelingLoading(false);}
  }
  return <main className="authShell" style={{padding:"32px 16px"}}><section className="authCard" style={{maxWidth:1080,width:"100%"}}>
- <a href="/">← LinkoTech</a><span className="eyebrow">Administration</span><h1>Access Manager</h1>
+ <a href="/">← Linkoteq</a><span className="eyebrow">Administration</span><h1>Access Manager</h1>
  {state==="loading"&&<p role="status">Checking administrator access…</p>}
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
