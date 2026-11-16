@@ -16,15 +16,16 @@ export default function ThreeDModelShowcase() {
     <div className="homeModel" id="3d-model">
       <figure className="homeModelCard">
         <Image
-          src="/homepage-structural-frame.svg"
-          alt="Illustration of a two-story steel frame with beams, columns, bracing and floor slabs"
-          width={1600}
-          height={820}
+          src="/homepage/3d-model.webp"
+          alt="Stylized 3D workspace view with green steel beams, blue columns and grid planes"
+          width={1200}
+          height={800}
           sizes="(max-width: 860px) 92vw, 46vw"
+          unoptimized
           priority
         />
         <figcaption>
-          <div><strong>3D Structural Model</strong><span>Illustrated workspace preview</span></div>
+          <div><strong>3D Structural Model</strong><span>Stylized from a workspace screenshot</span></div>
           <span className="homeBadge homeBeta">Beta</span>
           <a className="homeTextLink" href={modelPath}>
             {modelUrl ? "Open 3D Model" : "Preview 3D Model"} <ArrowRight size={16} aria-hidden="true" />

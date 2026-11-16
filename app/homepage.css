@@ -56,6 +56,7 @@ linkoteq-header[home-design] {
   gap: 36px clamp(24px, 5vw, 72px);
   align-items: center;
 }
+.homeHeroCopy { align-self: center; }
 .homeHeroCopy > p { margin: 20px 0 28px; font-size: 1.125rem; max-width: 52ch; }
 
 .homeButton, .homeTextLink { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; }
@@ -69,6 +70,7 @@ linkoteq-header[home-design] {
 .homeButton svg, .homeTextLink svg { flex: none; }
 
 .homeModelCard, .homeCard { border: 1px solid var(--home-line); border-radius: 14px; background: var(--home-white); }
+.homeModel { width: min(100%, 600px); justify-self: end; }
 .homeModelCard { margin: 0; overflow: hidden; }
 .homeModelCard img { display: block; width: 100%; height: auto; }
 .homeModelCard figcaption {
@@ -82,7 +84,7 @@ linkoteq-header[home-design] {
 .homeModelCard figcaption strong { display: block; color: var(--home-heading); }
 .homeModelCard figcaption div > span { display: block; color: var(--home-muted); font-size: .9375rem; }
 .homeModelCard figcaption > a { grid-column: 1 / -1; }
-.homeBadge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .875rem; font-weight: 700; line-height: 1.45; white-space: nowrap; }
+.homeBadge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .9375rem; font-weight: 700; line-height: 1.45; white-space: nowrap; }
 .homeBeta { background: var(--home-beta-bg); color: var(--home-action); }
 .homeTrial { background: var(--home-trial-bg); color: var(--home-trial-text); }
 .homeComingSoon { background: var(--home-coming-bg); color: var(--home-body); }
@@ -104,9 +106,14 @@ linkoteq-header[home-design] {
 .homeCard { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: clamp(18px, 2.5vw, 28px); }
 .homeCardTop { display: flex; min-height: 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .homeCard > a { margin-top: auto; }
-.homeSample { padding: 9px 12px; border-inline-start: 3px solid var(--home-teal); background: var(--home-paper); margin-block: 2px; }
-.homeSample span { display: block; color: var(--home-muted); font-size: .9375rem; }
-.homeSample strong { display: block; color: var(--home-heading); font-variant-numeric: tabular-nums; }
+.homeToolCard { padding: 0; overflow: hidden; gap: 0; }
+.homeToolArtwork { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
+.homeToolDetails { display: flex; flex: 1; flex-direction: column; gap: 12px; padding: clamp(18px, 2.3vw, 28px); }
+.homeToolDetails .homeCardTop { align-items: flex-start; }
+.homeToolDetails .homeTextLink { white-space: nowrap; }
+.homeSample { display: grid; align-content: center; min-height: 96px; margin-top: auto; padding: 9px 12px; border-inline-start: 3px solid var(--home-teal); background: var(--home-paper); }
+.homeSample span { display: block; color: var(--home-body); font-size: 1rem; font-weight: 600; }
+.homeSample strong { display: block; color: var(--home-heading); font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
 
 .homeSplit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 24px 48px; }
 .homeRoadmap { color: var(--home-white); background: var(--home-dark); }
@@ -121,6 +128,7 @@ linkoteq-header[home-design] {
 
 @media (max-width: 860px) {
   .homeHeroLayout, .homeSplit { grid-template-columns: minmax(0, 1fr); }
+  .homeModel { width: 100%; justify-self: stretch; }
   .homeContact .homeButton { justify-self: start; }
 }
 @media (max-width: 680px) {

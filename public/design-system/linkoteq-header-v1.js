@@ -111,16 +111,15 @@ const style=document.createElement("style");style.textContent=`
 :host([home-design]) .utility > a, :host([home-design]) .drop > button { display: inline-flex; align-items: center; min-height: 44px; }
 :host([home-design]) .account button, :host([home-design]) .sign { min-height: 44px; padding-inline: 16px; border-radius: 8px; background: var(--home-action); color: var(--home-white); }
 :host([home-design]) .account button:hover, :host([home-design]) .sign:hover { background: var(--home-action-hover); }
-:host([home-design]) .second { position: relative; z-index: 1250; border-top: 0; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font-size: 13px; font-weight: 600; }
+:host([home-design]) .second { position: relative; z-index: 1250; justify-content: flex-end; padding-inline: clamp(20px, 5vw, 72px); border-top: 0; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font-size: 14px; font-weight: 650; }
 :host([home-design]) .second > a { display: inline-flex; min-height: 44px; align-items: center; }
-:host([home-design]) .tag { background: var(--home-trial-bg); color: var(--home-trial-text); padding: 3px 10px; font-size: 14px; font-weight: 700; white-space: nowrap; line-height: 1.45; }
+:host([home-design]) .tag { background: var(--home-trial-bg); color: var(--home-trial-text); padding: 3px 10px; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 1.45; }
 :host([home-design]) .tag[data-status="beta"] { background: var(--home-beta-bg); color: var(--home-action); }
 @media(max-width:900px) {
  :host([home-design]) .sign-drop { display: none; }
  :host([home-design]) .menu-toggle { margin-inline-start: auto; min-height: 44px; border: 1px solid var(--home-action); border-radius: 8px; color: var(--home-action); white-space: nowrap; }
  :host([home-design]) .drawer[open] { position: fixed; z-index: 1250; inset: var(--drawer-top, 72px) 0 auto; }
- :host([home-design]) .drawer-label { margin: 10px 10px 2px; color: var(--home-muted); font-size: 13px; font-weight: 700; }
- :host([home-design]) .drawer-label + .drawer-label { margin-top: 0; }
+ :host([home-design]) .drawer-label { margin: 10px 10px 2px; color: var(--home-muted); font-size: 14px; font-weight: 700; }
  :host([home-design]) .drawer-divider { border: 0; border-top: 1px solid var(--home-line); margin: 10px 0; }
 }
 `;

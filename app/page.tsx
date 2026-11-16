@@ -1,6 +1,6 @@
 import Image from "next/image";
 import {
-  ArrowRight, Building2, FileSearch, Layers3, ListChecks, Repeat2, Snowflake, Wrench,
+  ArrowRight, FileSearch, Layers3, ListChecks, Repeat2, Wrench,
 } from "lucide-react";
 import ThreeDModelShowcase from "./components/three-d-model-showcase";
 import { PUBLIC_TOOLS, toolPreviewPath } from "@/lib/tool-discovery";
@@ -11,6 +11,12 @@ const workflowHighlights = [
   { title: "Reusable", detail: "Shared calculation engines", icon: Repeat2 },
   { title: "Traceable", detail: "Inputs, checks and references", icon: ListChecks },
 ];
+
+const toolArtwork = {
+  snow_load: { src: "/homepage/snow-load.webp", alt: "Stylized snowdrift on two roof levels" },
+  w_section: { src: "/homepage/w-section.webp", alt: "Stylized wide-flange steel member in the model view" },
+  "3d_model": { src: "/homepage/3d-model.webp", alt: "Stylized 3D frame with green beams, blue columns and grid planes" },
+} as const;
 
 const products = [
   { title: "Engineering tools", description: "Explore tools for roof snow loads, steel member checks and early-stage structural modeling.", icon: Wrench, href: "#tools", action: "Explore tools" },
@@ -44,30 +50,48 @@ export default function Home() {
         <div className="homeContainer">
           <header className="homeIntro">
             <h2 id="tools-heading">Find the right engineering tool</h2>
-            <p>Review sample inputs and results, and see what is included in each trial or beta.</p>
+            <p>Review sample results and access details. Images are stylized from tool screenshots.</p>
           </header>
           <div className="homeGrid">
             {PUBLIC_TOOLS.map((tool) => {
-              const Icon = tool.key === "3d_model" ? Layers3 : tool.key === "w_section" ? Building2 : Snowflake;
+              const artwork = toolArtwork[tool.key as keyof typeof toolArtwork];
+              const linkLabel = tool.key === "3d_model" ? "Preview 3D Model" : `Preview ${tool.name}`;
               return (
-                <article className="homeCard" key={tool.key}>
-                  <div className="homeCardTop">
-                    <Icon size={27} aria-hidden="true" />
-                    <span className={`homeBadge ${tool.trialDays ? "homeTrial" : "homeBeta"}`}>
-                      {tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}
-                    </span>
+                <article className="homeCard homeToolCard" key={tool.key}>
+                  <Image
+                    className="homeToolArtwork"
+                    src={artwork.src}
+                    alt={artwork.alt}
+                    width={900}
+                    height={600}
+                    sizes="(max-width: 680px) 90vw, 29vw"
+                    unoptimized
+                  />
+                  <div className="homeToolDetails">
+                    <div className="homeCardTop">
+                      <h3>{tool.name}</h3>
+                      <span className={`homeBadge ${tool.trialDays ? "homeTrial" : "homeBeta"}`}>
+                        {tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}
+                      </span>
+                    </div>
+                    <p>{tool.description}</p>
+                    <div className="homeSample">
+                      {tool.preview ? (
+                        <>
+                          <span>{tool.key === "snow_load" ? "Sample result · Uniform roof" : "Sample result · ULS utilization"}</span>
+                          <strong>{tool.preview.result}</strong>
+                        </>
+                      ) : (
+                        <>
+                          <span>Workspace access</span>
+                          <strong>Beta access by approval</strong>
+                        </>
+                      )}
+                    </div>
+                    <a href={toolPreviewPath(tool)} className="homeTextLink">
+                      {linkLabel} <ArrowRight size={16} aria-hidden="true" />
+                    </a>
                   </div>
-                  <h3>{tool.name}</h3>
-                  <p>{tool.description}</p>
-                  {tool.preview && (
-                    <p className="homeSample">
-                      <span>Sample result · {tool.preview.resultLabel}</span>
-                      <strong>{tool.preview.result}</strong>
-                    </p>
-                  )}
-                  <a href={toolPreviewPath(tool)} className="homeTextLink">
-                    Preview {tool.name} <ArrowRight size={16} aria-hidden="true" />
-                  </a>
                 </article>
               );
             })}
