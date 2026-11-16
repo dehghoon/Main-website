@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
 import { learningResources } from '@/lib/learning/catalog';
 import { getWorkbook, workbookCategories, workbookPath } from '@/lib/workbooks/catalog';
-import { localWorkbookPreview } from '@/lib/workbooks/previews';
-import { workbookAsset } from '@/lib/workbooks/assets';
+import { privateWorkbookPreview, workbookAsset } from '@/lib/workbooks/assets';
+import WorkbookPreview from '../workbook-preview';
 import WorkbookDownload from './download';
 import learningStyles from '../../learning.module.css';
 import styles from '../workbooks.module.css';
@@ -35,8 +35,6 @@ export default async function WorkbookPage({ params }: Props) {
 
   const hasGuide = Boolean(workbook.inputs && workbook.outputs);
   const configured = Boolean(process.env.WORKBOOK_GITHUB_TOKEN);
-  const preview = localWorkbookPreview(id) ??
-    (configured && workbookAsset(id, 'preview') ? `/api/learning/workbooks/${id}?asset=preview` : undefined);
   const download = workbookAsset(id, 'workbook');
   const guides = learningResources.filter(({ id, guideHref }) => guideHref && workbook.guides.includes(id));
 
@@ -54,12 +52,7 @@ export default async function WorkbookPage({ params }: Props) {
       </header>
       <section className={styles.detail} aria-labelledby="workbook-preview">
         <h2 id="workbook-preview">Worksheet preview</h2>
-        {preview ? (
-          <figure className={styles.preview}>
-            <img src={preview} alt={`Read-only worksheet excerpt from ${workbook.title}`} />
-            <figcaption>Read-only excerpt with example values. <a href={preview} target="_blank" rel="noopener noreferrer">View full-size image</a></figcaption>
-          </figure>
-        ) : <p>A worksheet image is not available for this workbook yet.</p>}
+        <WorkbookPreview id={id} privatePreview={privateWorkbookPreview(id)} />
       </section>
       <section className={styles.detail} aria-labelledby="workbook-tour">
         <h2 id="workbook-tour">{hasGuide ? 'How to use this workbook' : 'Workbook availability'}</h2>

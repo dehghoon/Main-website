@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { filterWorkbooks, workbookCategories, workbookPath } from '@/lib/workbooks/catalog';
+import WorkbookPreview from './workbook-preview';
 import styles from './workbooks.module.css';
 
-export default function WorkbookBrowser() {
+export default function WorkbookBrowser({ privatePreviews }: { privatePreviews: Record<string, string> }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const results = filterWorkbooks(query, category);
@@ -37,6 +38,7 @@ export default function WorkbookBrowser() {
             <span>{workbookCategories[workbook.category]}</span>
             <h2>{workbook.title}</h2>
             <p>{workbook.summary}</p>
+            <WorkbookPreview id={workbook.id} privatePreview={privatePreviews[workbook.id]} thumbnail />
             <Link className={styles.guideLink} href={workbookPath(workbook.id)}
               aria-label={`${workbook.inputs ? 'Read workbook guide' : 'View workbook availability'} for ${workbook.title}`}>
               {workbook.inputs ? 'Read workbook guide' : 'View workbook availability'}

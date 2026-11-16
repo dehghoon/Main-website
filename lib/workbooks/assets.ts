@@ -1,4 +1,5 @@
 import 'server-only';
+import { localWorkbookPreview } from './previews';
 
 type Asset = { path: string; ref: string };
 type AssetSet = { workbook?: Asset; preview?: Asset };
@@ -22,6 +23,13 @@ export function workbookAsset(id: string, kind: keyof AssetSet) {
     return Object.hasOwn(catalog, id) ? validAsset(catalog[id]?.[kind], kind) : undefined;
   } catch {
     return undefined;
+  }
+}
+
+export function privateWorkbookPreview(id: string) {
+  const local = localWorkbookPreview(id);
+  if (local && local.kind !== 'worksheet' && process.env.WORKBOOK_GITHUB_TOKEN && workbookAsset(id, 'preview')) {
+    return `/api/learning/workbooks/${id}?asset=preview`;
   }
 }
 

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
+import { privateWorkbookPreview } from '@/lib/workbooks/assets';
+import { workbooks } from '@/lib/workbooks/catalog';
 import WorkbookBrowser from './workbook-browser';
 import styles from '../learning.module.css';
 
@@ -17,6 +19,11 @@ export const metadata: Metadata = {
 };
 
 export default function WorkbooksPage() {
+  const privatePreviews = Object.fromEntries(workbooks.flatMap(({ id }) => {
+    const src = privateWorkbookPreview(id);
+    return src ? [[id, src]] : [];
+  }));
+
   return (
     <main className={styles.page}>
       <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
@@ -26,7 +33,7 @@ export default function WorkbooksPage() {
         <h1>Calculation Workbooks</h1>
         <p>Find a workbook and see what goes in, where to read the results and which worked guides cover the same topic.</p>
       </header>
-      <WorkbookBrowser />
+      <WorkbookBrowser privatePreviews={privatePreviews} />
     </main>
   );
 }

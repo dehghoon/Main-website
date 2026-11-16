@@ -35,16 +35,18 @@ test('workbook IDs and related worked guides resolve without source paths', () =
   }
 });
 
-test('reviewed PNG previews exist for their registered workbook', async () => {
+test('all workbook cards and details have a valid local preview', async () => {
   const { readFile, readdir } = await import('node:fs/promises');
   const { localWorkbookPreview } = await import('../lib/workbooks/previews.ts');
   const root = new URL('../public/learning/workbook-previews/', import.meta.url);
   const names = await readdir(root);
-  assert.ok(localWorkbookPreview('fillet-weld-strength'));
-  for (const name of names) {
-    const id = name.replace(/\.png$/, '');
-    assert.ok(getWorkbook(id));
-    assert.equal(localWorkbookPreview(id), `/learning/workbook-previews/${name}`);
+  assert.deepEqual(names.sort(), workbooks.map(({ id }) => `${id}.png`).sort());
+  assert.equal(localWorkbookPreview('fillet-weld-strength')?.kind, 'worksheet');
+  assert.equal(localWorkbookPreview('slab-on-grade-analysis-archive-1')?.kind, 'outline');
+  assert.equal(localWorkbookPreview('cold-formed-girt-design-archive-1')?.kind, 'topic');
+  for (const { id } of workbooks) {
+    const name = `${id}.png`;
+    assert.equal(localWorkbookPreview(id)?.src, `/learning/workbook-previews/${name}`);
     assert.equal((await readFile(new URL(name, root))).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   }
   assert.equal(localWorkbookPreview('../private-source.xlsx'), undefined);

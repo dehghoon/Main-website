@@ -35,8 +35,11 @@ an authenticated account outside the list is denied and an authorized client
 receives the intended file. Workbook content and calculations, including VBA
 behavior and applicable code editions, need separate engineering validation.
 
-Reviewed worksheet images can also be registered in
-`lib/workbooks/previews.ts` and served as static PNGs under
-`public/learning/workbook-previews/`. This path requires no download credentials
-and contains only reviewed excerpts. Workbook pages show image availability
-separately from the client download.
+Each catalogue card and workbook page uses a static PNG under
+`public/learning/workbook-previews/`. Images show reviewed worksheet excerpts,
+redacted reconstructions of worksheet grids, illustrated guides based on selected
+worksheet labels, or illustrated topic overviews for files without usable worksheet
+labels. The latter two are identified in `lib/workbooks/preview-kinds.json`
+and labeled on the page. An approved image from the private repository may replace an
+illustrated guide or overview. The static image remains available if fetching the
+approved image fails. Preview display is independent of workbook download access.
