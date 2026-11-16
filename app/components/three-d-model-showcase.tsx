@@ -9,7 +9,8 @@ const model = PUBLIC_TOOLS.find(tool => tool.key === "3d_model")!;
 
 export default function ThreeDModelShowcase() {
   const internalTools = useInternalToolsAccess();
-  const modelPath = internalTools ? model.url : toolPreviewPath(model);
+  const modelUrl = internalTools ? model.url : null;
+  const modelPath = modelUrl ?? toolPreviewPath(model);
 
   return (
     <div className="homeModel" id="3d-model">
@@ -26,7 +27,7 @@ export default function ThreeDModelShowcase() {
           <div><strong>3D Structural Model</strong><span>Illustrated workspace preview</span></div>
           <span className="homeBadge homeBeta">Beta</span>
           <a className="homeTextLink" href={modelPath}>
-            {internalTools ? "Open 3D Model" : "Preview 3D Model"} <ArrowRight size={16} aria-hidden="true" />
+            {modelUrl ? "Open 3D Model" : "Preview 3D Model"} <ArrowRight size={16} aria-hidden="true" />
           </a>
         </figcaption>
       </figure>
