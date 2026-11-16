@@ -3,7 +3,14 @@
 if(customElements.get("linkoteq-header"))return;
 const base="https://linkoteq.com";
 const assetOrigin = new URL(document.currentScript?.src || base).origin;
-const logoUrl = assetOrigin + "/linko-logo-final.svg";
+const logoUrl = assetOrigin + "/homepage-linkoteq-logo.svg";
+const shellUrl = new URL("/design-system/linkoteq-shell-v1.css", assetOrigin).href;
+if (![...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === shellUrl)) {
+ const shell = document.createElement("link");
+ shell.rel = "stylesheet";
+ shell.href = shellUrl;
+ document.head.append(shell);
+}
 const tools=[
  ["Snow Load","https://snow.linkoteq.com/","30-day Trial","/tools/snow-load"],
  ["W-Section","https://wsection.linkoteq.com/","30-day Trial","/tools/w-section"],
@@ -83,10 +90,9 @@ static get observedAttributes(){return ["account-name","internal-tools"];}
 attributeChangedCallback(name){if(name==="account-name")this.renderAccount();else this.updateToolLinks();}
 connectedCallback(){if(this.shadowRoot){this.disconnectAccount=connectToolAccount(this);return;}const root=this.attachShadow({mode:"open"});
 const publicPreviews = this.hasAttribute("public-tool-previews");
-const homeDesign = publicPreviews && window.location.pathname === "/";
-this.toggleAttribute("home-design", homeDesign);
+this.dataset.linkoteqShell = "v2";
 const siteHref = url => {
- if (!homeDesign || !url.startsWith("https://")) return url;
+ if (!publicPreviews || !url.startsWith("https://")) return url;
  const { origin, pathname, search, hash } = new URL(url);
  return origin === base || origin === accountOrigin ? pathname + search + hash : url;
 };
@@ -105,34 +111,28 @@ const style=document.createElement("style");style.textContent=`
 .drawer .signout{width:100%;border:0;border-bottom:1px solid var(--linkoteq-header-line,#e0e8ee);background:var(--linkoteq-header-surface,#fff);color:var(--linkoteq-header-ink,#17324a);position:sticky;top:0;z-index:1}
 .drawer .signout[hidden]{display:none}.sign-drop .submenu{right:0;left:auto}}
 @media(max-width:460px){.top{padding:10px 12px;gap:6px}.brand img{width:150px}.mobile-name{max-width:90px;font-size:11px}.menu-toggle{padding:10px 12px}.sign{padding:11px 13px;font-size:13px}}
-:host([home-design]), :host([home-design]) header { display: contents; }
-:host([home-design]) .top { position: sticky; top: 0; z-index: 1251; min-height: 72px; padding-inline: clamp(20px, 5vw, 72px); background: var(--home-white); border-bottom: 1px solid var(--home-line); box-shadow: 0 4px 16px rgb(20 53 46 / 5%); }
-:host([home-design]) .utility { font-size: 15px; }
-:host([home-design]) .utility > a, :host([home-design]) .drop > button { display: inline-flex; align-items: center; min-height: 44px; }
-:host([home-design]) .account button, :host([home-design]) .sign { min-height: 44px; padding-inline: 16px; border-radius: 8px; background: var(--home-action); color: var(--home-white); }
-:host([home-design]) .account button:hover, :host([home-design]) .sign:hover { background: var(--home-action-hover); }
-:host([home-design]) .second { position: relative; z-index: 1250; justify-content: flex-end; padding-inline: clamp(20px, 5vw, 72px); border-top: 0; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font-size: 14px; font-weight: 650; }
-:host([home-design]) .second > a { display: inline-flex; min-height: 44px; align-items: center; }
-:host([home-design]) .tag { background: var(--home-trial-bg); color: var(--home-trial-text); padding: 3px 10px; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 1.45; }
-:host([home-design]) .tag[data-status="beta"] { background: var(--home-beta-bg); color: var(--home-action); }
+:host([data-linkoteq-shell="v2"]), :host([data-linkoteq-shell="v2"]) header { display: contents; }
+:host([data-linkoteq-shell="v2"]) .top { position: sticky; top: 0; z-index: 1251; min-height: 72px; padding-inline: clamp(20px, 5vw, 72px); background: var(--home-white); border-bottom: 1px solid var(--home-line); box-shadow: 0 4px 16px rgb(20 53 46 / 5%); }
+:host([data-linkoteq-shell="v2"]) .utility { font-size: 15px; }
+:host([data-linkoteq-shell="v2"]) .utility > a, :host([data-linkoteq-shell="v2"]) .drop > button { display: inline-flex; align-items: center; min-height: 44px; }
+:host([data-linkoteq-shell="v2"]) .account button, :host([data-linkoteq-shell="v2"]) .sign { min-height: 44px; padding-inline: 16px; border-radius: 8px; background: var(--home-action); color: var(--home-white); }
+:host([data-linkoteq-shell="v2"]) .account button:hover, :host([data-linkoteq-shell="v2"]) .sign:hover { background: var(--home-action-hover); }
+:host([data-linkoteq-shell="v2"]) .second { position: relative; z-index: 1250; justify-content: flex-end; padding-inline: clamp(20px, 5vw, 72px); border-top: 0; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font-size: 14px; font-weight: 650; }
+:host([data-linkoteq-shell="v2"]) .second > a { display: inline-flex; min-height: 44px; align-items: center; }
+:host([data-linkoteq-shell="v2"]) .tag { background: var(--home-trial-bg); color: var(--home-trial-text); padding: 3px 10px; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 1.45; }
+:host([data-linkoteq-shell="v2"]) .tag[data-status="beta"] { background: var(--home-beta-bg); color: var(--home-action); }
 @media(max-width:900px) {
- :host([home-design]) .sign-drop { display: none; }
- :host([home-design]) .menu-toggle { margin-inline-start: auto; min-height: 44px; border: 1px solid var(--home-action); border-radius: 8px; color: var(--home-action); white-space: nowrap; }
- :host([home-design]) .drawer[open] { position: fixed; z-index: 1250; inset: var(--drawer-top, 72px) 0 auto; }
- :host([home-design]) .drawer-label { margin: 10px 10px 2px; color: var(--home-muted); font-size: 14px; font-weight: 700; }
- :host([home-design]) .drawer-divider { border: 0; border-top: 1px solid var(--home-line); margin: 10px 0; }
+ :host([data-linkoteq-shell="v2"]) .sign-drop { display: none; }
+ :host([data-linkoteq-shell="v2"]) .menu-toggle { margin-inline-start: auto; min-height: 44px; border: 1px solid var(--home-action); border-radius: 8px; color: var(--home-action); white-space: nowrap; }
+ :host([data-linkoteq-shell="v2"]) .drawer[open] { position: fixed; z-index: 1250; inset: var(--drawer-top, 72px) 0 auto; }
+ :host([data-linkoteq-shell="v2"]) .drawer-label { margin: 10px 10px 2px; color: var(--home-muted); font-size: 14px; font-weight: 700; }
+ :host([data-linkoteq-shell="v2"]) .drawer-divider { border: 0; border-top: 1px solid var(--home-line); margin: 10px 0; }
 }
 `;
-const header=document.createElement("header");const top=document.createElement("div");top.className="top";const brand=document.createElement("a");brand.className="brand";brand.href=siteHref(base+"/");brand.setAttribute("aria-label","Linkoteq home");const logo=document.createElement("img");logo.src=homeDesign?assetOrigin+"/homepage-linkoteq-logo.svg":logoUrl;logo.alt="Linkoteq Engineering Technology";brand.append(logo);top.append(brand);
+const header=document.createElement("header");const top=document.createElement("div");top.className="top";const brand=document.createElement("a");brand.className="brand";brand.href=siteHref(base+"/");brand.setAttribute("aria-label","Linkoteq home");const logo=document.createElement("img");logo.src=logoUrl;logo.alt="Linkoteq Engineering Technology";brand.append(logo);top.append(brand);
 const utility=document.createElement("nav");utility.className="utility";utility.setAttribute("aria-label","Company navigation");
 const link=(label,url,parent)=>{const a=document.createElement("a");a.textContent=label;a.href=siteHref(url);parent.append(a);return a};
 const drop=(label,items,parent)=>{const box=document.createElement("div");box.className="drop";const btn=document.createElement("button");btn.type="button";btn.textContent=label+" ⌄";btn.setAttribute("aria-haspopup","true");const list=document.createElement("div");list.className="submenu";items.forEach(([name,url])=>link(name,url,list));box.append(btn,list);parent.append(box);return box};
-if (!homeDesign) {
- link("Home", base + "/", utility);
- drop("Contact", contactLinks, utility);
- drop("About", aboutLinks, utility);
- link("Pricing", base + "/pricing", utility);
-}
 const toolMenu=drop("Calculators",[],utility).querySelector(".submenu");
 this.toolLinks=[];
 const addToolLinks=(parent)=>{
@@ -145,13 +145,11 @@ const addToolLinks=(parent)=>{
   anchor.append(" ",badge);
   if(publicPreviews || toolOrigins.includes(window.location.origin))this.toolLinks.push({anchor,url,preview:publicPreviews?preview:accountOrigin+preview});
  });
- if(publicPreviews)link("All engineering tools","/tools",parent);
+ link("All engineering tools",accountOrigin + "/tools",parent);
 };
 addToolLinks(toolMenu);
-if (homeDesign) {
- link("Pricing", base + "/pricing", utility);
- drop("Contact", contactLinks, utility);
-}
+link("Pricing", base + "/pricing", utility);
+drop("Contact", contactLinks, utility);
 top.append(utility);
 const account=document.createElement("div");account.className="account";top.append(account);this.accountArea=account;
 const mobileName=document.createElement("span");mobileName.className="mobile-name";mobileName.setAttribute("aria-live","polite");top.append(mobileName);this.mobileName=mobileName;
@@ -160,11 +158,10 @@ const signDrop=drop("Sign In",signInLinks,top);signDrop.classList.add("sign-drop
 const second = document.createElement("nav");
 second.className = "second";
 second.setAttribute("aria-label", "Platform navigation");
-if (!homeDesign) link("Home", base + "/", second);
 for (const [label, url] of platformLinks) link(label, url, second);
 drop("Knowledge Center", knowledgeLinks, second);
 link("Blog", base + "/blog", second);
-if (homeDesign) drop("About", aboutLinks, second);
+drop("About", aboutLinks, second);
 
 const drawer = document.createElement("nav");
 drawer.className = "drawer";
@@ -196,33 +193,23 @@ const drawerLabel = label => {
  item.textContent = label;
  drawer.append(item);
 };
-if (homeDesign) drawerLabel("Tools and account");
-else link("Home", base + "/", drawer);
-const mobileToolLinks = drawerGroup(homeDesign ? "Calculators" : "All Engineering Tools");
+drawerLabel("Tools and account");
+const mobileToolLinks = drawerGroup("Calculators");
 addToolLinks(mobileToolLinks);
-if (!publicPreviews) link("Browse all tools", accountOrigin + "/tools", mobileToolLinks);
-if (homeDesign) {
- link("Pricing", base + "/pricing", drawer);
- drawerGroup("Contact", contactLinks);
- this.mobileSignIn = drawerGroup("Sign In", signInLinks).parentElement;
- const divider = document.createElement("hr");
- divider.className = "drawer-divider";
- drawer.append(divider);
- drawerLabel("Explore Linkoteq");
-}
+link("Pricing", base + "/pricing", drawer);
+drawerGroup("Contact", contactLinks);
+this.mobileSignIn = drawerGroup("Sign In", signInLinks).parentElement;
+const divider = document.createElement("hr");
+divider.className = "drawer-divider";
+drawer.append(divider);
+drawerLabel("Explore Linkoteq");
 for (const [label, url] of platformLinks) link(label, url, drawer);
 drawerGroup("Knowledge Center", knowledgeLinks);
 link("Blog", base + "/blog", drawer);
-if (!homeDesign) link("Pricing", base + "/pricing", drawer);
 drawerGroup("About", aboutLinks);
-if (!homeDesign) {
- drawerGroup("Contact", contactLinks);
- link("Client Sign In", base + "/customer-login", drawer);
-}
 
 const sizeDrawer = () => {
- const anchor = homeDesign ? top : header;
- drawer.style.setProperty("--drawer-top", `${Math.ceil(anchor.getBoundingClientRect().bottom)}px`);
+ drawer.style.setProperty("--drawer-top", `${Math.ceil(top.getBoundingClientRect().bottom)}px`);
 };
 const setDrawerOpen = (open) => {
  if (open) sizeDrawer();
@@ -231,9 +218,12 @@ const setDrawerOpen = (open) => {
  toggle.textContent = open ? "Close ×" : "Menu ☰";
 };
 toggle.addEventListener("click", () => setDrawerOpen(!drawer.hasAttribute("open")));
-new ResizeObserver(() => {
+const headerSize = new ResizeObserver(() => {
+ document.documentElement.style.setProperty("--lq-header-height", `${top.offsetHeight + second.offsetHeight}px`);
  if (drawer.hasAttribute("open")) sizeDrawer();
-}).observe(top);
+});
+headerSize.observe(top);
+headerSize.observe(second);
 drawer.addEventListener("click", (event) => {
  if (event.target.closest("a")) {
   setDrawerOpen(false);

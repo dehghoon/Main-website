@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PUBLIC_TOOLS, toolPreviewPath } from "@/lib/tool-discovery";
 import { useInternalToolsAccess } from "./header-auth-bridge";
 
@@ -32,10 +32,6 @@ export default function ThreeDModelShowcase() {
           </a>
         </figcaption>
       </figure>
-      <aside className="homeNotice" aria-label="Early development">
-        <Info size={17} aria-hidden="true" />
-        <p><strong>Early development.</strong> Beta access requires approval. Verify results before professional use.</p>
-      </aside>
     </div>
   );
 }

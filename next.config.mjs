@@ -2,6 +2,9 @@
 const nextConfig = {
   async headers() {
     return [{
+      source: "/fonts/:path*",
+      headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+    }, {
       source: "/account/header-session",
       headers: [{
         key: "Content-Security-Policy",
