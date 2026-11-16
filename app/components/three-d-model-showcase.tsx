@@ -22,7 +22,7 @@ export default function ThreeDModelShowcase() {
         <a className="modelEngineLink" href={modelPath}>{modelUrl ? "Open 3D Model" : "Preview 3D Model"} <ArrowRight size={17} /></a>
       </div>
       <a className="modelEnginePreview" href={modelPath} aria-label={modelUrl ? "Open the Linkoteq 3D Model" : "Preview the Linkoteq 3D Model"}>
-        <Image src="/3d-model-preview.svg" alt="Linkoteq 3D structural model workspace preview" fill sizes="(max-width: 980px) 100vw, 54vw" priority />
+        <Image src="/3d-model-preview.svg" alt="Linkoteq 3D structural model workspace preview" width={1600} height={900} sizes="(max-width: 820px) 94vw, 50vw" priority />
         <span className="modelPreviewBadge">Workspace preview</span>
       </a>
     </section>

@@ -16,5 +16,5 @@
     <circle cx="44" cy="41" r="4.5" fill="#ffffff"/>
   </g>
   <text x="112" y="55" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="750" letter-spacing="-1.2" fill="#071525">Linkoteq</text>
-  <text x="114" y="80" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="600" letter-spacing="3.5" fill="#4F6478">ENGINEERING TECHNOLOGY</text>
+  <text x="114" y="80" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing=".65" fill="#17324A">ENGINEERING TECHNOLOGY</text>
 </svg>

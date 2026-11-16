@@ -41,22 +41,19 @@
 .modelEngineLink:hover { background: var(--primary-action-hover); }
 
 .modelEnginePreview {
-  position: relative;
   display: block;
-  min-height: clamp(320px, 35vw, 500px);
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--ink);
+  background: var(--surface);
   box-shadow: var(--soft-shadow);
 }
 
-.modelEnginePreview img { object-fit: contain; }
+.modelEnginePreview img { display: block; width: 100%; height: auto; }
 
 .modelPreviewBadge {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
+  display: inline-block;
+  margin: 10px 14px;
   padding: 7px 11px;
   border-radius: 7px;
   background: var(--ink);
@@ -67,7 +64,6 @@
 
 @media (max-width: 820px) {
   .modelEngineShowcase { grid-template-columns: minmax(0, 1fr); }
-  .modelEnginePreview { min-height: 0; aspect-ratio: 16 / 10; }
 }
 
 @media (max-width: 640px) {
@@ -75,5 +71,4 @@
   .modelEngineCopy h2 { font-size: clamp(2.15rem, 7vw, 2.85rem); }
   .modelEngineCopy > p { font-size: 1.06rem; }
   .modelEngineLink { width: 100%; }
-  .modelPreviewBadge { left: 10px; bottom: 10px; }
 }
