@@ -35,6 +35,12 @@ export default function WorkbooksPage() {
         <p>Find a workbook and see what goes in, where to read the results and which worked guides cover the same topic.</p>
       </header>
       <WorkbookBrowser privatePreviews={privatePreviews} />
+      <p className={styles.notice}>
+        <small>
+          <strong>Disclaimer.</strong> The engineer responsible for the calculations must independently verify workbook formulas
+          and results against applicable codes and address any errors, including in workbooks with non-editable API integrations.
+        </small>
+      </p>
     </main>
   );
 }
