@@ -50,6 +50,8 @@
   background: var(--surface);
 }
 
+.example { max-width: 750px; margin: 28px auto 0; }
+
 .example h2, .card h2 {
   margin: .45em 0 .65em;
   font-size: clamp(1.35rem, 3vw, 1.85rem);
@@ -101,18 +103,40 @@
 
 .model {
   margin: 0;
-  padding: 10px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.workspaceControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: .925rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.workspaceControls li {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--sage);
 }
 
 .model img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  aspect-ratio: 3 / 2;
 }
 
 .model figcaption {
-  padding: 8px 5px 3px;
+  padding: 10px 14px;
 }
 
 .warning {

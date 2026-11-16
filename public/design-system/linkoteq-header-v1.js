@@ -2,7 +2,8 @@
 (()=>{"use strict";
 if(customElements.get("linkoteq-header"))return;
 const base="https://linkoteq.com";
-const logoUrl=new URL("/linko-logo-final.svg", document.currentScript?.src || base).href;
+const assetOrigin = new URL(document.currentScript?.src || base).origin;
+const logoUrl = assetOrigin + "/linko-logo-final.svg";
 const tools=[
  ["Snow Load","https://snow.linkoteq.com/","30-day Trial","/tools/snow-load"],
  ["W-Section","https://wsection.linkoteq.com/","30-day Trial","/tools/w-section"],
@@ -81,6 +82,15 @@ class LinkoteqHeader extends HTMLElement{
 static get observedAttributes(){return ["account-name","internal-tools"];}
 attributeChangedCallback(name){if(name==="account-name")this.renderAccount();else this.updateToolLinks();}
 connectedCallback(){if(this.shadowRoot){this.disconnectAccount=connectToolAccount(this);return;}const root=this.attachShadow({mode:"open"});
+const publicPreviews = this.hasAttribute("public-tool-previews");
+const homeDesign = publicPreviews && window.location.pathname === "/";
+this.toggleAttribute("home-design", homeDesign);
+const siteHref = url => {
+ if (!homeDesign || !url.startsWith("https://")) return url;
+ const { origin, pathname, search, hash } = new URL(url);
+ return origin === base || origin === accountOrigin ? pathname + search + hash : url;
+};
+const signInLinks = [["Employee Sign In",accountOrigin+"/blog/login"],["Client Sign In",base+"/customer-login"]];
 const style=document.createElement("style");style.textContent=`
 :host{display:block;position:relative;z-index:1250;font-family:var(--linkoteq-header-font-body,Inter,system-ui,Arial,sans-serif);color:var(--linkoteq-header-ink,#17324a)}*{box-sizing:border-box}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--linkoteq-header-accent,#15a5bb);outline-offset:3px}header{background:var(--linkoteq-header-surface,#fff);box-shadow:0 8px 24px #0715250a;border-bottom:1px solid var(--linkoteq-header-line,#dbe5ed)}.top{display:flex;align-items:center;gap:14px;min-height:72px;padding:8px 3vw}.brand{margin-right:auto;flex-shrink:0}.brand img{display:block;width:210px;max-width:100%;height:auto}.utility{display:flex;align-items:center;gap:clamp(12px,1.4vw,22px);font-size:14px;font-weight:650}.drop{position:relative}.drop>button{border:0;background:none;color:inherit;padding:12px 0;font-weight:650}.submenu{display:none;position:absolute;top:100%;left:0;min-width:210px;padding:9px;background:var(--linkoteq-header-surface,white);border:1px solid var(--linkoteq-header-line,#dbe5ed);border-radius:12px;box-shadow:0 15px 35px #102b4925;z-index:5}.drop:hover .submenu,.drop:focus-within .submenu{display:grid}.submenu a{display:block;padding:10px;border-radius:8px}.submenu a:hover{background:var(--linkoteq-header-sage,#edf5fa)}.account{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:650}.account button,.sign{border:0;border-radius:999px;background:var(--linkoteq-header-ink,#071525);color:white;padding:11px 17px;font-weight:750;white-space:nowrap}.sign-drop .submenu{left:auto;right:0}.second{min-height:46px;display:flex;align-items:center;justify-content:center;gap:clamp(20px,3vw,42px);padding:0 3vw;background:var(--linkoteq-header-paper,#f8fbfd);border-top:1px solid var(--linkoteq-header-line,#e7edf3);font-size:14px;font-weight:650}.second a:hover,.utility a:hover{text-decoration:underline}.menu-toggle,.mobile-name,.drawer{display:none}.tag{font-size:12px;color:var(--linkoteq-header-ink-soft,#476d8d);background:var(--linkoteq-header-sage,#edf5fb);border-radius:20px;padding:3px 9px;margin-left:auto}
 @media(max-width:900px){.top{min-height:72px;padding:10px 18px;gap:8px}.brand{flex:0 1 auto;min-width:0}.brand img{width:210px;max-height:52px;object-fit:contain}.utility,.second,.account{display:none}.mobile-name{display:block;margin-left:auto;font-size:13px;font-weight:700;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mobile-name:empty{display:none}.menu-toggle{display:block;flex-shrink:0;border:1px solid var(--linkoteq-header-line,#d9e2e8);background:var(--linkoteq-header-surface,#fff);color:inherit;border-radius:13px;padding:12px 15px;font-weight:750}.sign-drop{display:block}.sign{padding:13px 18px}.drawer[open]{display:block;position:absolute;inset:100% 0 auto;max-height:calc(100dvh - var(--drawer-top, 73px));overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;padding:8px 5vw max(12px,env(safe-area-inset-bottom));background:var(--linkoteq-header-surface,#fff);border-block:1px solid var(--linkoteq-header-line,#e0e8ee);box-shadow:0 8px 24px #0715251a}
@@ -95,16 +105,34 @@ const style=document.createElement("style");style.textContent=`
 .drawer .signout{width:100%;border:0;border-bottom:1px solid var(--linkoteq-header-line,#e0e8ee);background:var(--linkoteq-header-surface,#fff);color:var(--linkoteq-header-ink,#17324a);position:sticky;top:0;z-index:1}
 .drawer .signout[hidden]{display:none}.sign-drop .submenu{right:0;left:auto}}
 @media(max-width:460px){.top{padding:10px 12px;gap:6px}.brand img{width:150px}.mobile-name{max-width:90px;font-size:11px}.menu-toggle{padding:10px 12px}.sign{padding:11px 13px;font-size:13px}}
+:host([home-design]), :host([home-design]) header { display: contents; }
+:host([home-design]) .top { position: sticky; top: 0; z-index: 1251; min-height: 72px; padding-inline: clamp(20px, 5vw, 72px); background: var(--home-white); border-bottom: 1px solid var(--home-line); box-shadow: 0 4px 16px rgb(20 53 46 / 5%); }
+:host([home-design]) .utility { font-size: 15px; }
+:host([home-design]) .utility > a, :host([home-design]) .drop > button { display: inline-flex; align-items: center; min-height: 44px; }
+:host([home-design]) .account button, :host([home-design]) .sign { min-height: 44px; padding-inline: 16px; border-radius: 8px; background: var(--home-action); color: var(--home-white); }
+:host([home-design]) .account button:hover, :host([home-design]) .sign:hover { background: var(--home-action-hover); }
+:host([home-design]) .second { position: relative; z-index: 1250; justify-content: flex-end; padding-inline: clamp(20px, 5vw, 72px); border-top: 0; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font-size: 14px; font-weight: 650; }
+:host([home-design]) .second > a { display: inline-flex; min-height: 44px; align-items: center; }
+:host([home-design]) .tag { background: var(--home-trial-bg); color: var(--home-trial-text); padding: 3px 10px; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 1.45; }
+:host([home-design]) .tag[data-status="beta"] { background: var(--home-beta-bg); color: var(--home-action); }
+@media(max-width:900px) {
+ :host([home-design]) .sign-drop { display: none; }
+ :host([home-design]) .menu-toggle { margin-inline-start: auto; min-height: 44px; border: 1px solid var(--home-action); border-radius: 8px; color: var(--home-action); white-space: nowrap; }
+ :host([home-design]) .drawer[open] { position: fixed; z-index: 1250; inset: var(--drawer-top, 72px) 0 auto; }
+ :host([home-design]) .drawer-label { margin: 10px 10px 2px; color: var(--home-muted); font-size: 14px; font-weight: 700; }
+ :host([home-design]) .drawer-divider { border: 0; border-top: 1px solid var(--home-line); margin: 10px 0; }
+}
 `;
-const header=document.createElement("header");const top=document.createElement("div");top.className="top";const brand=document.createElement("a");brand.className="brand";brand.href=base+"/";brand.setAttribute("aria-label","Linkoteq home");const logo=document.createElement("img");logo.src=logoUrl;logo.alt="Linkoteq Engineering Technology";brand.append(logo);top.append(brand);
+const header=document.createElement("header");const top=document.createElement("div");top.className="top";const brand=document.createElement("a");brand.className="brand";brand.href=siteHref(base+"/");brand.setAttribute("aria-label","Linkoteq home");const logo=document.createElement("img");logo.src=homeDesign?assetOrigin+"/homepage-linkoteq-logo.svg":logoUrl;logo.alt="Linkoteq Engineering Technology";brand.append(logo);top.append(brand);
 const utility=document.createElement("nav");utility.className="utility";utility.setAttribute("aria-label","Company navigation");
-const link=(label,url,parent)=>{const a=document.createElement("a");a.textContent=label;a.href=url;parent.append(a);return a};
+const link=(label,url,parent)=>{const a=document.createElement("a");a.textContent=label;a.href=siteHref(url);parent.append(a);return a};
 const drop=(label,items,parent)=>{const box=document.createElement("div");box.className="drop";const btn=document.createElement("button");btn.type="button";btn.textContent=label+" ⌄";btn.setAttribute("aria-haspopup","true");const list=document.createElement("div");list.className="submenu";items.forEach(([name,url])=>link(name,url,list));box.append(btn,list);parent.append(box);return box};
-link("Home", base + "/", utility);
-drop("Contact", contactLinks, utility);
-drop("About", aboutLinks, utility);
-link("Pricing", base + "/pricing", utility);
-const publicPreviews=this.hasAttribute("public-tool-previews");
+if (!homeDesign) {
+ link("Home", base + "/", utility);
+ drop("Contact", contactLinks, utility);
+ drop("About", aboutLinks, utility);
+ link("Pricing", base + "/pricing", utility);
+}
 const toolMenu=drop("Calculators",[],utility).querySelector(".submenu");
 this.toolLinks=[];
 const addToolLinks=(parent)=>{
@@ -112,6 +140,7 @@ const addToolLinks=(parent)=>{
   const anchor=link(name,url,parent);
   const badge=document.createElement("span");
   badge.className="tag";
+  badge.dataset.status=status==="Beta"?"beta":"trial";
   badge.textContent=status;
   anchor.append(" ",badge);
   if(publicPreviews || toolOrigins.includes(window.location.origin))this.toolLinks.push({anchor,url,preview:publicPreviews?preview:accountOrigin+preview});
@@ -119,18 +148,23 @@ const addToolLinks=(parent)=>{
  if(publicPreviews)link("All engineering tools","/tools",parent);
 };
 addToolLinks(toolMenu);
+if (homeDesign) {
+ link("Pricing", base + "/pricing", utility);
+ drop("Contact", contactLinks, utility);
+}
 top.append(utility);
 const account=document.createElement("div");account.className="account";top.append(account);this.accountArea=account;
 const mobileName=document.createElement("span");mobileName.className="mobile-name";mobileName.setAttribute("aria-live","polite");top.append(mobileName);this.mobileName=mobileName;
 const toggle=document.createElement("button");toggle.className="menu-toggle";toggle.type="button";toggle.textContent="Menu ☰";toggle.setAttribute("aria-expanded","false");toggle.setAttribute("aria-controls","linkoteq-mobile");top.append(toggle);
-const signDrop=drop("Sign In",[["Employee Sign In",accountOrigin+"/blog/login"],["Client Sign In",base+"/customer-login"]],top);signDrop.classList.add("sign-drop");signDrop.querySelector("button").className="sign";this.signDrop=signDrop;
+const signDrop=drop("Sign In",signInLinks,top);signDrop.classList.add("sign-drop");signDrop.querySelector("button").className="sign";this.signDrop=signDrop;
 const second = document.createElement("nav");
 second.className = "second";
 second.setAttribute("aria-label", "Platform navigation");
-link("Home", base + "/", second);
+if (!homeDesign) link("Home", base + "/", second);
 for (const [label, url] of platformLinks) link(label, url, second);
 drop("Knowledge Center", knowledgeLinks, second);
 link("Blog", base + "/blog", second);
+if (homeDesign) drop("About", aboutLinks, second);
 
 const drawer = document.createElement("nav");
 drawer.className = "drawer";
@@ -156,20 +190,39 @@ const drawerGroup = (label, items = []) => {
  drawer.append(details);
  return list;
 };
-link("Home", base + "/", drawer);
-const mobileToolLinks = drawerGroup("All Engineering Tools");
+const drawerLabel = label => {
+ const item = document.createElement("p");
+ item.className = "drawer-label";
+ item.textContent = label;
+ drawer.append(item);
+};
+if (homeDesign) drawerLabel("Tools and account");
+else link("Home", base + "/", drawer);
+const mobileToolLinks = drawerGroup(homeDesign ? "Calculators" : "All Engineering Tools");
 addToolLinks(mobileToolLinks);
 if (!publicPreviews) link("Browse all tools", accountOrigin + "/tools", mobileToolLinks);
+if (homeDesign) {
+ link("Pricing", base + "/pricing", drawer);
+ drawerGroup("Contact", contactLinks);
+ this.mobileSignIn = drawerGroup("Sign In", signInLinks).parentElement;
+ const divider = document.createElement("hr");
+ divider.className = "drawer-divider";
+ drawer.append(divider);
+ drawerLabel("Explore Linkoteq");
+}
 for (const [label, url] of platformLinks) link(label, url, drawer);
 drawerGroup("Knowledge Center", knowledgeLinks);
 link("Blog", base + "/blog", drawer);
-link("Pricing", base + "/pricing", drawer);
+if (!homeDesign) link("Pricing", base + "/pricing", drawer);
 drawerGroup("About", aboutLinks);
-drawerGroup("Contact", contactLinks);
-link("Client Sign In", base + "/customer-login", drawer);
+if (!homeDesign) {
+ drawerGroup("Contact", contactLinks);
+ link("Client Sign In", base + "/customer-login", drawer);
+}
 
 const sizeDrawer = () => {
- drawer.style.setProperty("--drawer-top", `${Math.ceil(header.getBoundingClientRect().bottom)}px`);
+ const anchor = homeDesign ? top : header;
+ drawer.style.setProperty("--drawer-top", `${Math.ceil(anchor.getBoundingClientRect().bottom)}px`);
 };
 const setDrawerOpen = (open) => {
  if (open) sizeDrawer();
@@ -199,7 +252,7 @@ disconnectedCallback(){this.disconnectAccount?.();this.disconnectAccount=undefin
 showSignOutError(){this.signOutError.textContent="Sign-out could not be completed. Please try again.";this.signOutError.hidden=false;}
 clearSignOutError(){this.signOutError.textContent="";this.signOutError.hidden=true;}
 updateToolLinks(){for(const {anchor,url,preview} of this.toolLinks??[])anchor.href=this.hasAttribute("internal-tools")?url:preview;}
-renderAccount(){if(!this.accountArea)return;const name=this.getAttribute("account-name");this.accountArea.replaceChildren();this.mobileName.textContent=name?"Hi, "+name:"";this.mobileSignOut.hidden=!name;this.signDrop.style.display=name?"none":"";if(name){const label=document.createElement("span");label.textContent="Hello "+name;const out=document.createElement("button");out.type="button";out.textContent="Sign Out";out.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));this.accountArea.append(label,out)}}
+renderAccount(){if(!this.accountArea)return;const name=this.getAttribute("account-name");this.accountArea.replaceChildren();this.mobileName.textContent=name?"Hi, "+name:"";this.mobileSignOut.hidden=!name;if(this.mobileSignIn)this.mobileSignIn.hidden=Boolean(name);this.signDrop.style.display=name?"none":"";if(name){const label=document.createElement("span");label.textContent="Hello "+name;const out=document.createElement("button");out.type="button";out.textContent="Sign Out";out.addEventListener("click",()=>this.dispatchEvent(new CustomEvent("linkoteq-signout",{bubbles:true})));this.accountArea.append(label,out)}}
 }
 customElements.define("linkoteq-header",LinkoteqHeader);
 })();
