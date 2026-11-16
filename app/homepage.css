@@ -1,0 +1,130 @@
+.homepage, linkoteq-header[home-design] {
+  --home-heading: #14352e;
+  --home-body: #3e4f4a;
+  --home-muted: #5f706b;
+  --home-action: #1565c0;
+  --home-action-hover: #0f4c94;
+  --home-teal: #0f8f83;
+  --home-paper: #f7f4ee;
+  --home-white: #fff;
+  --home-dark: #0f2a26;
+  --home-line: #e2ddd3;
+  --home-beta-bg: #e3f0ff;
+  --home-trial-bg: #e2f4ea;
+  --home-trial-text: #1b6b45;
+  --home-coming-bg: #ecebe6;
+  --home-warning-bg: #fff6dd;
+  --home-warning-text: #7a5a00;
+}
+
+linkoteq-header[home-design] {
+  --linkoteq-header-ink: var(--home-heading);
+  --linkoteq-header-ink-soft: var(--home-muted);
+  --linkoteq-header-line: var(--home-line);
+  --linkoteq-header-surface: var(--home-white);
+  --linkoteq-header-paper: var(--home-paper);
+  --linkoteq-header-sage: var(--home-paper);
+  --linkoteq-header-accent: var(--home-action);
+}
+
+.homepage {
+  --accent: var(--home-action);
+  background: var(--home-paper);
+  color: var(--home-body);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.homepage h1, .homepage h2, .homepage h3 {
+  margin: 0;
+  color: var(--home-heading);
+  letter-spacing: -.035em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+.homepage h1 { font-size: clamp(2.25rem, 4.45vw, 3.5rem); }
+.homepage h2 { font-size: clamp(1.875rem, 3.4vw, 2.5rem); }
+.homepage h3 { font-size: clamp(1.3rem, 2vw, 1.5rem); }
+.homepage p { max-width: 65ch; margin: 0; }
+.homepage section[id], .homeModel { scroll-margin-top: 88px; }
+
+.homeContainer { width: min(100% - 2 * clamp(20px, 5vw, 72px), 1280px); margin-inline: auto; }
+.homeHero, .homeSection { padding-block: clamp(56px, 7vw, 104px); }
+.homeHeroLayout {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: 36px clamp(24px, 5vw, 72px);
+  align-items: center;
+}
+.homeHeroCopy > p { margin: 20px 0 28px; font-size: 1.125rem; max-width: 52ch; }
+
+.homeButton, .homeTextLink { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; }
+.homeButton { min-height: 48px; justify-content: center; padding: 10px 18px; border: 1px solid transparent; border-radius: 8px; text-align: center; }
+.homePrimary { background: var(--home-action); color: var(--home-white); }
+.homePrimary:hover { background: var(--home-action-hover); }
+.homeSecondary { margin-top: 24px; border-color: var(--home-action); color: var(--home-action); }
+.homeSecondary:hover { background: var(--home-beta-bg); }
+.homeTextLink { align-self: flex-start; min-height: 44px; color: var(--home-action); text-decoration: underline; text-underline-offset: 3px; }
+.homeTextLink:hover { color: var(--home-action-hover); }
+.homeButton svg, .homeTextLink svg { flex: none; }
+
+.homeModelCard, .homeCard { border: 1px solid var(--home-line); border-radius: 14px; background: var(--home-white); }
+.homeModelCard { margin: 0; overflow: hidden; }
+.homeModelCard img { display: block; width: 100%; height: auto; }
+.homeModelCard figcaption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  border-top: 1px solid var(--home-line);
+  padding: 13px 18px 6px;
+}
+.homeModelCard figcaption strong { display: block; color: var(--home-heading); }
+.homeModelCard figcaption div > span { display: block; color: var(--home-muted); font-size: .9375rem; }
+.homeModelCard figcaption > a { grid-column: 1 / -1; }
+.homeBadge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .875rem; font-weight: 700; line-height: 1.45; white-space: nowrap; }
+.homeBeta { background: var(--home-beta-bg); color: var(--home-action); }
+.homeTrial { background: var(--home-trial-bg); color: var(--home-trial-text); }
+.homeComingSoon { background: var(--home-coming-bg); color: var(--home-body); }
+
+.homeNotice { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--home-warning-bg); color: var(--home-warning-text); font-size: .9375rem; }
+.homeNotice svg { flex: none; margin-top: 3px; }
+
+.homeMetrics { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 28px; list-style: none; margin: 0; padding: 20px 0 0; border-top: 1px solid var(--home-line); }
+.homeMetrics li { display: flex; align-items: flex-start; gap: 12px; }
+.homeMetrics svg, .homeCardTop > svg { color: var(--home-teal); flex: none; }
+.homeMetrics svg { margin-top: 3px; }
+.homeMetrics strong { display: block; color: var(--home-heading); }
+.homeMetrics span { display: block; font-size: 1rem; }
+
+.homeWhite { background: var(--home-white); }
+.homeIntro { margin-bottom: clamp(24px, 4vw, 40px); }
+.homeIntro p, .homeSplit p { margin-top: 12px; }
+.homeGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.homeCard { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: clamp(18px, 2.5vw, 28px); }
+.homeCardTop { display: flex; min-height: 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.homeCard > a { margin-top: auto; }
+.homeSample { padding: 9px 12px; border-inline-start: 3px solid var(--home-teal); background: var(--home-paper); margin-block: 2px; }
+.homeSample span { display: block; color: var(--home-muted); font-size: .9375rem; }
+.homeSample strong { display: block; color: var(--home-heading); font-variant-numeric: tabular-nums; }
+
+.homeSplit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 24px 48px; }
+.homeRoadmap { color: var(--home-white); background: var(--home-dark); }
+.homepage .homeRoadmap h2 { color: inherit; }
+.homeRoadmap a { color: var(--home-white); text-decoration: underline; }
+.homeRoadmapList { margin: 0; padding-inline-start: 1.6em; }
+.homeRoadmapList li + li { margin-top: 12px; }
+.homeContact { grid-template-columns: minmax(0, 1fr) auto; }
+.homeFooter { display: block; padding: 24px 0; border-top: 1px solid var(--home-line); color: var(--home-muted); background: var(--home-paper); }
+.homeFooter .homeContainer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; }
+.homeFooter img { display: block; width: 210px; max-width: 100%; height: auto; }
+
+@media (max-width: 860px) {
+  .homeHeroLayout, .homeSplit { grid-template-columns: minmax(0, 1fr); }
+  .homeContact .homeButton { justify-self: start; }
+}
+@media (max-width: 680px) {
+  .homeGrid, .homeMetrics { grid-template-columns: minmax(0, 1fr); }
+  .homeHeroLayout { row-gap: 24px; }
+  .homeHeroCopy .homeButton, .homeSecondary { width: 100%; }
+}
