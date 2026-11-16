@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
+import { learningRobots } from '@/lib/learning/seo';
 import { privateWorkbookPreview } from '@/lib/workbooks/assets';
 import { workbooks } from '@/lib/workbooks/catalog';
 import WorkbookBrowser from './workbook-browser';
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical },
-  robots: { index: false, follow: false },
+  robots: learningRobots(),
   openGraph: { title, description, url: canonical, type: 'website' },
 };
 

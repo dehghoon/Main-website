@@ -51,8 +51,3 @@ export async function readWorkbookAsset(asset: Asset) {
     return null;
   }
 }
-
-export function clientMayDownload(user: { id: string; email_confirmed_at?: string; is_anonymous?: boolean }) {
-  const authorized = (process.env.WORKBOOK_CLIENT_IDS ?? '').split(',').map((id) => id.trim().toLowerCase());
-  return Boolean(user.email_confirmed_at && !user.is_anonymous && authorized.includes(user.id.toLowerCase()));
-}

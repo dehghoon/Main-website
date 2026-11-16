@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SITE_ORIGIN } from '@/lib/tool-discovery';
+import { learningRobots } from '@/lib/learning/seo';
 import { learningResources } from '@/lib/learning/catalog';
 import { getWorkbook, workbookCategories, workbookPath } from '@/lib/workbooks/catalog';
 import { privateWorkbookPreview, workbookAsset } from '@/lib/workbooks/assets';
@@ -18,13 +19,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const workbook = getWorkbook(id);
   if (!workbook) notFound();
   const title = `${workbook.title} Workbook | Linkoteq`;
+  const description = `${workbook.title}. ${workbook.summary}`;
   const canonical = SITE_ORIGIN + workbookPath(id);
   return {
     title,
-    description: workbook.summary,
+    description,
     alternates: { canonical },
-    robots: { index: false, follow: false },
-    openGraph: { title, description: workbook.summary, url: canonical, type: 'website' },
+    robots: learningRobots(),
+    openGraph: { title, description, url: canonical, type: 'website' },
   };
 }
 
@@ -49,6 +51,7 @@ export default async function WorkbookPage({ params }: Props) {
         <p>{workbookCategories[workbook.category]}</p>
         <h1>{workbook.title}</h1>
         <p>{workbook.summary}</p>
+        {workbook.keywords.length > 0 && <p>Topics · {workbook.keywords.join(', ')}</p>}
       </header>
       <section className={styles.detail} aria-labelledby="workbook-preview">
         <h2 id="workbook-preview">Worksheet preview</h2>
