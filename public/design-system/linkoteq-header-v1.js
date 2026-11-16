@@ -2,7 +2,9 @@
 (()=>{"use strict";
 if(customElements.get("linkoteq-header"))return;
 const base="https://linkoteq.com";
-const assetOrigin = new URL(document.currentScript?.src || base).origin;
+const accountOrigin = "https://www.linkoteq.com";
+const scriptOrigin = new URL(document.currentScript?.src || accountOrigin).origin;
+const assetOrigin = scriptOrigin === base ? accountOrigin : scriptOrigin;
 const logoUrl = assetOrigin + "/homepage-linkoteq-logo.svg";
 const shellUrl = new URL("/design-system/linkoteq-shell-v1.css", assetOrigin).href;
 if (![...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === shellUrl)) {
@@ -22,9 +24,7 @@ const toolSurface = {
  "snow.linkoteq.com": "snow",
 }[window.location.hostname];
 if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
-const accountOrigin = "https://www.linkoteq.com";
 const toolOrigins = tools.map(([, url]) => new URL(url).origin);
-const learningOrigin = toolOrigins.includes(window.location.origin) ? accountOrigin : "";
 const contactLinks = [
  ["Contact Us", base + "/contact"],
  ["Customer Discovery", "https://discovery.linkoteq.com/"],
@@ -36,8 +36,8 @@ const aboutLinks = [
 ];
 const knowledgeLinks = [
  ["News & Updates", accountOrigin + "/news"],
- ["Resources & Learning", learningOrigin + "/learning"],
- ["Excel Calculators", learningOrigin + "/learning/workbooks"],
+ ["Resources & Learning", accountOrigin + "/learning"],
+ ["Excel Calculators", accountOrigin + "/learning/workbooks"],
  ["Documentation", base + "/knowledge/documentation"],
  ["Structural Labeling", base + "/structural-labeling"],
  ["RegionKit", base + "/structural-labeling/regionkit"],
