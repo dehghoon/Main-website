@@ -20,12 +20,6 @@ const workflowHighlights = [
   { title: "Traceable", detail: "Inputs, checks and references", icon: ListChecks },
 ];
 
-const toolArtwork = {
-  snow_load: { src: "/homepage/snow-load.webp", alt: "Stepped roof cross-section with a snowdrift and a depth arrow" },
-  w_section: { src: "/homepage/w-section.webp", alt: "Stylized wide-flange steel member in the model view" },
-  "3d_model": { src: "/homepage/3d-model.webp", alt: "Close-up of beam-column connections in a structural frame" },
-} as const;
-
 const products = [
   { title: "Engineering tools", description: "Explore tools for roof snow loads, steel member checks and early-stage structural modeling.", icon: Wrench, href: "#tools", action: "Explore tools" },
   { title: "Drawing intelligence", description: "Identify grids, members and relationships in structural drawings.", icon: FileSearch, href: "#roadmap", action: "View roadmap", upcoming: true },
@@ -62,26 +56,26 @@ export default function Home() {
           </header>
           <div className="homeGrid">
             {PUBLIC_TOOLS.map((tool) => {
-              const artwork = toolArtwork[tool.key as keyof typeof toolArtwork];
+              const artwork = tool.artwork;
               const linkLabel = tool.key === "3d_model" ? "Preview 3D Model" : `Preview ${tool.name}`;
               return (
                 <article className="homeCard homeToolCard" key={tool.key}>
-                  <Image
-                    className="homeToolArtwork"
-                    src={artwork.src}
-                    alt={artwork.alt}
-                    width={900}
-                    height={600}
-                    sizes="(max-width: 680px) 90vw, 29vw"
-                    unoptimized
-                  />
+                  <div className="homeToolMedia">
+                    <Image
+                      className="homeToolArtwork"
+                      src={artwork.src}
+                      alt={artwork.alt}
+                      width={900}
+                      height={600}
+                      sizes="(max-width: 680px) 90vw, 29vw"
+                      unoptimized
+                    />
+                    <span className={`homeBadge ${tool.trialDays ? "homeTrial" : "homeBeta"}`}>
+                      {tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}
+                    </span>
+                  </div>
                   <div className="homeToolDetails">
-                    <div className="homeCardTop">
-                      <h3>{tool.name}</h3>
-                      <span className={`homeBadge ${tool.trialDays ? "homeTrial" : "homeBeta"}`}>
-                        {tool.trialDays ? `${tool.trialDays}-day Trial` : "Beta"}
-                      </span>
-                    </div>
+                    <h3>{tool.name}</h3>
                     <p>{tool.description}</p>
                     <div className="homeSample">
                       {tool.preview ? (

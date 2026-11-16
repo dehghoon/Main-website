@@ -3,6 +3,8 @@ import { ENGINEERING_TOOLS, type EngineeringToolKey } from "./tool-access/catalo
 const publicDetails = {
   snow_load: {
     slug: "snow-load",
+    artwork: { src: "/homepage/snow-load.webp", alt: "Stepped roof cross-section with a snowdrift and a depth arrow" },
+    workspaceControls: ["Input", "Results", "Report"],
     description: "Explore how roof geometry and climate inputs are used in Linkoteq's roof snow load calculator.",
     preview: {
       title: "Uniform roof snow load",
@@ -21,6 +23,8 @@ const publicDetails = {
   },
   w_section: {
     slug: "w-section",
+    artwork: { src: "/homepage/w-section.webp", alt: "Close-up of a wide-flange steel section" },
+    workspaceControls: ["Input & Results", "Report"],
     description: "See how Linkoteq's steel W-section tool presents member inputs, governing checks and utilization.",
     preview: {
       title: "Steel member verification",
@@ -39,6 +43,8 @@ const publicDetails = {
   },
   "3d_model": {
     slug: "3d-model",
+    artwork: { src: "/homepage/3d-model.webp", alt: "Detail of beams and columns in a structural frame" },
+    workspaceControls: ["Grid", "Levels", "Select", "Move"],
     description: "Preview Linkoteq's 3D Structural Model workspace for early-stage structural modeling and request Beta access.",
     preview: null,
   },

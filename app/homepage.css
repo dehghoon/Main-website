@@ -50,10 +50,11 @@ linkoteq-header[home-design] {
 .homepage h2 { font-size: clamp(1.875rem, 3.4vw, 2.5rem); }
 .homepage h3 { font-size: clamp(1.3rem, 2vw, 1.5rem); }
 .homepage p { max-width: 65ch; margin: 0; }
-.homepage section[id], .homeModel { scroll-margin-top: 88px; }
+.homepage section[id], .homeModel { scroll-margin-top: 112px; }
 
 .homeContainer { width: min(100% - 2 * clamp(20px, 5vw, 72px), 1280px); margin-inline: auto; }
 .homeHero, .homeSection { padding-block: clamp(56px, 7vw, 104px); }
+.homeHero { padding-top: clamp(64px, 7vw, 104px); }
 .homeHeroLayout {
   display: grid;
   grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
@@ -86,7 +87,7 @@ linkoteq-header[home-design] {
   padding: 13px 18px 6px;
 }
 .homeModelCard figcaption strong { display: block; color: var(--home-heading); }
-.homeModelCard figcaption div > span { display: block; color: var(--home-muted); font-size: .9375rem; }
+.homeModelCard figcaption div > span { display: block; color: var(--home-body); font-size: 1rem; }
 .homeModelCard figcaption > a { grid-column: 1 / -1; }
 .homeBadge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .9375rem; font-weight: 700; line-height: 1.45; white-space: nowrap; }
 .homeBeta { background: var(--home-beta-bg); color: var(--home-action); }
@@ -111,9 +112,10 @@ linkoteq-header[home-design] {
 .homeCardTop { display: flex; min-height: 32px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .homeCard > a { margin-top: auto; }
 .homeToolCard { padding: 0; overflow: hidden; gap: 0; }
+.homeToolMedia { position: relative; }
+.homeToolMedia > .homeBadge { position: absolute; top: 12px; right: 12px; box-shadow: 0 1px 4px rgb(20 53 46 / 14%); }
 .homeToolArtwork { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
 .homeToolDetails { display: flex; flex: 1; flex-direction: column; gap: 12px; padding: clamp(18px, 2.3vw, 28px); }
-.homeToolDetails .homeCardTop { align-items: flex-start; }
 .homeToolDetails .homeTextLink { white-space: nowrap; }
 .homeSample { display: grid; align-content: center; min-height: 96px; margin-top: auto; padding: 9px 12px; border-inline-start: 3px solid var(--home-teal); background: var(--home-paper); }
 .homeSample span { display: block; color: var(--home-body); font-size: 1rem; font-weight: 600; }
@@ -138,6 +140,9 @@ linkoteq-header[home-design] {
   .homeHeroLayout, .homeSplit { grid-template-columns: minmax(0, 1fr); }
   .homeModel { width: 100%; justify-self: stretch; }
   .homeContact .homeButton { justify-self: start; }
+}
+@media (681px <= width <= 1024px) {
+  .homeToolDetails h3 { min-block-size: 2lh; }
 }
 @media (max-width: 680px) {
   .homeGrid, .homeMetrics, .homeRoadmapList { grid-template-columns: minmax(0, 1fr); }

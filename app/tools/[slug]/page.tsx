@@ -49,7 +49,15 @@ export default async function ToolPreviewPage({ params }: Props) {
           <p>{tool.description}</p>
           <ToolPreviewAnalytics key={tool.key} toolKey={tool.key} trialDays={tool.trialDays} url={tool.url} />
         </header>
-        {tool.preview ? (
+        <figure className={styles.model}>
+          <ul className={styles.workspaceControls} aria-label="Selected workspace controls">
+            {tool.workspaceControls.map((control) => <li key={control}>{control}</li>)}
+          </ul>
+          <Image src={tool.artwork.src} alt={tool.artwork.alt} width={900} height={600} unoptimized priority />
+          <figcaption>Stylized view of the tool with selected workspace controls.</figcaption>
+        </figure>
+      </div>
+      {tool.preview && (
           <section className={styles.example} aria-labelledby="example-title">
             <span className={styles.badge}>Sample calculation</span>
             <h2 id="example-title">{tool.preview.title}</h2>
@@ -65,19 +73,7 @@ export default async function ToolPreviewPage({ params }: Props) {
             <p className={styles.note}>{tool.preview.detail} For illustration only.</p>
             <a className={styles.back} href={tool.preview.source}>View the sample source</a>
           </section>
-        ) : (
-          <figure className={styles.model}>
-            <Image
-              src="/3d-model-preview.svg"
-              alt="Preview of the 3D workspace showing a building frame with grid lines"
-              width={1200}
-              height={720}
-              priority
-            />
-            <figcaption>3D workspace preview</figcaption>
-          </figure>
-        )}
-      </div>
+      )}
       {!tool.trialDays && <p className={styles.warning}>{BETA_WARNING}</p>}
     </main>
   );
