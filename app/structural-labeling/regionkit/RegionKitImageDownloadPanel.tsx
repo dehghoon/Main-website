@@ -72,7 +72,7 @@ export default function RegionKitImageDownloadPanel() {
       <p>
         RegionKit uses an image for manual labeling. Download the controlled PNG
         generated from the validated source transform. The original private source
-        remains unchanged in LinkoTech.
+        remains unchanged in Linkoteq.
       </p>
 
       {message && <p role="status">{message}</p>}

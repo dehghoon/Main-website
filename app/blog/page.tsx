@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Structural Engineering Articles & Digital Workflows | LinkoTech",
+  title: "Structural Engineering Articles & Digital Workflows | Linkoteq",
   description: "Practical articles on structural engineering, BIM, IFC, model validation, and digital engineering workflows.",
   alternates: { canonical: "https://www.linkoteq.com/blog" },
 };
@@ -25,8 +25,8 @@ async function publishedPosts(): Promise<Post[]> {
 export default async function BlogPage() {
   const posts = await publishedPosts();
   return <main className="blogPage">
-    <header className="blogHeader"><a href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={260} height={64} priority /></a><nav><a href="/">Company</a><a href="/#tools">Tools</a><a href="/blog">Blog</a><a className="authorLink" href="/blog/login">Employee Workspace</a></nav></header>
-    <section className="blogHero"><span className="eyebrow">LinkoTech Journal</span><h1>Engineering software, AI, and digital workflows.</h1><p>Technical articles, engineering workflows, calculator launches, practical examples, and product thinking for structural engineers.</p></section>
-    <section className="blogGrid">{posts.map(post=><article className="blogCard richBlogCard" key={post.id}>{post.cover_image_url&&<img className="blogCardCover" src={post.cover_image_url} alt={post.title} />}<div className="meta">{post.author_name||"LinkoTech"} · {new Date(post.published_at||post.created_at).toLocaleDateString()}</div><h2>{post.title}</h2><p>{post.excerpt||post.body.replace(/<[^>]+>/g,"").slice(0,180)+(post.body.length>180?"…":"")}</p>{!!post.tags?.length&&<div className="blogCardTags">{post.tags.slice(0,3).map(t=><span key={t}>#{t}</span>)}</div>}<a className="readLink" href={post.slug?`/blog/${post.slug}`:"/blog"}>Read Article →</a></article>)}{!posts.length&&<article className="blogCard"><div className="meta">LinkoTech Journal</div><h2>Articles temporarily unavailable</h2><p>Please check back soon.</p></article>}</section>
+    <header className="blogHeader"><a href="/"><Image src="/linkotech-logo.svg" alt="Linkoteq" width={260} height={64} priority /></a><nav><a href="/">Company</a><a href="/#tools">Tools</a><a href="/blog">Blog</a><a className="authorLink" href="/blog/login">Employee Workspace</a></nav></header>
+    <section className="blogHero"><span className="eyebrow">Linkoteq Journal</span><h1>Engineering software, AI, and digital workflows.</h1><p>Technical articles, engineering workflows, calculator launches, practical examples, and product thinking for structural engineers.</p></section>
+    <section className="blogGrid">{posts.map(post=><article className="blogCard richBlogCard" key={post.id}>{post.cover_image_url&&<img className="blogCardCover" src={post.cover_image_url} alt={post.title} />}<div className="meta">{post.author_name||"Linkoteq"} · {new Date(post.published_at||post.created_at).toLocaleDateString()}</div><h2>{post.title}</h2><p>{post.excerpt||post.body.replace(/<[^>]+>/g,"").slice(0,180)+(post.body.length>180?"…":"")}</p>{!!post.tags?.length&&<div className="blogCardTags">{post.tags.slice(0,3).map(t=><span key={t}>#{t}</span>)}</div>}<a className="readLink" href={post.slug?`/blog/${post.slug}`:"/blog"}>Read Article →</a></article>)}{!posts.length&&<article className="blogCard"><div className="meta">Linkoteq Journal</div><h2>Articles temporarily unavailable</h2><p>Please check back soon.</p></article>}</section>
   </main>;
 }

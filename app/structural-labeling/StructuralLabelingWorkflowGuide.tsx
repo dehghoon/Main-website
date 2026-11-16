@@ -15,10 +15,10 @@ const steps = [
   },
   {
     title: "Import and save the revision",
-    body: "Import the RegionKit JSON back into the LinkoTech workflow. The adapter validates the shapes, classes, and the validated raster-to-source-page transform before a website revision can be saved.",
+    body: "Import the RegionKit JSON back into the Linkoteq workflow. The adapter validates the shapes, classes, and the validated raster-to-source-page transform before a website revision can be saved.",
   },
   {
-    title: "Perform Visual QA in LinkoTech",
+    title: "Perform Visual QA in Linkoteq",
     body: "Review the saved annotations as an overlay on the same private source. The website renders the authoritative source-page PDF point boxes and shows the class, coordinates, transform state, and revision history.",
   },
   {
@@ -69,7 +69,7 @@ export default function StructuralLabelingWorkflowGuide({ active }: Props) {
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
           {active === "labeling" ? (
-            <Link href="/structural-labeling">Go to LinkoTech Visual QA</Link>
+            <Link href="/structural-labeling">Go to Linkoteq Visual QA</Link>
           ) : (
             <Link href="/structural-labeling/regionkit">Back to RegionKit handoff</Link>
           )}

@@ -22,7 +22,7 @@ export default function ArticleClient({initialArticle}:{initialArticle:Article|n
  const canonicalUrl=`https://www.linkoteq.com/blog/${params.slug}`;
  const shareVersion=encodeURIComponent(article.published_at||article.created_at);
  const shareUrl=`${canonicalUrl}?share=${shareVersion}`;
- const socialCopy=(article.linkedin_copy||`${article.title}\n\n${article.excerpt||""}\n\n#LinkoTech #Engineering #StructuralEngineering`).trim();
+ const socialCopy=(article.linkedin_copy||`${article.title}\n\n${article.excerpt||""}\n\n#Linkoteq #Engineering #StructuralEngineering`).trim();
  const socialPayload=`${socialCopy}\n\n${canonicalUrl}`;
  const encodedShareUrl=encodeURIComponent(shareUrl); const socialText=encodeURIComponent(`${socialCopy}\n\n${shareUrl}`); const titleText=encodeURIComponent(article.title);
  async function copyLink(){await navigator.clipboard.writeText(canonicalUrl);setCopied("Link copied");setTimeout(()=>setCopied(""),1800);}
@@ -57,18 +57,18 @@ export default function ArticleClient({initialArticle}:{initialArticle:Article|n
  }
  async function shareInstagram(){await navigator.clipboard.writeText(socialPayload);setCopied("Instagram caption copied");setTimeout(()=>setCopied(""),1800);}
  return <main className="publicArticle">
-  <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="LinkoTech" width={230} height={58} priority /></a>
+  <a className="articleBrand" href="/"><Image src="/linkotech-logo.svg" alt="Linkoteq" width={230} height={58} priority /></a>
   <article className="articleShell">
    {article.cover_image_url&&<figure className={`mediaFigure media-${article.cover_image_size||"wide"} media-${article.cover_image_position||"center"}`}><img src={article.cover_image_url} alt={article.cover_image_alt||article.title} title={article.cover_image_title||undefined}/>{article.cover_image_caption&&<figcaption>{article.cover_image_caption}</figcaption>}{article.cover_image_meta&&<div className="articleMediaMeta">{article.cover_image_meta}</div>}</figure>}
    <div className="articleMeta">{article.show_author_name&&article.author_name?<>{article.author_name} · </>:null}{new Date(article.published_at||article.created_at).toLocaleDateString()}</div><h1>{article.title}</h1>{article.excerpt&&<p className="articleLead">{article.excerpt}</p>}
    <div className="articleRichBody" dangerouslySetInnerHTML={{__html:article.body}} />
    {article.video_url&&<figure className="mediaBlock videoBlock">{article.video_thumbnail_url&&<img src={article.video_thumbnail_url} alt={article.video_title||"Video thumbnail"}/>}<div className="videoLinkCard"><strong>{article.video_title||"Related video"}</strong>{article.video_caption&&<p>{article.video_caption}</p>}<a href={article.video_url} target="_blank" rel="noreferrer">Watch video →</a>{article.video_meta&&<span className="articleMediaMeta">{article.video_meta}</span>}</div></figure>}
-   {article.calculator_url&&<section className="articleToolCta"><div><span>Related engineering tool</span><h2>{article.calculator_name||"LinkoTech Calculator"}</h2><p>Continue from the article into the interactive engineering workflow.</p></div><a href={article.calculator_url} target="_blank" rel="noreferrer">Try the Calculator →</a></section>}
+   {article.calculator_url&&<section className="articleToolCta"><div><span>Related engineering tool</span><h2>{article.calculator_name||"Linkoteq Calculator"}</h2><p>Continue from the article into the interactive engineering workflow.</p></div><a href={article.calculator_url} target="_blank" rel="noreferrer">Try the Calculator →</a></section>}
    {!!article.tags?.length&&<div className="articleTags">{article.tags.map(t=><span key={t}>#{t}</span>)}</div>}
    <section className="sharePanel">
     <div className="sharePanelTitle"><div><strong>Share this article</strong><span>Uses the approved Social Media Marketing copy</span></div></div>
     <div className="socialSharePreview">
-      {article.cover_image_url?<div className="socialShareMedia"><img src={article.cover_image_url} alt={article.cover_image_alt||article.title}/></div>:<div className="socialShareMedia socialShareMediaEmpty">LinkoTech</div>}
+      {article.cover_image_url?<div className="socialShareMedia"><img src={article.cover_image_url} alt={article.cover_image_alt||article.title}/></div>:<div className="socialShareMedia socialShareMediaEmpty">Linkoteq</div>}
       <div className="socialShareCopy"><span className="socialShareDomain">linkoteq.com</span><h3>{article.title}</h3><p>{socialCopy}</p></div>
     </div>
     <div className="socialCopyBar"><div><strong>{article.title}</strong><p>{socialCopy}</p><span>{canonicalUrl}</span></div><button type="button" onClick={copySocial}>Copy</button></div>

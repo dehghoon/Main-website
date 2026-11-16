@@ -312,7 +312,7 @@ export default function RegionKitWorkspace() {
         </p>
         <h1>RegionKit Handoff</h1>
         <p>
-          RegionKit is the drawing/review surface. LinkoTech keeps the private source,
+          RegionKit is the drawing/review surface. Linkoteq keeps the private source,
           canonical PDF-point revision, audit state, and the pinned GPT-7 contract boundary.
         </p>
         <p>
@@ -420,7 +420,7 @@ export default function RegionKitWorkspace() {
                   <h3>1. Open the private drawing in RegionKit</h3>
                   <p>
                     Download the authenticated source, then open RegionKit and load that local
-                    file. The source is not published by LinkoTech.
+                    file. The source is not published by Linkoteq.
                   </p>
                   <button
                     disabled={busy}
