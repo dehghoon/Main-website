@@ -57,3 +57,40 @@ linkoteq-header[data-linkoteq-shell="v2"] {
  :is(.platformNav,.globalHeader) .mobileMenuPanel.isOpen{display:grid;max-height:calc(100dvh - 66px);overflow-y:auto}
 }
 @media(prefers-reduced-motion:reduce){:is(.platformNav,.globalHeader) *{transition:none!important}}
+
+
+/* Visual styles for the live editors, separate from their calculation code. */
+html[data-linkoteq-surface="model"] .modelSiteShell { font-family: var(--lq-body-font); }
+html[data-linkoteq-surface="model"] .modelSiteShell :is(h1,h2,h3) { font-family: var(--lq-heading-font); }
+html[data-linkoteq-surface="model"] {
+  --sap-panel-strong: var(--home-white);
+  --sap-line-soft: var(--home-line);
+  --sap-text: var(--home-heading);
+  --sap-muted: var(--home-muted);
+}
+html[data-linkoteq-surface="model"] body .modelEditorArea {
+  height: calc(100dvh - var(--lq-header-height, 118px)) !important;
+}
+@media (max-width:900px) {
+  html[data-linkoteq-surface="model"] body .modelEditorArea {
+    height: calc(100dvh - var(--lq-header-height, 72px)) !important;
+  }
+}
+html[data-linkoteq-surface="w-section"],
+html[data-linkoteq-surface="w-section"] body {
+  background: var(--home-paper) !important;
+  color: var(--home-body) !important;
+  font-family: var(--lq-body-font);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolIdentity h1,.panel h2,.panel h3) {
+  color: var(--home-heading) !important;
+  font-family: var(--lq-heading-font);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolTabs,.desktopToolTabs,.panel) {
+  border-color: var(--home-line) !important;
+  border-radius: var(--lq-card-radius);
+}
+html[data-linkoteq-surface="w-section"] :is(.toolTabs,.desktopToolTabs) button.active {
+  background: var(--home-action) !important;
+  color: var(--home-white) !important;
+}

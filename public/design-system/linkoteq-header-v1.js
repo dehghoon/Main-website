@@ -16,6 +16,11 @@ const tools=[
  ["W-Section","https://wsection.linkoteq.com/","30-day Trial","/tools/w-section"],
  ["3D Structural Model","https://3dmodel.linkoteq.com/","Beta","/tools/3d-model"],
 ];
+const toolSurface = {
+ "3dmodel.linkoteq.com": "model",
+ "wsection.linkoteq.com": "w-section",
+}[window.location.hostname];
+if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
 const accountOrigin = "https://www.linkoteq.com";
 const toolOrigins = tools.map(([, url]) => new URL(url).origin);
 const learningOrigin = toolOrigins.includes(window.location.origin) ? accountOrigin : "";
