@@ -9,6 +9,7 @@ const tools=[
 ];
 const accountOrigin = "https://www.linkoteq.com";
 const toolOrigins = tools.map(([, url]) => new URL(url).origin);
+const learningOrigin = toolOrigins.includes(window.location.origin) ? accountOrigin : "";
 const contactLinks = [
  ["Contact Us", base + "/contact"],
  ["Customer Discovery", "https://discovery.linkoteq.com/"],
@@ -20,7 +21,8 @@ const aboutLinks = [
 ];
 const knowledgeLinks = [
  ["News & Updates", accountOrigin + "/news"],
- ["Resources & Learning", (toolOrigins.includes(window.location.origin) ? accountOrigin : "") + "/learning"],
+ ["Resources & Learning", learningOrigin + "/learning"],
+ ["Excel Calculators", learningOrigin + "/learning/workbooks"],
  ["Documentation", base + "/knowledge/documentation"],
  ["Structural Labeling", base + "/structural-labeling"],
  ["RegionKit", base + "/structural-labeling/regionkit"],

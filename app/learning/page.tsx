@@ -39,6 +39,7 @@ export default async function LearningPage() {
         <nav className={styles.heroLinks} aria-label="Browse learning resources">
           <a className="primaryButton" href="#learning-search">Search Resources</a>
           <a className="secondaryButton" href="#folders">Browse by Folder</a>
+          <Link className="secondaryButton" href="/learning/workbooks">Calculation Workbooks</Link>
           <a className="secondaryButton" href="#resources-workspace">Resources Workspace</a>
         </nav>
       </header>
