@@ -18,6 +18,10 @@ const tools=[
  ["W-Section","https://wsection.linkoteq.com/","30-day Trial","/tools/w-section"],
  ["3D Structural Model","https://3dmodel.linkoteq.com/","Beta","/tools/3d-model"],
 ];
+const hostedCalculators = [
+ ["Wind Load","https://wind-calculator.vercel.app/","Beta","/tools/wind-load"],
+ ["Seismic Load","https://linkoteq-seismic-preview.vercel.app/","Beta","/tools/seismic"],
+];
 const toolSurface = {
  "3dmodel.linkoteq.com": "model",
  "wsection.linkoteq.com": "w-section",
@@ -142,21 +146,17 @@ const drop=(label,items,parent)=>{const box=document.createElement("div");box.cl
 const toolMenu=drop("Calculators",[],utility).querySelector(".submenu");
 this.toolLinks=[];
 const addToolLinks=(parent)=>{
- tools.forEach(([name,url,status,preview])=>{
-  const anchor=link(name,url,parent);
+ [...tools, ...hostedCalculators].forEach(([name,url,status,preview])=>{
+  const usePreview = publicPreviews || toolOrigins.includes(window.location.origin) ||
+    hostedCalculators.some(([, calculatorUrl]) => calculatorUrl === url);
+  const anchor=link(name,usePreview ? accountOrigin+preview : url,parent);
   const badge=document.createElement("span");
   badge.className="tag";
   badge.dataset.status=status==="Beta"?"beta":"trial";
   badge.textContent=status;
   anchor.append(" ",badge);
-  if(publicPreviews || toolOrigins.includes(window.location.origin))this.toolLinks.push({anchor,url,preview:publicPreviews?preview:accountOrigin+preview});
+  if(usePreview)this.toolLinks.push({anchor,url,preview:siteHref(accountOrigin+preview)});
  });
- const seismicLink=link("Seismic Load",accountOrigin + "/tools/seismic",parent);
- const seismicBadge=document.createElement("span");
- seismicBadge.className="tag";
- seismicBadge.dataset.status="beta";
- seismicBadge.textContent="Beta";
- seismicLink.append(" ",seismicBadge);
  link("All engineering tools",accountOrigin + "/tools",parent);
 };
 addToolLinks(toolMenu);

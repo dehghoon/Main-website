@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { PUBLIC_TOOLS, SITE_ORIGIN, toolPreviewPath } from "@/lib/tool-discovery";
-import { ENGINEERING_TOOLS } from "@/lib/tool-access/catalog";
 import styles from "./tools.module.css";
 
 const title = "Structural Engineering Tools | Linkoteq";
-const description = "Explore sample outputs for Snow Load and W-Section and preview the 3D Structural Model and Seismic Load Calculator.";
+const description = "Explore sample outputs for Snow Load and W-Section and preview the 3D Structural Model, Wind Load and Seismic Load calculators.";
 const canonical = `${SITE_ORIGIN}/tools`;
 
 export const metadata: Metadata = {
@@ -32,15 +31,17 @@ export default function ToolsPage() {
         ))}
         <article className={styles.card}>
           <span className={styles.badge}>Beta</span>
+          <h2>Wind Load Calculator</h2>
+          <p>Explore station reference pressures and review wind pressures for a building and its components.</p>
+          <a className={styles.back} href="/tools/wind-load">Preview the wind calculator</a>
+        </article>
+        <article className={styles.card}>
+          <span className={styles.badge}>Beta</span>
           <h2>Seismic Load Calculator</h2>
           <p>Review the inputs for base shear and storey force calculations under NBCC 2010 and NBCC 2020.</p>
           <a className={styles.back} href="/tools/seismic">Preview the seismic calculator</a>
         </article>
       </div>
-      <section aria-labelledby="development-title">
-        <h2 id="development-title">In development</h2>
-        <p>{ENGINEERING_TOOLS.filter(tool => tool.key === "wind_load").map(tool => tool.name).join(" and ")} are in development.</p>
-      </section>
     </main>
   );
 }

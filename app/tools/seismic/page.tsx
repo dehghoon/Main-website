@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { SITE_ORIGIN, toolRequestPath } from "@/lib/tool-discovery";
+import { SITE_ORIGIN } from "@/lib/tool-discovery";
+import { INTERNAL_CALCULATOR_URLS } from "@/lib/tool-access/catalog";
+import ToolPreviewAnalytics from "../tool-preview-analytics";
 import styles from "../tools.module.css";
 
 const title = "Seismic Load Calculator | Linkoteq";
@@ -22,7 +24,7 @@ export default function SeismicPreviewPage() {
         <h1>Seismic Load Calculator</h1>
         <p>Enter building height, storey weights, site hazard and structural system inputs to review seismic base shear and storey forces. The calculator supports NBCC 2010 and NBCC 2020 and can compare the two editions.</p>
         <p className={styles.warning}>NBCC 2020 results are for engineering evaluation. The site benchmark and independent engineering verification are pending.</p>
-        <a className={styles.back} href={toolRequestPath("earthquake")}>Request Beta access</a>
+        <ToolPreviewAnalytics toolKey="earthquake" trialDays={null} url={INTERNAL_CALCULATOR_URLS.earthquake} internalLabel="Open Seismic Load Calculator" />
       </header>
     </main>
   );
