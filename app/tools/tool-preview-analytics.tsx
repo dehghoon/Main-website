@@ -10,10 +10,12 @@ export default function ToolPreviewAnalytics({
   toolKey,
   trialDays,
   url,
+  internalLabel,
 }: {
   toolKey: PublicTool["key"];
   trialDays: PublicTool["trialDays"];
   url: PublicTool["url"];
+  internalLabel?: string;
 }) {
   const viewed = useRef(false);
   const accessType = trialDays ? "trial" : "beta";
@@ -25,8 +27,9 @@ export default function ToolPreviewAnalytics({
     trackToolFunnel("tool_preview_view", toolKey, accessType);
   }, [toolKey, accessType]);
 
-  if (toolKey === "3d_model" && internalTools && url) {
-    return <a className="primaryButton" href={url}>Open 3D Model</a>;
+  const launchLabel = internalLabel ?? (toolKey === "3d_model" ? "Open 3D Model" : undefined);
+  if (internalTools && url && launchLabel) {
+    return <a className="primaryButton" href={url}>{launchLabel}</a>;
   }
 
   return (
