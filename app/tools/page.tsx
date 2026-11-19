@@ -4,7 +4,7 @@ import { ENGINEERING_TOOLS } from "@/lib/tool-access/catalog";
 import styles from "./tools.module.css";
 
 const title = "Structural Engineering Tools | Linkoteq";
-const description = "Explore sample outputs for Snow Load and W-Section and preview the 3D Structural Model Beta.";
+const description = "Explore sample outputs for Snow Load and W-Section and preview the 3D Structural Model and Seismic Load Calculator.";
 const canonical = `${SITE_ORIGIN}/tools`;
 
 export const metadata: Metadata = {
@@ -30,10 +30,16 @@ export default function ToolsPage() {
             </a>
           </article>
         ))}
+        <article className={styles.card}>
+          <span className={styles.badge}>Beta</span>
+          <h2>Seismic Load Calculator</h2>
+          <p>Review the inputs for base shear and storey force calculations under NBCC 2010 and NBCC 2020.</p>
+          <a className={styles.back} href="/tools/seismic">Preview the seismic calculator</a>
+        </article>
       </div>
       <section aria-labelledby="development-title">
         <h2 id="development-title">In development</h2>
-        <p>{ENGINEERING_TOOLS.filter(tool => !tool.url).map(tool => tool.name).join(" and ")} are in development.</p>
+        <p>{ENGINEERING_TOOLS.filter(tool => tool.key === "wind_load").map(tool => tool.name).join(" and ")} are in development.</p>
       </section>
     </main>
   );

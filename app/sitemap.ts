@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {url:origin+"/news",changeFrequency:"weekly",priority:0.7},
     {url:origin+"/pricing",changeFrequency:"monthly",priority:0.5},
     {url:origin+"/tools",changeFrequency:"monthly",priority:0.8},
+    {url:origin+"/tools/seismic",changeFrequency:"monthly",priority:0.7},
     ...PUBLIC_TOOLS.map(tool => ({url: origin + toolPreviewPath(tool), changeFrequency: "monthly" as const, priority: 0.7})),
   ];
   if (learningIndexable()) {

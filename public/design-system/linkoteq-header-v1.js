@@ -151,6 +151,12 @@ const addToolLinks=(parent)=>{
   anchor.append(" ",badge);
   if(publicPreviews || toolOrigins.includes(window.location.origin))this.toolLinks.push({anchor,url,preview:publicPreviews?preview:accountOrigin+preview});
  });
+ const seismicLink=link("Seismic Load",accountOrigin + "/tools/seismic",parent);
+ const seismicBadge=document.createElement("span");
+ seismicBadge.className="tag";
+ seismicBadge.dataset.status="beta";
+ seismicBadge.textContent="Beta";
+ seismicLink.append(" ",seismicBadge);
  link("All engineering tools",accountOrigin + "/tools",parent);
 };
 addToolLinks(toolMenu);
