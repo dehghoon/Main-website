@@ -26,9 +26,11 @@ const toolSurface = {
  "3dmodel.linkoteq.com": "model",
  "wsection.linkoteq.com": "w-section",
  "snow.linkoteq.com": "snow",
+ "wind-calculator.vercel.app": "wind",
+ "linkoteq-seismic-preview.vercel.app": "seismic",
 }[window.location.hostname];
 if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
-const toolOrigins = tools.map(([, url]) => new URL(url).origin);
+const toolOrigins = [...tools, ...hostedCalculators].map(([, url]) => new URL(url).origin);
 const contactLinks = [
  ["Contact Us", base + "/contact"],
  ["Customer Discovery", "https://discovery.linkoteq.com/"],
