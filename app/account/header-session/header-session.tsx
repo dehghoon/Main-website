@@ -2,6 +2,27 @@
 
 import { useEffect } from "react";
 import { engineeringToolOrigins, signOutHeaderAccount, subscribeHeaderAccount } from "@/lib/header-account";
+import { getSupabase } from "@/lib/supabase-browser";
+
+const modelOrigin = "https://3dmodel.linkoteq.com";
+
+async function runSnow(payload: unknown) {
+  try {
+    const { data } = await getSupabase()?.auth.getSession() ?? {};
+    const token = data?.session?.access_token;
+    if (!token) return { ok: false, data: { error: "authentication_required" } };
+    const response = await fetch(modelOrigin + "/api/calculators/snow", {
+      method: "POST",
+      credentials: "omit",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(35000),
+    });
+    return { ok: response.ok, data: await response.json() };
+  } catch {
+    return { ok: false, data: { error: "snow_service_unavailable" } };
+  }
+}
 
 export default function HeaderSession() {
   useEffect(() => {
@@ -19,6 +40,12 @@ export default function HeaderSession() {
       if (event.data?.type === "linkoteq:header-connect") {
         parentOrigin = event.origin;
         publish();
+      } else if (event.origin === modelOrigin && event.origin === parentOrigin &&
+          event.data?.type === "linkoteq:snow-request" && typeof event.data.id === "string") {
+        const id = event.data.id;
+        void runSnow(event.data.payload).then(result => {
+          window.parent.postMessage({ type: "linkoteq:snow-result", id, ...result }, modelOrigin);
+        });
       } else if (event.origin === parentOrigin && event.data?.type === "linkoteq:header-signout") {
         const origin = event.origin;
         void signOutHeaderAccount().then(ok => {
