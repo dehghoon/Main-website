@@ -8,7 +8,7 @@ const nextConfig = {
       source: "/account/header-session",
       headers: [{
         key: "Content-Security-Policy",
-        value: "frame-ancestors https://snow.linkoteq.com https://wsection.linkoteq.com https://3dmodel.linkoteq.com",
+        value: "frame-ancestors https://snow.linkoteq.com https://wsection.linkoteq.com https://3dmodel.linkoteq.com https://wind-calculator.vercel.app https://linkoteq-seismic-preview.vercel.app",
       }],
     }];
   },

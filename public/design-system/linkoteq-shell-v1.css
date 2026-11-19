@@ -108,3 +108,42 @@ html[data-linkoteq-surface="snow"] main :is(.panel,.reportPanel) {
 html[data-linkoteq-surface="snow"] main :is(.desktopToolTabs,.mobileToolTabs) button.active {
   background: var(--home-action);
 }
+
+/* The wind and seismic workspaces share the same shell as the other calculators. */
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) {
+  color-scheme: light;
+  background: var(--home-paper);
+  color: var(--home-body);
+  font-family: var(--lq-body-font);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main :is(h1, h2, h3) {
+  color: var(--home-heading);
+  font-family: var(--lq-heading-font);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main a {
+  color: var(--home-action);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main :focus-visible {
+  outline: 2px solid var(--home-action);
+  outline-offset: 2px;
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main .hero {
+  padding: clamp(20px, 4vw, 40px);
+  border-radius: var(--lq-card-radius);
+  background: var(--home-dark);
+  color: var(--home-white);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main .hero h1 {
+  color: var(--home-white);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main .hero p {
+  color: var(--home-dark-detail);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main .hero .eyebrow {
+  color: var(--home-dark-accent);
+}
+html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main .hero :is(.status-pill, .heroMeta span) {
+  border: 1px solid var(--home-dark-line);
+  background: var(--home-dark-step);
+  color: var(--home-dark-detail);
+}
