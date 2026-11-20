@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
 import styles from "./wood.module.css";
 
@@ -20,6 +20,7 @@ type Check = { check_id: string; status: string; demand?: number; capacity?: num
 type Result = { checked_scope_status: string; whole_member_status: string; checks: Check[]; limitations: string[] };
 const format = (value?: number) => typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—";
 export default function WoodCalculator() {
+  const generation = useRef(0);
   const [allowed, setAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("Checking your account access…");
   const [token, setToken] = useState<string | null>(null);
@@ -31,7 +32,8 @@ export default function WoodCalculator() {
     if (!auth) { setAccessMessage("Sign in to your Linkoteq account to request access."); return; }
     let revision = 0;
     async function verify(accessToken?: string) {
-      const check = ++revision;
+      const check = ++revision; ++generation.current;
+      setBusy(false); setError("");
       setAllowed(false); setToken(null); setResult(null);
       if (!accessToken) { setAccessMessage("Sign in to open this calculator. Approved Beta access is required."); return; }
       try {
@@ -48,10 +50,11 @@ export default function WoodCalculator() {
     const subscription = auth.auth.onAuthStateChange((_event, session) => { void verify(session?.access_token); });
     const before = revision;
     void auth.auth.getSession().then(({ data }) => { if (revision === before) void verify(data.session?.access_token); });
-    return () => { ++revision; subscription.data.subscription.unsubscribe(); };
+    return () => { ++revision; ++generation.current; subscription.data.subscription.unsubscribe(); };
   }, []);
   async function run(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!token || !allowed) return;
+    const sessionGeneration = generation.current;
     const data = new FormData(event.currentTarget);
     setBusy(true); setError(""); setResult(null);
     try {
@@ -70,14 +73,15 @@ export default function WoodCalculator() {
           material, engineer_confirmed_inputs_and_factors: data.get("confirmed") === "on" }),
       });
       const body = await response.json();
+      if (sessionGeneration !== generation.current) return;
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) { setAllowed(false); setToken(null); }
         const detail = body.detail;
         throw new Error(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map((x: { msg?: string }) => x.msg).join("; ") : "The calculation could not be completed. Check your inputs and account access.");
       }
       setResult(body as Result);
-    } catch (problem) { setError(problem instanceof Error ? problem.message : "Calculation unavailable."); }
-    finally { setBusy(false); }
+    } catch (problem) { if (sessionGeneration === generation.current) setError(problem instanceof Error ? problem.message : "Calculation unavailable."); }
+    finally { if (sessionGeneration === generation.current) setBusy(false); }
   }
   if (!allowed) return <section className={styles.card}><p>{accessMessage}</p>
     <a className="primaryButton" href="/customer-login?tool=wood_design">Sign in / request Beta access</a>{" "}
@@ -108,7 +112,7 @@ export default function WoodCalculator() {
       <p><strong>Whole member: not checked.</strong> These results do not provide engineering approval.</p>
       <div className={styles.table}><table><thead><tr><th>Check</th><th>Demand</th><th>Capacity / limit</th><th>Use</th><th>Status</th></tr></thead>
         <tbody>{result.checks.map((x, i) => <tr key={i}><td>{x.check_id.replaceAll("_", " ")}</td><td>{format(x.demand)} {x.unit}</td><td>{format(x.capacity)} {x.unit}</td><td>{typeof x.utilization === "number" ? `${format(x.utilization * 100)}%` : "—"}</td><td>{x.status}{x.reason ? ` · ${x.reason}` : ""}</td></tr>)}</tbody></table></div>
-      <p>Scope: NDS 2024, one rectangular sawn member, full-span uniform loading. Connections, fire, durability, notches, built-up members, engineered wood products and CSA O86 are excluded.</p>
+      <p>Scope: NDS 2024, one rectangular sawn member, full-span uniform loading. Connections, fire, durability, shear deflection, creep, notches, built-up members, engineered wood products and CSA O86 are excluded.</p>
     </section>}
   </>;
 }
