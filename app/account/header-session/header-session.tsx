@@ -40,6 +40,13 @@ export default function HeaderSession() {
       if (event.data?.type === "linkoteq:header-connect") {
         parentOrigin = event.origin;
         publish();
+      } else if (event.origin === parentOrigin &&
+          ["https://wind-calculator.vercel.app", "https://linkoteq-seismic-preview.vercel.app"].includes(event.origin) &&
+          event.data?.type === "linkoteq:tool-session-request") {
+        const origin = event.origin;
+        void getSupabase()?.auth.getSession().then(({ data }) => {
+          window.parent.postMessage({ type: "linkoteq:tool-session", token: data.session?.access_token ?? null }, origin);
+        });
       } else if (event.origin === modelOrigin && event.origin === parentOrigin &&
           event.data?.type === "linkoteq:snow-request" && typeof event.data.id === "string") {
         const id = event.data.id;
