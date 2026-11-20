@@ -104,7 +104,7 @@ export default function WoodCalculator() {
         <p>Enter the applicable documented factors. An empty object means no additional adjustment. For example, {`{"Fb_x":{"CM":0.85}}`}. Load duration, LRFD conversion, and beam stability are calculated separately.</p>
         <textarea name="adjustments" aria-label="Adjustment factors by property" defaultValue="{}" rows={4} />
       </details>
-      <label className={styles.confirm}><input name="confirmed" type="checkbox" required /> I confirmed the entered values, factor applicability, effective length and Beta scope. This is a prismatic, unnotched single sawn member; connections and minor-axis restraint are checked separately. I will not treat component results as complete member approval.</label>
+      <label className={styles.confirm}><input name="confirmed" type="checkbox" required /> I confirmed the entered values, factor applicability and effective length. I understand this Beta is incomplete and for evaluation only. This is a prismatic, unnotched single sawn member; connections and minor-axis restraint are checked separately. I will not treat component results as complete member approval.</label>
       <button className="primaryButton" disabled={busy}>{busy ? "Calculating…" : "Run component checks"}</button>
     </form>
     {error && <p role="alert" className={styles.card}>{error}</p>}
