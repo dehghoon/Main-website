@@ -41,6 +41,16 @@ export default function ToolsPage() {
           <p>Review the inputs for base shear and storey force calculations under NBCC 2010 and NBCC 2020.</p>
           <a className={styles.back} href="/tools/seismic">Preview the seismic calculator</a>
         </article>
+        <article className={styles.card}>
+          <span className={styles.badge}>In development · Unverified</span>
+          <h2>Concrete Beam</h2><p>Design calculations are not available yet.</p>
+          <a className={styles.back} href="/tools/concrete-beam">View development status</a>
+        </article>
+        <article className={styles.card}>
+          <span className={styles.badge}>In development · Unverified</span>
+          <h2>Wood Design</h2><p>Design calculations are not available yet.</p>
+          <a className={styles.back} href="/tools/wood-design">View development status</a>
+        </article>
       </div>
     </main>
   );
