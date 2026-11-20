@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'app/api/entitlements/execution/**'
+      - 'app/api/calculators/wood/**'
+      - 'app/tools/wood-design/**'
       - 'app/account/header-session/**'
       - 'lib/tool-access/**'
       - 'tests/tool-execution-policy.test.ts'

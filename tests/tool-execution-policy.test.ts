@@ -31,3 +31,13 @@ test("revoked or expired grants and permission lookup failures fail closed", asy
   }
   assert.equal((await executionDecision({ rpc: async () => { throw new Error("offline"); } }, "wind_load")).status, 503);
 });
+
+test("wood execution uses a separate grant and does not inherit wind access", async () => {
+  const calls: string[] = [];
+  const client = { rpc: async (name: string, args?: Record<string,string>) => {
+    calls.push(name);
+    return { error: null, data: name === "has_active_customer_beta" ? args?.p_tool_key === "wind_load" : false };
+  } };
+  assert.equal((await executionDecision(client, "wind_load")).status, 200);
+  assert.equal((await executionDecision(client, "wood_design")).status, 403);
+});

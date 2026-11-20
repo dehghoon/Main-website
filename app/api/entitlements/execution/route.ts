@@ -17,7 +17,7 @@ export function OPTIONS(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const respond = (body: object, status: number) => NextResponse.json(body, { status, headers: headers(request) });
   const tool = request.nextUrl.searchParams.get("tool");
-  if (tool !== "wind_load" && tool !== "earthquake") return respond({ error: "invalid_tool" }, 400);
+  if (tool !== "wind_load" && tool !== "earthquake" && tool !== "wood_design") return respond({ error: "invalid_tool" }, 400);
   let authenticated: Awaited<ReturnType<typeof requireAuthenticatedUser>>;
   try { authenticated = await requireAuthenticatedUser(request.headers.get("authorization")); }
   catch { return respond({ error: "authentication_required" }, 401); }

@@ -2,7 +2,7 @@
 type RpcClient = {
   rpc(name: string, args?: Record<string, string>): PromiseLike<{ data: unknown; error: unknown }>;
 };
-export async function executionDecision(db: RpcClient, tool: "wind_load" | "earthquake") {
+export async function executionDecision(db: RpcClient, tool: "wind_load" | "earthquake" | "wood_design") {
   try {
     const [owner, permissions] = await Promise.all([
       db.rpc("platform_access_is_owner"), db.rpc("platform_my_permissions"),
