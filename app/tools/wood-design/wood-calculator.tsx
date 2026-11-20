@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
 import styles from "./wood.module.css";
+import MemberViewer from "@/app/components/member-viewer";
 
 const fields = [
   ["span", "Span (in)", "144"], ["b", "Actual width (in)", "3.5"], ["d", "Actual depth (in)", "11.25"],
@@ -21,6 +22,7 @@ type Result = { checked_scope_status: string; whole_member_status: string; check
 const format = (value?: number) => typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—";
 export default function WoodCalculator() {
   const generation = useRef(0);
+  const [geometry, setGeometry] = useState({width:3.5, depth:11.25, length:144});
   const [allowed, setAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("Checking your account access…");
   const [token, setToken] = useState<string | null>(null);
@@ -69,6 +71,7 @@ export default function WoodCalculator() {
         body: JSON.stringify({ method: data.get("method"), duration: data.get("duration"),
           span_in: n("span"), width_in: n("b"), depth_in: n("d"), beam_effective_length_in: n("le"),
           combination_udl_lbf_per_in: n("w"), total_sls_udl_lbf_per_in: n("total"), live_sls_udl_lbf_per_in: n("live"),
+          compression_edge_continuously_braced: data.get("braced") === "on",
           bearing_length_in: n("bearing"), total_limit_divisor: n("limitTotal"), live_limit_divisor: n("limitLive"),
           material, engineer_confirmed_inputs_and_factors: data.get("confirmed") === "on" }),
       });
@@ -87,7 +90,8 @@ export default function WoodCalculator() {
     <a className="primaryButton" href="/customer-login?tool=wood_design">Sign in / request Beta access</a>{" "}
     <a href="/blog/login">Employee sign in</a></section>;
   return <>
-    <form className={styles.card} onSubmit={run}>
+    <MemberViewer material="wood" {...geometry} unit="in" />
+    <form className={styles.card} onSubmit={run} onChange={event=>{setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
       <h2>Simply supported beam · uniform downward load</h2>
       <p>Example values are shown. Replace them with your actual dimensions and documented material values. Include self-weight in the supplied loads. The design load must already represent your ASD combination or factored LRFD combination.</p>
       <div className={styles.grid}>
@@ -95,6 +99,7 @@ export default function WoodCalculator() {
         <label>Load duration<select name="duration" defaultValue="normal">{["permanent", "normal", "2-month", "7-day", "10-min", "impact"].map(x => <option key={x}>{x}</option>)}</select></label>
         {fields.map(([key, label, value]) => <label key={key}>{label}<input name={key} type="number" min={key === "w" || key === "total" || key === "live" ? "0" : "0.000001"} step="any" defaultValue={value} required /></label>)}
       </div>
+      <label className={styles.confirm}><input name="braced" type="checkbox" /> Compression edge is continuously laterally braced against displacement and the supports prevent rotation (CL = 1).</label>
       <h3>Engineer supplied material properties</h3>
       <div className={styles.grid}><label>Species / grade / designation<input name="designation" placeholder="Enter the actual grade and designation" required /></label>
         <label>Source for material values and adjustment factors<input name="source" placeholder="Document, edition, table / page" minLength={3} required /></label>
@@ -107,6 +112,7 @@ export default function WoodCalculator() {
       <label className={styles.confirm}><input name="confirmed" type="checkbox" required /> I confirmed the entered values, factor applicability and effective length. I understand this Beta is incomplete and for evaluation only. This is a prismatic, unnotched single sawn member; connections and minor-axis restraint are checked separately. I will not treat component results as complete member approval.</label>
       <button className="primaryButton" disabled={busy}>{busy ? "Calculating…" : "Run component checks"}</button>
     </form>
+    <section className={styles.card}><h2>Verification references</h2><p>Published NDS 2018 examples from <a href="https://calcs.com/docs/calculators/us/beams/timberBeamLRFDNDS-2024" target="_blank" rel="noreferrer">Calcs.com / Breyer examples 6-18 and 6-19</a> are used to compare section resistance arithmetic. The source explicitly identifies the examples as 2018; they do not certify the full 2024 design route. Material values and adjustment applicability remain engineer supplied. Instantaneous bending deflection excludes creep and shear deformation.</p></section>
     {error && <p role="alert" className={styles.card}>{error}</p>}
     {result && <section className={styles.card}><h2>Component checks: {result.checked_scope_status}</h2>
       <p><strong>Whole member: not checked.</strong> These results do not provide engineering approval.</p>

@@ -4,6 +4,9 @@ on:
     paths:
       - 'app/api/entitlements/execution/**'
       - 'app/api/calculators/wood/**'
+      - 'app/api/calculators/concrete/**'
+      - 'app/tools/concrete-beam/**'
+      - 'app/components/member-viewer*'
       - 'app/tools/wood-design/**'
       - 'app/account/header-session/**'
       - 'lib/tool-access/**'
