@@ -59,7 +59,7 @@ export default function ConcreteCalculator(){
  if(!allowed)return <section className={styles.card}><p>{accessMessage}</p><a className="primaryButton" href="/customer-login?tool=concrete_beam">Sign in / request access</a>{" "}<a href="/blog/login">Employee sign in</a></section>;
  return <>
   <MemberViewer material="concrete" {...geometry} unit="mm"/>
-  <form className={styles.card} onSubmit={run} onChange={event=>{setResult(null);const d=new FormData(event.currentTarget);setGeometry(Object.fromEntries(geometryFields.map(([k])=>[k,Number(d.get(k))])) as typeof geometry);}}>
+  <form className={styles.card} onSubmit={run} onChange={event=>{++generation.current;setBusy(false);setError("");setResult(null);const d=new FormData(event.currentTarget);setGeometry(Object.fromEntries(geometryFields.map(([k])=>[k,Number(d.get(k))])) as typeof geometry);}}>
     <h2>Rectangular section · flexural equilibrium pilot</h2>
     <p>Experimental section arithmetic with explicitly supplied parameters. Complete CSA beam design is not enabled. Shear method applicability, minimum and maximum reinforcement, cover, spacing, anchorage, serviceability and seismic detailing are not checked.</p>
     <label>Requested CSA edition<select name="edition" value={edition} onChange={e=>{setEdition(e.target.value);setResult(null);}}><option>2019</option><option>2024</option></select></label>

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, type PointerEvent, type WheelEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import styles from "./member-viewer.module.css";
 type Point = [number, number, number];
 type Face = { points: Point[]; color: string; opacity?: number };
@@ -9,6 +9,8 @@ const INITIAL = { yaw: -.55, pitch: -.36, zoom: 1 };
 export default function MemberViewer(p: Props) {
   const [view, setView] = useState(INITIAL);
   const [shell, setShell] = useState(true);
+  const svgRef=useRef<SVGSVGElement>(null);
+  useEffect(()=>{const element=svgRef.current;if(!element)return;const wheel=(e:globalThis.WheelEvent)=>{e.preventDefault();setView(v=>({...v,zoom:Math.max(.3,Math.min(4,v.zoom*Math.exp(-e.deltaY*.001)))}));};element.addEventListener("wheel",wheel,{passive:false});return()=>element.removeEventListener("wheel",wheel);},[]);
   const pointers = useRef(new Map<number, {x:number;y:number}>());
   const valid = [p.width,p.depth,p.length].every(x=>Number.isFinite(x)&&x>0);
   const scale = valid ? 1 / Math.max(p.width,p.depth,p.length) : 1;
@@ -53,7 +55,6 @@ export default function MemberViewer(p: Props) {
     if(before.length===2&&after.length===2){const distance=(a:typeof before)=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);const d=distance(before);if(d>0)setView(v=>({...v,zoom:Math.max(.3,Math.min(4,v.zoom*distance(after)/d))}));}
     else setView(v=>({...v,yaw:v.yaw+(e.clientX-old.x)*.008,pitch:Math.max(-1.5,Math.min(1.5,v.pitch+(e.clientY-old.y)*.008))}));
   }
-  function wheel(e:WheelEvent<SVGSVGElement>){e.preventDefault();setView(v=>({...v,zoom:Math.max(.3,Math.min(4,v.zoom*Math.exp(-e.deltaY*.001)))}));}
   return <section className={styles.viewer} aria-label={`${p.material} beam 3D model`}>
     <div className={styles.toolbar}><strong>3D member view</strong><div>
       <button type="button" aria-label="Zoom in" onClick={()=>setView(v=>({...v,zoom:Math.min(4,v.zoom*1.2)}))}>+</button>
@@ -62,9 +63,9 @@ export default function MemberViewer(p: Props) {
       <button type="button" onClick={()=>setView({yaw:-Math.PI/2,pitch:0,zoom:1})}>Section view</button>
       {p.material==="concrete"&&<button type="button" aria-pressed={!shell} onClick={()=>setShell(x=>!x)}>{shell?"Hide concrete":"Show concrete"}</button>}
     </div></div>
-    <svg viewBox="0 0 800 420" role="img" tabIndex={0} aria-label="Interactive three dimensional beam. Drag to rotate, pinch or scroll to zoom. Arrow keys rotate; plus and minus zoom; Home resets."
+    <svg ref={svgRef} viewBox="0 0 800 420" role="img" tabIndex={0} aria-label="Interactive three dimensional beam. Drag to rotate, pinch or scroll to zoom. Arrow keys rotate; plus and minus zoom; Home resets."
       onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});}}
-      onPointerMove={move} onPointerUp={e=>pointers.current.delete(e.pointerId)} onPointerCancel={e=>pointers.current.delete(e.pointerId)} onLostPointerCapture={e=>pointers.current.delete(e.pointerId)} onWheel={wheel}
+      onPointerMove={move} onPointerUp={e=>pointers.current.delete(e.pointerId)} onPointerCancel={e=>pointers.current.delete(e.pointerId)} onLostPointerCapture={e=>pointers.current.delete(e.pointerId)}
       onKeyDown={e=>{if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","+","=","-","Home"].includes(e.key)){e.preventDefault();if(e.key==="Home")setView(INITIAL);else setView(v=>({...v,yaw:v.yaw+(e.key==="ArrowLeft"?-.12:e.key==="ArrowRight"?.12:0),pitch:Math.max(-1.5,Math.min(1.5,v.pitch+(e.key==="ArrowUp"?-.12:e.key==="ArrowDown"?.12:0))),zoom:Math.max(.3,Math.min(4,v.zoom*(["+","="].includes(e.key)?1.2:e.key==="-"?1/1.2:1)))}));}}}>
       <title>{p.material==="wood"?"Rectangular timber beam":"Rectangular reinforced concrete beam"}</title>
       <defs><radialGradient id={`ground-${p.material}`}><stop stopColor="#dce5f2"/><stop offset="1" stopColor="#f7faff"/></radialGradient></defs>

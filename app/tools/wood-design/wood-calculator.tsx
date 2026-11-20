@@ -91,7 +91,7 @@ export default function WoodCalculator() {
     <a href="/blog/login">Employee sign in</a></section>;
   return <>
     <MemberViewer material="wood" {...geometry} unit="in" />
-    <form className={styles.card} onSubmit={run} onChange={event=>{setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
+    <form className={styles.card} onSubmit={run} onChange={event=>{++generation.current;setBusy(false);setError("");setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
       <h2>Simply supported beam · uniform downward load</h2>
       <p>Example values are shown. Replace them with your actual dimensions and documented material values. Include self-weight in the supplied loads. The design load must already represent your ASD combination or factored LRFD combination.</p>
       <div className={styles.grid}>

@@ -20,3 +20,8 @@ Access uses existing server-authorized owner/internal/Beta policies with a
 separate `concrete_beam` key; no database grant or role was created. All
 calculator content and controls render only after canonical authorization.
 The new public landing copy retains unverified status and SEO metadata.
+
+Visual QA limitation: the cloud browser cannot connect to this workspace's
+loopback preview. The temporary isolated viewer QA route was removed and
+is not committed or deployed. Build/type checks passed; drag/pinch visual
+behavior and a real signed-in employee session were not browser-verified.
