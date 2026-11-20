@@ -41,3 +41,11 @@ test("wood execution uses a separate grant and does not inherit wind access", as
   assert.equal((await executionDecision(client, "wind_load")).status, 200);
   assert.equal((await executionDecision(client, "wood_design")).status, 403);
 });
+
+test("concrete execution requires its own grant and fails closed", async () => {
+  const client = { rpc: async (name: string, args?: Record<string,string>) => ({error:null,
+    data: name === "has_active_customer_beta" ? args?.p_tool_key === "wood_design" : false}) };
+  assert.equal((await executionDecision(client, "wood_design")).status,200);
+  assert.equal((await executionDecision(client, "concrete_beam")).status,403);
+  assert.equal((await executionDecision(db({platform_access_is_owner:true}), "concrete_beam")).status,200);
+});
