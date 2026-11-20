@@ -20,7 +20,7 @@ const tools=[
 ];
 const hostedCalculators = [
  ["Concrete Beam",accountOrigin + "/tools/concrete-beam","In development","/tools/concrete-beam"],
- ["Wood Design",accountOrigin + "/tools/wood-design","In development","/tools/wood-design"],
+ ["Wood Design",accountOrigin + "/tools/wood-design","Beta","/tools/wood-design"],
  ["Wind Load","https://wind-calculator.vercel.app/","Beta","/tools/wind-load"],
  ["Seismic Load","https://linkoteq-seismic-preview.vercel.app/","Beta","/tools/seismic"],
 ];

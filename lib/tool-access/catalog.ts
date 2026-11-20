@@ -3,7 +3,7 @@
  * Every tool backend must independently verify a signed-in user's entitlement.
  * Do not grant access from client-side flags, URLs, or this catalog.
  */
-export type EngineeringToolKey = "snow_load" | "3d_model" | "w_section" | "wind_load" | "earthquake";
+export type EngineeringToolKey = "snow_load" | "3d_model" | "w_section" | "wind_load" | "earthquake" | "wood_design";
 export type ToolReadiness = "released" | "beta" | "unverified";
 export const BETA_WARNING = "This tool is under development and testing. Features may be incomplete or produce inaccurate results. Evaluation and feedback only; do not rely on it for professional engineering decisions.";
 export const INTERNAL_CALCULATOR_URLS = {
@@ -22,5 +22,6 @@ export const ENGINEERING_TOOLS: ReadonlyArray<{
   { key: "3d_model", name: "3D Structural Model", readiness: "beta", url: "https://3dmodel.linkoteq.com/", trialDays: null },
   { key: "w_section", name: "W-Section", readiness: "released", url: "https://wsection.linkoteq.com/", trialDays: 30 },
   { key: "wind_load", name: "Wind Load", readiness: "beta", url: null, trialDays: null },
+  { key: "wood_design", name: "Wood Design", readiness: "beta", url: "https://www.linkoteq.com/tools/wood-design", trialDays: null },
   { key: "earthquake", name: "Earthquake / Seismic", readiness: "beta", url: null, trialDays: null },
 ] as const;

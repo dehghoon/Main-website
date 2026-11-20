@@ -47,9 +47,9 @@ export default function ToolsPage() {
           <a className={styles.back} href="/tools/concrete-beam">View development status</a>
         </article>
         <article className={styles.card}>
-          <span className={styles.badge}>In development · Unverified</span>
-          <h2>Wood Design</h2><p>Design calculations are not available yet.</p>
-          <a className={styles.back} href="/tools/wood-design">View development status</a>
+          <span className={styles.badge}>Beta · Limited scope</span>
+          <h2>Wood Design</h2><p>NDS 2024 component checks for a rectangular sawn-lumber beam. Approved access required.</p>
+          <a className={styles.back} href="/tools/wood-design">Open the wood calculator</a>
         </article>
       </div>
     </main>
