@@ -11,3 +11,5 @@
 .table table{width:100%;border-collapse:collapse}
 .table th,.table td{padding:10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 @media(max-width:700px){.grid{grid-template-columns:1fr}}
+
+.card>label{display:grid;gap:8px;font-weight:650}.card>label:not(.confirm)>select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;min-height:44px}.propertyGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.propertyGrid>div{display:grid;gap:4px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f5f9fc}.propertyGrid span{font-size:13px}.propertyGrid strong{color:var(--ink);font-variant-numeric:tabular-nums}.card input:read-only{background:#eef4f8}.card select{min-height:44px}@media(max-width:560px){.propertyGrid{grid-template-columns:1fr}}

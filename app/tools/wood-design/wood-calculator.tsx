@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
+import BeamWorkspace,{BeamReport} from "@/app/components/beam-workspace";
 import styles from "./wood.module.css";
 import CanadianWoodCalculator from "./canadian-wood-calculator";
-import MaterialPicker from "./material-picker";
+import MaterialPicker,{MaterialCatalogPreview} from "./material-picker";
 import {WOOD_RECORDS} from "@/lib/wood-material-catalog";
 import MemberViewer from "@/app/components/member-viewer";
 
@@ -24,6 +25,7 @@ type Check = { check_id: string; status: string; demand?: number; capacity?: num
 type Result = { checked_scope_status: string; whole_member_status: string; checks: Check[]; limitations: string[] };
 const format = (value?: number) => typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—";
 export default function WoodCalculator() {
+  const [reportInputs,setReportInputs]=useState<Record<string,unknown>|null>(null);
   const generation = useRef(0);
   const [country,setCountry]=useState("US");
   const [materialId,setMaterialId]=useState("US-HF-N-2-NDS2024");
@@ -88,19 +90,18 @@ export default function WoodCalculator() {
         const detail = body.detail;
         throw new Error(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map((x: { msg?: string }) => x.msg).join("; ") : "The calculation could not be completed. Check your inputs and account access.");
       }
-      setResult(body as Result);
+      setReportInputs({country:"US",standard:"NDS 2024",unit_system:"in / lbf / psi",material_record_id:materialId,...Object.fromEntries(data.entries())});setResult(body as Result);
     } catch (problem) { if (sessionGeneration === generation.current) setError(problem instanceof Error ? problem.message : "Calculation unavailable."); }
     finally { if (sessionGeneration === generation.current) setBusy(false); }
   }
-  if (!allowed) return <section className={styles.card}><p>{accessMessage}</p>
+  const accessPanel=<section className={styles.card}><p>{accessMessage}</p>
     <a className="primaryButton" href="/customer-login?tool=wood_design">Sign in / request Beta access</a>{" "}
     <a href="/blog/login">Employee sign in</a></section>;
   const selector=<section className={styles.card}><label>Country / standard<select value={country} onChange={e=>{++generation.current;setCountry(e.target.value);setResult(null);setError("");setBusy(false);}}><option value="US">USA · NDS 2024</option><option value="CA">Canada · CSA O86:24 · limited framing profile</option></select></label></section>;
-  if(country==="CA") return <>{selector}<CanadianWoodCalculator token={token!} onAccessDenied={()=>{++generation.current;setAllowed(false);setToken(null);setAccessMessage("Approved Beta access is required. Sign in again or request access.");}} /></>;
-  return <>
-    {selector}
-    <section className={styles.card}><h2>Wood material</h2><MaterialPicker country="US" value={materialId} onChange={id=>{++generation.current;setMaterialId(id);setResult(null);setError("");setBusy(false);}}/></section>
-    <MemberViewer material="wood" {...geometry} unit="in" />
+
+  if(!allowed)return <>{selector}<MaterialCatalogPreview key={country} country={country as "US"|"CA"}/>{accessPanel}</>;
+  if(country==="CA")return <>{selector}<CanadianWoodCalculator token={token!} onAccessDenied={()=>{++generation.current;setAllowed(false);setToken(null);setAccessMessage("Approved Beta access is required. Sign in again or request access.");}}/></>;
+  return <BeamWorkspace model={<MemberViewer material="wood" {...geometry} unit="in" />} input={<>{selector}    <section className={styles.card}><h2>Wood material</h2><MaterialPicker country="US" value={materialId} onChange={id=>{++generation.current;setMaterialId(id);setResult(null);setError("");setBusy(false);}}/></section>
     <form className={styles.card} onSubmit={run} onChange={event=>{++generation.current;setBusy(false);setError("");setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
       <h2>Simply supported beam · uniform downward load</h2>
       <p>Example values are shown. Replace them with your actual dimensions and documented material values. Include self-weight in the supplied loads. The design load must already represent your ASD combination or factored LRFD combination.</p>
@@ -123,12 +124,12 @@ export default function WoodCalculator() {
       <button className="primaryButton" disabled={busy}>{busy ? "Calculating…" : "Run component checks"}</button>
     </form>
     <section className={styles.card}><h2>Verification references</h2><p>Published NDS 2018 examples from <a href="https://calcs.com/docs/calculators/us/beams/timberBeamLRFDNDS-2024" target="_blank" rel="noreferrer">Calcs.com / Breyer examples 6-18 and 6-19</a> are used to compare section resistance arithmetic. The source explicitly identifies the examples as 2018; they do not certify the full 2024 design route. Material values and adjustment applicability remain engineer supplied. Instantaneous bending deflection excludes creep and shear deformation.</p></section>
-    {error && <p role="alert" className={styles.card}>{error}</p>}
+</>} results={<>    {error && <p role="alert" className={styles.card}>{error}</p>}
     {result && <section className={styles.card}><h2>Component checks: {result.checked_scope_status}</h2>
       <p><strong>Whole member: not checked.</strong> These results do not provide engineering approval.</p>
       <div className={styles.table}><table><thead><tr><th>Check</th><th>Demand</th><th>Capacity / limit</th><th>Use</th><th>Status</th></tr></thead>
         <tbody>{result.checks.map((x, i) => <tr key={i}><td>{x.check_id.replaceAll("_", " ")}</td><td>{format(x.demand)} {x.unit}</td><td>{format(x.capacity)} {x.unit}</td><td>{typeof x.utilization === "number" ? `${format(x.utilization * 100)}%` : "—"}</td><td>{x.status}{x.reason ? ` · ${x.reason}` : ""}</td></tr>)}</tbody></table></div>
       <p>Scope: NDS 2024, one rectangular sawn member, full-span uniform loading. Connections, fire, durability, shear deflection, creep, notches, built-up members, engineered wood products and CSA O86 are excluded.</p>
     </section>}
-  </>;
+{!result&&!error&&<section className={styles.card}><h2>Results</h2><p>Run component checks to view demands, capacities and utilization.</p></section>}</>} report={<BeamReport title="USA wood beam · NDS 2024" result={result} inputs={reportInputs}/>}/>;
 }
