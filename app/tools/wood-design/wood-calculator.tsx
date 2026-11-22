@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
 import styles from "./wood.module.css";
+import CanadianWoodCalculator from "./canadian-wood-calculator";
 import MemberViewer from "@/app/components/member-viewer";
 
 const fields = [
@@ -22,6 +23,7 @@ type Result = { checked_scope_status: string; whole_member_status: string; check
 const format = (value?: number) => typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—";
 export default function WoodCalculator() {
   const generation = useRef(0);
+  const [country,setCountry]=useState("US");
   const [geometry, setGeometry] = useState({width:3.5, depth:11.25, length:144});
   const [allowed, setAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("Checking your account access…");
@@ -68,7 +70,7 @@ export default function WoodCalculator() {
         ...Object.fromEntries(properties.map(([key]) => [key, { reference_psi: n(key), adjustments: adjustments[key] ?? {}, source: String(data.get("source")) }])) };
       const response = await fetch("/api/calculators/wood", {
         method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ method: data.get("method"), duration: data.get("duration"),
+        body: JSON.stringify({ country:"US",standard:"NDS_2024",unit_system:"in_lbf_psi", method: data.get("method"), duration: data.get("duration"),
           span_in: n("span"), width_in: n("b"), depth_in: n("d"), beam_effective_length_in: n("le"),
           combination_udl_lbf_per_in: n("w"), total_sls_udl_lbf_per_in: n("total"), live_sls_udl_lbf_per_in: n("live"),
           compression_edge_continuously_braced: data.get("braced") === "on",
@@ -89,7 +91,10 @@ export default function WoodCalculator() {
   if (!allowed) return <section className={styles.card}><p>{accessMessage}</p>
     <a className="primaryButton" href="/customer-login?tool=wood_design">Sign in / request Beta access</a>{" "}
     <a href="/blog/login">Employee sign in</a></section>;
+  const selector=<section className={styles.card}><label>Country / standard<select value={country} onChange={e=>{++generation.current;setCountry(e.target.value);setResult(null);setError("");setBusy(false);}}><option value="US">USA · NDS 2024</option><option value="CA">Canada · CSA O86:24 · limited framing profile</option></select></label></section>;
+  if(country==="CA") return <>{selector}<CanadianWoodCalculator token={token!} onAccessDenied={()=>{++generation.current;setAllowed(false);setToken(null);setAccessMessage("Approved Beta access is required. Sign in again or request access.");}} /></>;
   return <>
+    {selector}
     <MemberViewer material="wood" {...geometry} unit="in" />
     <form className={styles.card} onSubmit={run} onChange={event=>{++generation.current;setBusy(false);setError("");setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
       <h2>Simply supported beam · uniform downward load</h2>

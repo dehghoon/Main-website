@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const body = await request.text();
   if (body.length > 100000) return NextResponse.json({ error: "request_too_large" }, { status: 413, headers });
   try {
-    const result = await fetch("https://linkoteq-wood-api.vercel.app/api/v1/nds2024/simple-beam", {
+    const result = await fetch("https://linkoteq-wood-api.vercel.app/api/v1/beam/check", {
       method: "POST", headers: { Authorization: request.headers.get("authorization")!, "Content-Type": "application/json" },
       body, cache: "no-store", signal: AbortSignal.timeout(25000),
     });
