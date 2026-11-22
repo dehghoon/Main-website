@@ -19,7 +19,8 @@ function mapAuthError(message: string) {
 }
 
 function safeReturnTo(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\\u0000-\u0020]/.test(value)) return null;
+  try { if (new URL(value, "https://www.linkoteq.com").origin !== "https://www.linkoteq.com") return null; } catch { return null; }
   if (value.startsWith("/blog/login")) return "/";
   return value;
 }

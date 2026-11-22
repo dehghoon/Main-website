@@ -10,6 +10,13 @@ on:
       - 'app/tools/wood-design/**'
       - 'app/account/header-session/**'
       - 'lib/tool-access/**'
+      - 'lib/wood-material-catalog.ts'
+      - 'app/account/tool-session/**'
+      - 'app/blog/login/**'
+      - 'app/customer-login/**'
+      - 'tests/session-handoff.test.ts'
+      - 'tests/wood-material-catalog.test.ts'
+      - 'next.config.mjs'
       - 'tests/tool-execution-policy.test.ts'
       - 'package.json'
       - 'package-lock.json'
@@ -25,7 +32,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: node --experimental-strip-types --test tests/tool-execution-policy.test.ts
+      - run: node --experimental-strip-types --test tests/tool-execution-policy.test.ts tests/session-handoff.test.ts tests/wood-material-catalog.test.ts
       - run: npm run typecheck
       - run: npm run test:marketing-seo
       - run: npm audit --omit=dev --audit-level=high

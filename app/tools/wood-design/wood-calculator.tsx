@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getSupabase } from "@/lib/supabase-browser";
 import styles from "./wood.module.css";
 import CanadianWoodCalculator from "./canadian-wood-calculator";
+import MaterialPicker from "./material-picker";
+import {WOOD_RECORDS} from "@/lib/wood-material-catalog";
 import MemberViewer from "@/app/components/member-viewer";
 
 const fields = [
@@ -24,6 +26,8 @@ const format = (value?: number) => typeof value === "number" ? value.toLocaleStr
 export default function WoodCalculator() {
   const generation = useRef(0);
   const [country,setCountry]=useState("US");
+  const [materialId,setMaterialId]=useState("US-HF-N-2-NDS2024");
+  const selectedMaterial=WOOD_RECORDS.find(x=>x.id===materialId);
   const [geometry, setGeometry] = useState({width:3.5, depth:11.25, length:144});
   const [allowed, setAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("Checking your account access…");
@@ -70,7 +74,7 @@ export default function WoodCalculator() {
         ...Object.fromEntries(properties.map(([key]) => [key, { reference_psi: n(key), adjustments: adjustments[key] ?? {}, source: String(data.get("source")) }])) };
       const response = await fetch("/api/calculators/wood", {
         method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ country:"US",standard:"NDS_2024",unit_system:"in_lbf_psi", method: data.get("method"), duration: data.get("duration"),
+        body: JSON.stringify({ material_record_id:materialId, country:"US",standard:"NDS_2024",unit_system:"in_lbf_psi", method: data.get("method"), duration: data.get("duration"),
           span_in: n("span"), width_in: n("b"), depth_in: n("d"), beam_effective_length_in: n("le"),
           combination_udl_lbf_per_in: n("w"), total_sls_udl_lbf_per_in: n("total"), live_sls_udl_lbf_per_in: n("live"),
           compression_edge_continuously_braced: data.get("braced") === "on",
@@ -95,6 +99,7 @@ export default function WoodCalculator() {
   if(country==="CA") return <>{selector}<CanadianWoodCalculator token={token!} onAccessDenied={()=>{++generation.current;setAllowed(false);setToken(null);setAccessMessage("Approved Beta access is required. Sign in again or request access.");}} /></>;
   return <>
     {selector}
+    <section className={styles.card}><h2>Wood material</h2><MaterialPicker country="US" value={materialId} onChange={id=>{++generation.current;setMaterialId(id);setResult(null);setError("");setBusy(false);}}/></section>
     <MemberViewer material="wood" {...geometry} unit="in" />
     <form className={styles.card} onSubmit={run} onChange={event=>{++generation.current;setBusy(false);setError("");setResult(null); const form=event.currentTarget; setGeometry({width:Number((form.elements.namedItem("b") as HTMLInputElement).value),depth:Number((form.elements.namedItem("d") as HTMLInputElement).value),length:Number((form.elements.namedItem("span") as HTMLInputElement).value)});}}>
       <h2>Simply supported beam · uniform downward load</h2>
@@ -105,10 +110,10 @@ export default function WoodCalculator() {
         {fields.map(([key, label, value]) => <label key={key}>{label}<input name={key} type="number" min={key === "w" || key === "total" || key === "live" ? "0" : "0.000001"} step="any" defaultValue={value} required /></label>)}
       </div>
       <label className={styles.confirm}><input name="braced" type="checkbox" /> Compression edge is continuously laterally braced against displacement and the supports prevent rotation (CL = 1).</label>
-      <h3>Engineer supplied material properties</h3>
-      <div className={styles.grid}><label>Species / grade / designation<input name="designation" placeholder="Enter the actual grade and designation" required /></label>
-        <label>Source for material values and adjustment factors<input name="source" placeholder="Document, edition, table / page" minLength={3} required /></label>
-        {properties.map(([key, label, value]) => <label key={key}>{label}<input name={key} type="number" min="0.000001" step="any" defaultValue={value} required /></label>)}
+      <h3>{selectedMaterial?"Automatically selected reference values":"Engineer supplied material properties"}</h3>
+      <div className={styles.grid}><label>Species / grade / designation<input key={`designation-${materialId}`} name="designation" placeholder="Enter the actual grade and designation" defaultValue={selectedMaterial?`${selectedMaterial.species} · ${selectedMaterial.grade}`:undefined} readOnly={Boolean(selectedMaterial)} required /></label>
+        <label>Source for material values and adjustment factors<input key={`source-${materialId}`} name="source" placeholder="Document, edition, table / page" defaultValue={selectedMaterial?.source} readOnly={Boolean(selectedMaterial)} minLength={3} required /></label>
+        {properties.map(([key, label, value]) => <label key={key}>{label}<input key={`${materialId}-${key}`} name={key} type="number" min="0.000001" step="any" defaultValue={selectedMaterial?.properties[key]??value} readOnly={Boolean(selectedMaterial)} required /></label>)}
       </div>
       <details><summary>Other adjustment factors by property</summary>
         <p>Enter the applicable documented factors. An empty object means no additional adjustment. For example, {`{"Fb_x":{"CM":0.85}}`}. Load duration, LRFD conversion, and beam stability are calculated separately.</p>

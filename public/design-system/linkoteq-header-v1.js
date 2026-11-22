@@ -28,11 +28,13 @@ const toolSurface = {
  "3dmodel.linkoteq.com": "model",
  "wsection.linkoteq.com": "w-section",
  "snow.linkoteq.com": "snow",
+ "wind.linkoteq.com": "wind",
+ "seismic.linkoteq.com": "seismic",
  "wind-calculator.vercel.app": "wind",
  "linkoteq-seismic-preview.vercel.app": "seismic",
 }[window.location.hostname];
 if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
-const toolOrigins = [...tools, ...hostedCalculators].map(([, url]) => new URL(url).origin).filter(origin => origin !== accountOrigin);
+const toolOrigins = [...tools, ...hostedCalculators].map(([, url]) => new URL(url).origin).filter(origin => origin !== accountOrigin).concat(["https://wind.linkoteq.com","https://seismic.linkoteq.com"]);
 const contactLinks = [
  ["Contact Us", base + "/contact"],
  ["Customer Discovery", "https://discovery.linkoteq.com/"],
@@ -253,7 +255,7 @@ header.addEventListener("keydown", (event) => {
  }
 });
 header.append(top, second, drawer);
-this.signOutError=document.createElement("p");this.signOutError.setAttribute("role","alert");this.signOutError.hidden=true;header.append(this.signOutError);root.append(style,header);this.updateToolLinks();this.renderAccount();this.disconnectAccount=connectToolAccount(this);}
+this.signOutError=document.createElement("p");this.signOutError.setAttribute("role","alert");this.signOutError.hidden=true;header.append(this.signOutError);root.addEventListener("click",event=>{const anchor=event.target?.closest?.("a");if(!anchor||!["wind","seismic"].includes(toolSurface))return;const url=new URL(anchor.href);if([base,accountOrigin].includes(url.origin)&&["/blog/login","/customer-login"].includes(url.pathname)){event.preventDefault();window.dispatchEvent(new Event("linkoteq-connect-account"));}});root.append(style,header);this.updateToolLinks();this.renderAccount();this.disconnectAccount=connectToolAccount(this);}
 disconnectedCallback(){this.disconnectAccount?.();this.disconnectAccount=undefined;}
 showSignOutError(){this.signOutError.textContent="Sign-out could not be completed. Please try again.";this.signOutError.hidden=false;}
 clearSignOutError(){this.signOutError.textContent="";this.signOutError.hidden=true;}
