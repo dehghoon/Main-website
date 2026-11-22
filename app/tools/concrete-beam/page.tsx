@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ConcreteCalculator from "./concrete-calculator";
 import styles from "../tools.module.css";
 const title = "Concrete Beam | Linkoteq";
-const description = "Preview the Linkoteq reinforced concrete beam design tool in development, with planned CSA A23.3:2019 and 2024 profiles.";
+const description = "Compare concrete beam component checks for USA ACI 318-19 and Canadian CSA A23.3 profiles. Account access required. Limited Beta, no complete member approval.";
 const canonical = "https://www.linkoteq.com/tools/concrete-beam";
 export const metadata: Metadata = { title, description, alternates: { canonical },
   robots: { index: true, follow: true }, openGraph: { title, description, url: canonical } };
@@ -10,8 +10,8 @@ export default function Preview() {
   return <main className={styles.shell}>
     <a className={styles.back} href="/tools">← Engineering tools</a>
     <header className={styles.intro}><span className={styles.badge}>In development · Unverified</span>
-      <h1>Concrete Beam</h1><p>The planned scope includes rectangular beam flexure, shear and reinforcement checks. CSA A23.3:2019 and 2024 remain separate profiles. Strength calculations are unavailable until edition-specific source verification and benchmark testing are complete.</p>
-      <p>Approved users can inspect section geometry and run an explicit-parameter flexural equilibrium pilot. This does not enable complete CSA strength design.</p>
+      <h1>Concrete Beam</h1><p>Choose USA (ACI 318-19) or Canada (CSA A23.3:2019 flexure/shear, or 2024 shear only). The server determines internal section parameters for the selected limited profile.</p>
+      <p>Approved users can rotate and zoom the reinforced section model and run component checks. CSA 2024 flexure remains unavailable pending source verification. These Beta results do not approve a complete member design.</p>
       <a className="primaryButton" href="/customer-login">Sign in to your workspace</a>
     </header><ConcreteCalculator /></main>;
 }
