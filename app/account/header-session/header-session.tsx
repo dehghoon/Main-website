@@ -41,7 +41,7 @@ export default function HeaderSession() {
         parentOrigin = event.origin;
         publish();
       } else if (event.origin === parentOrigin &&
-          ["https://wind-calculator.vercel.app", "https://linkoteq-seismic-preview.vercel.app"].includes(event.origin) &&
+          ["https://wind.linkoteq.com", "https://seismic.linkoteq.com", "https://wind-calculator.vercel.app", "https://linkoteq-seismic-preview.vercel.app"].includes(event.origin) &&
           event.data?.type === "linkoteq:tool-session-request") {
         const origin = event.origin;
         void getSupabase()?.auth.getSession().then(({ data }) => {

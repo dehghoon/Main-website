@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import {safeAccountReturn} from "@/lib/tool-access/session-handoff";
 import { BETA_WARNING, ENGINEERING_TOOLS, type EngineeringToolKey } from "../../lib/tool-access/catalog";
 import { PUBLIC_TOOLS, toolPreviewPath, toolRequestPath } from "@/lib/tool-discovery";
 import { trackToolFunnel } from "@/lib/tool-funnel-analytics";
@@ -62,7 +63,7 @@ export default function ClientWorkspacePage() {
     const selected = PUBLIC_TOOLS.find(tool => tool.key === toolKey);
     if (selected) {
       setRequestedToolKey(selected.key);
-      setMode("signup");
+      setMode(new URLSearchParams(window.location.search).has("returnTo")?"login":"signup");
     }
 
     const client = supabaseClient();
@@ -138,6 +139,12 @@ export default function ClientWorkspacePage() {
     });
     return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    const target=safeAccountReturn(new URLSearchParams(window.location.search).get("returnTo"));
+    if(target) window.location.assign(target);
+  },[userId]);
 
   useEffect(() => {
     if (!userId || !requestedToolKey || !accessLoaded) return;

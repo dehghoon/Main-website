@@ -6,7 +6,7 @@ export const engineeringToolOrigins = [
   "https://snow.linkoteq.com",
   "https://wsection.linkoteq.com",
   "https://3dmodel.linkoteq.com",
-  "https://wind-calculator.vercel.app",
+  "https://wind.linkoteq.com", "https://seismic.linkoteq.com", "https://wind-calculator.vercel.app",
   "https://linkoteq-seismic-preview.vercel.app",
 ];
 

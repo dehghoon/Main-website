@@ -4,7 +4,7 @@ import { requireAuthenticatedUser } from "@/lib/structural-labeling/server";
 import { executionDecision } from "@/lib/tool-access/execution-policy";
 
 export const dynamic = "force-dynamic";
-const origins = ["https://wind-calculator.vercel.app", "https://linkoteq-seismic-preview.vercel.app"];
+const origins = ["https://wind.linkoteq.com", "https://seismic.linkoteq.com", "https://wind-calculator.vercel.app", "https://linkoteq-seismic-preview.vercel.app"];
 function headers(request: NextRequest) {
   const origin = request.headers.get("origin");
   return { "Cache-Control": "private, no-store", Vary: "Origin",
