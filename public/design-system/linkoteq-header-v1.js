@@ -21,8 +21,8 @@ const tools=[
 const hostedCalculators = [
  ["Concrete Beam",accountOrigin + "/tools/concrete-beam","In development","/tools/concrete-beam"],
  ["Wood Design",accountOrigin + "/tools/wood-design","Beta","/tools/wood-design"],
- ["Wind Load","https://wind-calculator.vercel.app/","Beta","/tools/wind-load"],
- ["Seismic Load","https://linkoteq-seismic-preview.vercel.app/","Beta","/tools/seismic"],
+ ["Wind Load","https://wind.linkoteq.com/","Beta","/tools/wind-load"],
+ ["Seismic Load","https://seismic.linkoteq.com/","Beta","/tools/seismic"],
 ];
 const toolSurface = {
  "3dmodel.linkoteq.com": "model",
@@ -34,7 +34,7 @@ const toolSurface = {
  "linkoteq-seismic-preview.vercel.app": "seismic",
 }[window.location.hostname];
 if (toolSurface) document.documentElement.dataset.linkoteqSurface = toolSurface;
-const toolOrigins = [...tools, ...hostedCalculators].map(([, url]) => new URL(url).origin).filter(origin => origin !== accountOrigin).concat(["https://wind.linkoteq.com","https://seismic.linkoteq.com"]);
+const toolOrigins = [...tools, ...hostedCalculators].map(([, url]) => new URL(url).origin).filter(origin => origin !== accountOrigin).concat(["https://wind-calculator.vercel.app","https://linkoteq-seismic-preview.vercel.app"]);
 const contactLinks = [
  ["Contact Us", base + "/contact"],
  ["Customer Discovery", "https://discovery.linkoteq.com/"],

@@ -7,8 +7,8 @@ export type EngineeringToolKey = "snow_load" | "3d_model" | "w_section" | "wind_
 export type ToolReadiness = "released" | "beta" | "unverified";
 export const BETA_WARNING = "This tool is under development and testing. Features may be incomplete or produce inaccurate results. Evaluation and feedback only; do not rely on it for professional engineering decisions.";
 export const INTERNAL_CALCULATOR_URLS = {
-  wind_load: "https://wind-calculator.vercel.app/",
-  earthquake: "https://linkoteq-seismic-preview.vercel.app/",
+  wind_load: "https://wind.linkoteq.com/",
+  earthquake: "https://seismic.linkoteq.com/",
 } as const;
 
 export const ENGINEERING_TOOLS: ReadonlyArray<{
