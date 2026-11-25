@@ -42,14 +42,14 @@ export function parseNewsCard(data: unknown) {
   const links = platforms.flatMap(platform => {
     const url = secureUrl(urls[platform]);
     const allowedHosts: readonly string[] = platformHosts[platform];
-    return url && allowedHosts.includes(url.hostname) && url.pathname !== "/"
+    return url && (allowedHosts.includes(url.hostname) || (platform === "linkedin" && url.hostname === "lnkd.in")) && url.pathname !== "/"
       ? [{ platform, url: url.href }] : [];
   });
 
   const video = row.video_links;
   const videoUrls = video && typeof video === "object" && !Array.isArray(video)
     ? video as Record<string, unknown> : {};
-  const videoPlatforms = ["youtube", "instagram", "facebook"] as const;
+  const videoPlatforms = ["youtube", "instagram", "facebook", "linkedin"] as const;
   const videoLinks = videoPlatforms.flatMap(platform => {
     const url = secureUrl(videoUrls[platform]);
     const allowedHosts: readonly string[] = platformHosts[platform];
