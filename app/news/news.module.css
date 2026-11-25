@@ -19,3 +19,6 @@
 .links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: auto; }
 .links a { display: inline-flex; gap: 4px; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .18em; color: #124f94; font-weight: 650; }
 .state { padding: 18px 20px; color: var(--muted); }
+
+.videoLinks { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
+.videoLinks strong { display: block; font-size: .9rem; margin-bottom: 4px; }
