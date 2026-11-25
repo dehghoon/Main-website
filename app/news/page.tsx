@@ -43,7 +43,7 @@ export default async function NewsPage() {
                 <p>{card.summary}</p>
                 <div className={styles.links}>
                   <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">Original source <ArrowUpRight size={15} aria-hidden="true" /></a>
-                  {card.links.filter(({ platform }) => !card.videoLinks.some(video => video.platform === platform)).map(({ platform, url }) => (
+                  {card.links.map(({ platform, url }) => (
                     <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
                       {platformLabels[platform]} <ArrowUpRight size={15} aria-hidden="true" />
                     </a>
@@ -55,7 +55,7 @@ export default async function NewsPage() {
                     <div className={styles.links}>
                       {card.videoLinks.map(({ platform, url }) => (
                         <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
-                          {platform === "youtube" ? "YouTube Shorts" : platform === "instagram" ? "Instagram Reel" : "Facebook Reel"}
+                          {platform === "youtube" ? "YouTube Shorts" : platform === "instagram" ? "Instagram Reel" : platform === "linkedin" ? "LinkedIn Video" : "Facebook Reel"}
                           <ArrowUpRight size={15} aria-hidden="true" />
                         </a>
                       ))}
