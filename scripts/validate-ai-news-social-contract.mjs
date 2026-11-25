@@ -22,7 +22,7 @@ check(website?.publish_only_after_owner_approval === true && website?.same_story
 check(website?.fields?.includes("social_links") && website?.fields?.includes("published_at"), "Website needs confirmed links and publication time");
 check(website?.fields?.includes("video_links"), "Website must select video_links");
 check(website?.video_links?.separate_from_social_links === true, "Video links must not overwrite image post links");
-check(["youtube","instagram","facebook","linkedin"].every(p => website?.video_links?.platforms?.includes(p)), "All four video platforms required");
+check(["youtube","instagram","facebook","linkedin","reddit"].every(p => website?.video_links?.platforms?.includes(p)), "All five video platforms required");
 check(website?.video_links?.keep_original_posts?.includes("carousel"), "Must preserve original image posts");
 check(website?.video_links?.permalink_policy?.includes("lnkd.in"), "Must support LinkedIn short video links");
 validateEditorialImagePolicy(c,"news");
