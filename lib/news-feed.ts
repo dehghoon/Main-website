@@ -4,6 +4,7 @@ const platformHosts = {
   linkedin: ["linkedin.com", "www.linkedin.com"],
   instagram: ["instagram.com", "www.instagram.com"],
   facebook: ["facebook.com", "www.facebook.com", "m.facebook.com"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
 } as const;
 
 export const platforms = ["linkedin", "instagram", "facebook"] as const;
@@ -45,7 +46,18 @@ export function parseNewsCard(data: unknown) {
       ? [{ platform, url: url.href }] : [];
   });
 
-  return { slug, title, summary, imageAlt, date, sourceUrl: source.href, imageUrl: image.href, links };
+  const video = row.video_links;
+  const videoUrls = video && typeof video === "object" && !Array.isArray(video)
+    ? video as Record<string, unknown> : {};
+  const videoPlatforms = ["youtube", "instagram", "facebook"] as const;
+  const videoLinks = videoPlatforms.flatMap(platform => {
+    const url = secureUrl(videoUrls[platform]);
+    const allowedHosts: readonly string[] = platformHosts[platform];
+    return url && allowedHosts.includes(url.hostname) && url.pathname !== "/"
+      ? [{ platform, url: url.href }] : [];
+  });
+
+  return { slug, title, summary, imageAlt, date, sourceUrl: source.href, imageUrl: image.href, links, videoLinks };
 }
 
 export async function getNewsFeed() {
@@ -54,7 +66,7 @@ export async function getNewsFeed() {
   if (!base || !key) return null;
 
   const query = new URLSearchParams({
-    select: "slug,title,summary,source_url,image_url,image_alt,social_links,published_at",
+    select: "slug,title,summary,source_url,image_url,image_alt,social_links,video_links,published_at",
     order: "published_at.desc,slug.asc",
   });
   try {
