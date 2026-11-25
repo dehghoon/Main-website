@@ -43,12 +43,25 @@ export default async function NewsPage() {
                 <p>{card.summary}</p>
                 <div className={styles.links}>
                   <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">Original source <ArrowUpRight size={15} aria-hidden="true" /></a>
-                  {card.links.map(({ platform, url }) => (
+                  {card.links.filter(({ platform }) => !card.videoLinks.some(video => video.platform === platform)).map(({ platform, url }) => (
                     <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
                       {platformLabels[platform]} <ArrowUpRight size={15} aria-hidden="true" />
                     </a>
                   ))}
                 </div>
+                {card.videoLinks.length > 0 && (
+                  <div className={styles.videoLinks}>
+                    <strong>Watch the video</strong>
+                    <div className={styles.links}>
+                      {card.videoLinks.map(({ platform, url }) => (
+                        <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
+                          {platform === "youtube" ? "YouTube Shorts" : platform === "instagram" ? "Instagram Reel" : "Facebook Reel"}
+                          <ArrowUpRight size={15} aria-hidden="true" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </article>
           ))}
