@@ -1,0 +1,15 @@
+{
+ "workflowId":"core-release-compatibility-management",
+ "name":"Core Release & Compatibility Management",
+ "version":"1.0.0",
+ "status":"initial-interface; external automation pending",
+ "steps":[
+  {"id":"detect","inputs":["release","tag","version change","public-interface PR","schema change","calculation change","geometry/material/section/load model change"],"output":"deduplicated task keyed by repository and source SHA"},
+  {"id":"impact","output":"commit-scoped compatibility matrix; distinguish direct package, schema boundary, catalog dependency and unknown"},
+  {"id":"coordinate","transport":["GitHub issue","pull request","verified API"],"agents":["GPT-1","GPT-2","GPT-3","GPT-4","GPT-5","responsible tool agents"],"requiredTaskFields":["targetCoreVersion","affectedTool","migration","acceptanceCriteria","repository","branch","tests","deliverables"]},
+  {"id":"validate","contract":"core-integration-v1.json#/approval/requiredChecks","engineeringRule":"Reference cases, units, provenance, tolerances and reviewer evidence required; build alone is insufficient"},
+  {"id":"owner-review","inbox":"/admin/access-manager","actions":["Approve Release","Request Changes","Reject Release","Postpone Release"]},
+  {"id":"controlled-release","enabled":false,"sequence":["Recheck exact SHA and mandatory CI/security","Confirm per-tool readiness","Publish approved Core","Roll out dependent tools in approved order","Monitor errors","Smoke and engineering regressions","Record outcome"],"onCriticalFailure":"halt and approved rollback"},
+  {"id":"history","storage":"command_center_core_release_events plus trusted deployment evidence"}
+ ]
+}

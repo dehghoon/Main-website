@@ -29,6 +29,7 @@ function displayNameFor(user: SessionUser | null | undefined) {
 }
 
 export default function SiteHeader() {
+  const [commandCenter,setCommandCenter]=useState(false);
   const [employeeSignedIn, setEmployeeSignedIn] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
@@ -42,16 +43,19 @@ export default function SiteHeader() {
     if (!supabase) return;
 
     const applyUser = (user: SessionUser | null | undefined) => {
+      setCommandCenter(false);
       setEmployeeSignedIn(Boolean(user));
       setEmployeeName(displayNameFor(user));
     };
 
-    void supabase.auth.getSession().then(({ data }) => applyUser(data.session?.user));
+    let revision=0;
+    const check = (session: {access_token:string;user:SessionUser}|null) => {const current=++revision;applyUser(session?.user);if(session)void fetch("/api/admin/access-manager/me",{headers:{Authorization:`Bearer ${session.access_token}`},cache:"no-store"}).then(r=>{if(current===revision)setCommandCenter(r.ok);}).catch(()=>{});};
+    void supabase.auth.getSession().then(({ data }) => check(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      applyUser(session?.user);
+      check(session);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {++revision;listener.subscription.unsubscribe();};
   }, []);
 
   async function signOut() {
@@ -86,7 +90,7 @@ export default function SiteHeader() {
             <div className="navDropdown">
               <a href="/about">About Linko</a>
               <a href={EMPLOYEE_TIMESHEET_URL}><Clock3 size={16} /> Team Timesheet</a>
-              <a href="/admin/access-manager">Access Manager</a>
+              {commandCenter&&<a href="/admin/access-manager">Command Center</a>}
             </div>
           </div>
           <a href="/pricing">Pricing</a>
@@ -119,6 +123,7 @@ export default function SiteHeader() {
         <a href="/" onClick={() => setMobileOpen(false)}>Home</a>
         <span className="mobileGroupLabel">Engineering software</span>
         {engineeringTools.map((tool) => <a key={tool.id} href={tool.href} onClick={() => setMobileOpen(false)}>{tool.name}<span className="toolStatus">{tool.status}</span></a>)}
+        {commandCenter&&<a href="/admin/access-manager" onClick={()=>setMobileOpen(false)}>Command Center</a>}
         <span className="mobileGroupLabel">Explore</span>
         <a href="/blog" onClick={() => setMobileOpen(false)}>Blog</a>
         <a href="/knowledge/documentation" onClick={() => setMobileOpen(false)}>Documentation</a>

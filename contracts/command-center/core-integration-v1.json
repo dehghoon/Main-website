@@ -1,0 +1,18 @@
+{
+  "contractId": "linkoteq-command-center-core",
+  "version": "1.0.0",
+  "status": "proposed",
+  "canonicalRoute": "/admin/access-manager",
+  "applicationRepository": "dehghoon/Main-website",
+  "coreRepository": "dehghoon/linkoteq-structural-core",
+  "authoritativeContracts": ["CORE_CONTRACT.md", "LINKOTEQ_PLUGIN_MIGRATION_CONTRACT.md", "docs/CORE_V05_TO_V06_MIGRATION.md", "releases/compatibility-manifest.json", "orchestration/core-v06-migration/matrix-2026-11-13.md"],
+  "supportedCorePackages": ["0.6.0"],
+  "supportedBoundarySchemas": ["0.5", "0.6"],
+  "supportMeaning": "Tracking support only; each consumer must supply independent compatibility evidence. No calculation implementation is changed.",
+  "dependencyMapping": "lib/command-center/repository-snapshot.json",
+  "schemaPolicy": "Additive changes require schema validation; breaking interfaces require coordinated consumer migrations and a versioned contract. Never rewrite Core interfaces here.",
+  "approval": {"role": "owner", "bindTo": ["sourceSha", "evidenceSnapshot", "targetVersion"], "requiredChecks": ["unit", "integration", "regression", "engineeringReference", "schema", "security", "build", "preview", "compatibility", "rollback"], "requiredActions": ["approve", "request_changes", "reject", "postpone"], "productionApproval": "explicit Owner approval required; dashboard decisions never execute publication or deployment"},
+  "migrationPolicy": ["No capability removal", "Retain versioned boundaries", "Track every dependent tool", "Green mandatory CI and security checks before merge or deployment", "No compatibility inferred from build success"],
+  "rollback": {"required": ["Prior approved Core tag and source SHA", "Per-tool prior deployment IDs", "Database backward compatibility or tested restoration", "Rollback smoke and engineering regression evidence"], "criticalFailure": "Stop rollout, invoke approved rollback, record incident and final per-tool compatibility"},
+  "audit": {"store": "command_center_core_release_events", "appendOnlyForClients": true, "record": ["actor", "timestamp", "sourceSha", "decision", "reason", "evidenceSnapshot"], "releaseHistory": ["version", "releaseDate", "approver", "affectedTools", "migrationStatus", "testEvidence", "deploymentStatus", "incidents", "rollbackEvents", "finalCompatibility"]}
+}

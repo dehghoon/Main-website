@@ -3,11 +3,12 @@ import { ENGINEERING_TOOLS } from "../../../lib/tool-access/catalog";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import AccessRequestsPanel from "../../owner/access-requests/AccessRequestsPanel";
+import CommandCenter from "./CommandCenter";
 type Survey = { id:string; created_at:string; full_name:string|null; company_name:string|null; email:string|null; phone:string|null; response:unknown };
 type Result = {responses:Survey[];total:number;page:number};
-const sections = ["Customer Discovery","Employees","Timesheet","Weblog","Labeling","Beta Access","Starter & Pro & Company","Pro Rewards"] as const;
+const sections = ["Owner Approval Inbox","Structural Core","Operations","Customer Discovery","Employees","Timesheet","Weblog","Labeling","Beta Access","Starter & Pro & Company","Pro Rewards"] as const;
 export default function AccessManager() {
- const [section,setSection]=useState<(typeof sections)[number]>("Customer Discovery");
+ const [section,setSection]=useState<(typeof sections)[number]>("Owner Approval Inbox");
  const [state,setState]=useState<"loading"|"denied"|"allowed"|"error">("loading");
  const [token,setToken]=useState("");
  const [data,setData]=useState<Result|null>(null);
@@ -134,13 +135,13 @@ export default function AccessManager() {
   finally{setLabelingLoading(false);}
  }
  return <main className="authShell" style={{padding:"32px 16px"}}><section className="authCard" style={{maxWidth:1080,width:"100%"}}>
- <a href="/">← Linkoteq</a><span className="eyebrow">Administration</span><h1>Access Manager</h1>
+ <a href="/">← Linkoteq</a><span className="eyebrow">Administration</span><h1>Linkoteq Command Center</h1><p>Company operations, Owner approvals and Structural Core lifecycle.</p>
  {state==="loading"&&<p role="status">Checking administrator access…</p>}
  {state==="denied"&&<p role="alert">You don't have access to this page. <a href="/customer-login">Sign in</a></p>}
  {state==="error"&&<p role="alert">Unable to verify access. Please try again later.</p>}
- {state==="allowed"&&<><nav aria-label="Access Manager sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
- {sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();if(s==="Pro Rewards")void loadRewards();if(s==="Beta Access")void loadToolRequests();}}>{s}</button>)}</nav>
- {section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
+ {state==="allowed"&&<><nav aria-label="Command Center sections" style={{display:"flex",flexWrap:"wrap",gap:10,margin:"20px 0"}}>
+ <span style={{width:"100%",fontWeight:700}}>Access Manager &amp; operations</span>{sections.map(s=><button key={s} type="button" aria-pressed={section===s} onClick={()=>{setSection(s);setGrantPermission("");setGrantMessage("");if(s==="Labeling")void loadLabeling();if(s==="Employees"||s==="Timesheet"||s==="Weblog")void loadCatalog();if(s==="Timesheet")void loadTimesheet();if(s==="Pro Rewards")void loadRewards();if(s==="Beta Access")void loadToolRequests();}}>{s}</button>)}</nav>
+ {(["Owner Approval Inbox","Structural Core","Operations"] as string[]).includes(section)?<CommandCenter token={token} section={section} onAccess={s=>{setSection(s as (typeof sections)[number]);if(s==="Beta Access")void loadToolRequests();if(s==="Pro Rewards")void loadRewards();if(s==="Employees")void loadCatalog();}}/>:section==="Customer Discovery"?<section><h2>Customer Discovery responses</h2>{error&&<p role="alert">{error}</p>}
  <p>{data?.total??0} submissions</p>{data?.responses.map(item=><article key={item.id} style={{border:"1px solid #ccd8e0",borderRadius:12,padding:16,margin:"12px 0",overflowWrap:"anywhere"}}>
  <h3>{item.full_name||"Unnamed respondent"}</h3><p>{item.company_name||"No company"} · {new Date(item.created_at).toLocaleString()}</p>
  <p>Email: {item.email||"—"} · Phone: {item.phone||"—"}</p><details><summary>View answers</summary><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{JSON.stringify(item.response,null,2)}</pre></details></article>)}

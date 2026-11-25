@@ -10,8 +10,8 @@ export const engineeringToolOrigins = [
   "https://linkoteq-seismic-preview.vercel.app",
 ];
 
-type HeaderAccount = { name: string; internalTools: boolean };
-const signedOut = { name: "", internalTools: false };
+type HeaderAccount = { name: string; internalTools: boolean; commandCenter: boolean };
+const signedOut = { name: "", internalTools: false, commandCenter: false };
 
 export function subscribeHeaderAccount(render: (account: HeaderAccount) => void) {
   const client = getSupabase();
@@ -29,6 +29,7 @@ export function subscribeHeaderAccount(render: (account: HeaderAccount) => void)
     const name = [user?.user_metadata.full_name, user?.user_metadata.name, user?.email?.split("@")[0]]
       .find(value => typeof value === "string" && value.trim());
     account = {
+      commandCenter: false,
       name: user ? (typeof name === "string" ? name.trim().slice(0, 120) : "Account") : "",
       internalTools: Boolean(user && user.id === accountId && account.internalTools),
     };
@@ -40,20 +41,22 @@ export function subscribeHeaderAccount(render: (account: HeaderAccount) => void)
     setTimeout(async () => {
       if (check !== revision) return;
       try {
-        const [permissions, owner] = await Promise.all([
+        const [permissions, owner, admin] = await Promise.all([
           supabase.rpc("platform_my_permissions"),
           supabase.rpc("platform_access_is_owner"),
+          supabase.auth.getSession().then(({data}) => data.session ? fetch("/api/admin/access-manager/me", {headers:{Authorization:`Bearer ${data.session.access_token}`},cache:"no-store"}).then(r=>r.ok) : false),
         ]);
         if (check !== revision) return;
         const grants: unknown = permissions.data;
         account = {
           ...account,
+          commandCenter: admin === true,
           internalTools: owner.data === true ||
             (Array.isArray(grants) && grants.includes("engineering_tools_internal")),
         };
       } catch {
         if (check !== revision) return;
-        account = { ...account, internalTools: false };
+        account = { ...account, internalTools: false, commandCenter: false };
       }
       render(account);
     }, 0);

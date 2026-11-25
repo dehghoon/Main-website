@@ -12,7 +12,8 @@
     "import:labeling": "node scripts/import-structural-labeling-candidates.mjs",
     "test:blog-agent": "node --experimental-strip-types --test tests/blog-agent-content.test.ts",
     "test:editorial": "node --test tests/editorial-media.test.mjs",
-    "test:marketing-seo": "node --test tests/marketing-seo-contract.test.mjs && node scripts/validate-blog-contract.mjs && node scripts/validate-ai-news-social-contract.mjs"
+    "test:marketing-seo": "node --test tests/marketing-seo-contract.test.mjs && node scripts/validate-blog-contract.mjs && node scripts/validate-ai-news-social-contract.mjs",
+    "test:command-center": "node --test tests/command-center-*.test.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",
@@ -26,6 +27,7 @@
     "react-dom": "19.1.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.6.0",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",

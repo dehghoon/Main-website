@@ -1,0 +1,31 @@
+name: Command Center checks
+on:
+  pull_request:
+    paths:
+      - 'app/admin/access-manager/**'
+      - 'app/api/admin/access-manager/**'
+      - 'lib/command-center/**'
+      - 'lib/header-account.ts'
+      - 'public/design-system/linkoteq-header-v1.js'
+      - 'contracts/command-center/**'
+      - 'scripts/command-center-*'
+      - 'tests/command-center-*'
+      - 'supabase/migrations/*command_center*'
+      - 'package*.json'
+      - '.github/workflows/command-center-*.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:command-center
+      - run: npm run typecheck
+      - run: npm run test:marketing-seo
+      - run: npm run build
