@@ -55,7 +55,7 @@ export default async function NewsPage() {
                     <div className={styles.links}>
                       {card.videoLinks.map(({ platform, url }) => (
                         <a key={platform} href={url} target="_blank" rel="noopener noreferrer">
-                          {platform === "youtube" ? "YouTube Shorts" : platform === "instagram" ? "Instagram Reel" : platform === "linkedin" ? "LinkedIn Video" : "Facebook Reel"}
+                          {platform === "youtube" ? "YouTube Shorts" : platform === "instagram" ? "Instagram Reel" : platform === "linkedin" ? "LinkedIn Video" : platform === "reddit" ? "Reddit Video" : "Facebook Reel"}
                           <ArrowUpRight size={15} aria-hidden="true" />
                         </a>
                       ))}
