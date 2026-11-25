@@ -5,6 +5,7 @@ const platformHosts = {
   instagram: ["instagram.com", "www.instagram.com"],
   facebook: ["facebook.com", "www.facebook.com", "m.facebook.com"],
   youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
+  reddit: ["reddit.com", "www.reddit.com", "old.reddit.com"],
 } as const;
 
 export const platforms = ["linkedin", "instagram", "facebook"] as const;
@@ -49,7 +50,7 @@ export function parseNewsCard(data: unknown) {
   const video = row.video_links;
   const videoUrls = video && typeof video === "object" && !Array.isArray(video)
     ? video as Record<string, unknown> : {};
-  const videoPlatforms = ["youtube", "instagram", "facebook", "linkedin"] as const;
+  const videoPlatforms = ["youtube", "instagram", "facebook", "linkedin", "reddit"] as const;
   const videoLinks = videoPlatforms.flatMap(platform => {
     const url = secureUrl(videoUrls[platform]);
     const allowedHosts: readonly string[] = platformHosts[platform];
