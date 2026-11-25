@@ -1,7 +1,7 @@
 {
   "contract_id": "linkoteq-ai-news-social-automation",
-  "version": "1.3.0",
-  "updated": "2026-11-14",
+  "version": "1.4.0",
+  "updated": "2026-11-24",
   "independent_from": "contracts/marketing/blog-automation-v1.json",
   "purpose": "Independent AI news for official Linkoteq social channels and the News & Updates website feed, separate from the blog workflow",
   "source_policy": {
@@ -23,7 +23,8 @@
         "Prepare draft content and assets privately. Do not publish a website card, create a publication queue, or initiate a social write during the scheduled draft run",
         "When the owner explicitly approves publication of a specific story, use website_syndication for the website and the existing owner-directed Windsor workflow for authorized social channels",
         "Draft five scene descriptions specific to the reported event using creative_brief_policy. Image production remains manual and keeps the existing editorial quality standards",
-        "Read back authorized writes. Report website and each social platform independently and never infer publication from pending records"
+        "Read back authorized writes. Report website and each social platform independently and never infer publication from pending records",
+        "For every owner-approved story, collect and reconcile original Instagram carousel, Facebook collage, LinkedIn image post and all available YouTube Shorts, Instagram Reel, Facebook Reel and LinkedIn video permalinks; write social_links and video_links separately without replacing any existing verified links. Missing video links remain pending and are added after owner provides them."
       ]
     },
     "github_image_worker": {
@@ -93,7 +94,8 @@
     "Platform IDs verified before reporting published",
     "Blog automation untouched",
     "The website lists only approved and published cards, with one card per asset",
-    "Verified platform permalinks are added to the same website card without resending social posts"
+    "Verified platform permalinks are added to the same website card without resending social posts",
+    "Original image post links remain visible even when a video exists on the same platform; Watch the video includes every verified YouTube, Instagram, Facebook and LinkedIn video URL, including valid lnkd.in short URLs."
   ],
   "image_engine": {
     "id": "linkoteq-editorial-svg",
@@ -193,12 +195,33 @@
       "image_url",
       "image_alt",
       "social_links",
+      "video_links",
       "published_at"
     ],
     "write_access": "Authorized Supabase connection only. Public Data API can read public fields of already-published cards.",
     "first_publication": "After explicit owner publication instruction for this story, read the matching private asset, verify the English title and summary, original HTTPS source and approved topic-specific cover JPEG. Check actual JPEG bytes and public HTTPS reachability. Use one publicly reachable image on Linkoteq /marketing/ or the public blog-media bucket. Insert one card keyed by the existing asset_id and preserve its slug and original website publication time on future updates. An empty social_links object is valid if no platform publication is verified yet. An insert retry must use ON CONFLICT (asset_id) DO NOTHING and read back the existing card.",
-    "social_links": "Add links only for platforms whose exact post ID and public permalink were confirmed through the platform or a trusted connector. Update only those platform keys on the same card, preserving previously verified links. Retain the existing social deduplication rules and never repost just to populate a card. Merge verified keys atomically with social_links = social_links || <verified platform object> in one update.",
+    "social_links": "Add links only for platforms whose exact post ID and public permalink were confirmed through the platform or a trusted connector. Update only those platform keys on the same card, preserving previously verified links. Retain the existing social deduplication rules and never repost just to populate a card. Merge verified keys atomically with social_links = social_links || <verified platform object> in one update. Instagram carousel and Instagram Reel are different URLs; Facebook collage and Facebook Reel are different URLs. Keep original social_links intact and never suppress image post links when video_links exists.",
     "readback": "Read back the saved card and verify the live website link at /news#<slug>. Report website and each social channel independently. If write or live verification fails, state the blocker and whether a write already happened so retry can safely reconcile.",
-    "scope": "Future approved AI-news stories only. No automatic backfill, no scheduled public writes, no changes to blog publishing, media generation or account permissions."
+    "scope": "Future approved AI-news stories only. No automatic backfill, no scheduled public writes, no changes to blog publishing, media generation or account permissions.",
+    "video_links": {
+      "platforms": [
+        "youtube",
+        "instagram",
+        "facebook",
+        "linkedin"
+      ],
+      "storage": "public.ai_news_website_feed.video_links",
+      "link_types": {
+        "youtube": "YouTube Shorts",
+        "instagram": "Instagram Reel",
+        "facebook": "Facebook Reel",
+        "linkedin": "LinkedIn Video"
+      },
+      "permalink_policy": "After owner-approved publication, collect exact publicly reachable video permalinks supplied by the owner or verified via trusted connectors. Accept validated HTTPS youtube.com, instagram.com, facebook.com, linkedin.com and LinkedIn short domain lnkd.in; preserve original URL without guessing redirects. Use video_links = video_links || <verified platform object>; preserve other platforms and original post links.",
+      "separate_from_social_links": true,
+      "keep_original_posts": "social_links must preserve verified Instagram five-image carousel permalink, Facebook collage photo post permalink and LinkedIn image post permalink. Never replace those with reel or video URLs. Show both groups separately: original source and social image posts, then Watch the video for all four video platforms.",
+      "availability": "If a video is not yet published or permalink not verified, omit only that video key, report pending, and add later to the same card without reposting.",
+      "verification": "After updates read back both social_links and video_links; validate each link against its platform domain, check production deployment READY and verify the live /news#<slug> card shows every available link. If not, report incomplete and fix the parser/deployment before claiming success."
+    }
   }
 }
