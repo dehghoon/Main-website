@@ -53,7 +53,7 @@ export function parseNewsCard(data: unknown) {
   const videoLinks = videoPlatforms.flatMap(platform => {
     const url = secureUrl(videoUrls[platform]);
     const allowedHosts: readonly string[] = platformHosts[platform];
-    return url && allowedHosts.includes(url.hostname) && url.pathname !== "/"
+    return url && (allowedHosts.includes(url.hostname) || (platform === "linkedin" && url.hostname === "lnkd.in")) && url.pathname !== "/"
       ? [{ platform, url: url.href }] : [];
   });
 
