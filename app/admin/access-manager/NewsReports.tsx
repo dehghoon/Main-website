@@ -41,6 +41,7 @@ const torontoTime = new Intl.DateTimeFormat("en-CA", {
 export default function NewsReports({ token }: { token: string }) {
   const [reports, setReports] = useState<Report[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [publishedOnly, setPublishedOnly] = useState(false);
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function NewsReports({ token }: { token: string }) {
         const data = await response.json();
         if (!controller.signal.aborted) {
           setReports(data.reports);
+          setPublishedOnly(data.publishedOnly === true);
           setStatus("ready");
         }
       } catch {
@@ -74,15 +76,16 @@ export default function NewsReports({ token }: { token: string }) {
     <button type="button" disabled={status === "loading"} onClick={() => setRevision(value => value + 1)}>Refresh reports</button>
     {status === "loading" && <p role="status">Loading reports…</p>}
     {status === "error" && <p role="alert">Saved news reports are unavailable. Try refreshing or check the preview’s database connection.</p>}
+    {status === "ready" && publishedOnly && <p>Showing published news. Private drafts and briefs require the internal database connection.</p>}
     {status === "ready" && reports.length === 0 && <p>No news reports have been saved yet.</p>}
     {reports.map(report => {
       const source = secureLink(report.source_url);
       const links = [...outputLinks(report.website?.social_links), ...outputLinks(report.website?.video_links)];
       return <article key={report.id} style={{ border: "1px solid #dbe5ed", borderRadius: 12, padding: 16, marginTop: 12, overflowWrap: "anywhere" }}>
         <h4>{report.title}</h4>
-        <p>Saved {torontoTime.format(new Date(report.created_at))}</p>
+        <p>{publishedOnly ? "Published" : "Saved"} {torontoTime.format(new Date(report.created_at))}</p>
         {(report.website?.summary || report.subtitle) && <p>{report.website?.summary || report.subtitle}</p>}
-        <p>Creative: {report.creative_status?.replaceAll("_", " ") ?? "Unavailable"} · Image: {report.image_status?.replaceAll("_", " ") ?? "Unavailable"}</p>
+        {!publishedOnly && <p>Creative: {report.creative_status?.replaceAll("_", " ") ?? "Unavailable"} · Image: {report.image_status?.replaceAll("_", " ") ?? "Unavailable"}</p>}
         {source && <p><a href={source}>Original source</a></p>}
         {links.length > 0 && <ul>{links.map(({ label, url }) => <li key={url + label}><a href={url}>{label}</a></li>)}</ul>}
         {report.publications.map((publication, index) => {

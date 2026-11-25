@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { commandCenterError, requireCommandCenterOwner } from "@/lib/command-center/server";
 
+import { getNewsFeed } from "@/lib/news-feed";
+
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", Vary: "Authorization" };
 
@@ -11,7 +13,19 @@ export async function GET(request: NextRequest) {
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) throw new Error("news_storage_unavailable");
+    if (!url || !key) {
+      const published = await getNewsFeed();
+      if (!published) throw new Error("news_storage_unavailable");
+      const reports = published.slice(0, 20).map(card => ({
+        id: card.slug, title: card.title, subtitle: card.summary,
+        source_url: card.sourceUrl, created_at: card.date,
+        publications: card.links.map(link => ({
+          platform: link.platform, status: "published", external_post_url: link.url,
+        })),
+        website: { video_links: Object.fromEntries(card.videoLinks.map(link => [link.platform, link.url])) },
+      }));
+      return NextResponse.json({ reports, publishedOnly: true }, { headers });
+    }
 
     const db = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
