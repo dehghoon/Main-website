@@ -154,7 +154,7 @@ export default function Home() {
       </section>
       <footer className="homeFooter">
         <div className="homeContainer">
-          <Image src="/homepage-linkoteq-logo.svg" alt="Linkoteq Engineering Technology" width={210} height={52} />
+          <Image src="/linkoteq-engineering-technology-20261126.svg" alt="Linkoteq Engineering Technology" width={210} height={52} />
           <nav className="homeFooterLinks" aria-label="Footer">
             <a href="/contact">Contact</a>
             <a href="/tools">Tools</a>

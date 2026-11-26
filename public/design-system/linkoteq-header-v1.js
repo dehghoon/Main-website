@@ -5,7 +5,7 @@ const base="https://linkoteq.com";
 const accountOrigin = "https://www.linkoteq.com";
 const scriptOrigin = new URL(document.currentScript?.src || accountOrigin).origin;
 const assetOrigin = scriptOrigin === base ? accountOrigin : scriptOrigin;
-const logoUrl = assetOrigin + "/homepage-linkoteq-logo.svg";
+const logoUrl = assetOrigin + "/linkoteq-engineering-technology-20261126.svg";
 const shellUrl = new URL("/design-system/linkoteq-shell-v1.css", assetOrigin).href;
 if (![...document.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === shellUrl)) {
  const shell = document.createElement("link");
