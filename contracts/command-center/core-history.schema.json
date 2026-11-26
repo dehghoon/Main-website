@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Structural Core release and contract history",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "snapshotDate",
+    "repository",
+    "current",
+    "versions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "snapshotDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri"
+    },
+    "current": {
+      "type": "object",
+      "required": [
+        "releaseTag",
+        "contractVersion",
+        "packageVersion",
+        "releaseCommit",
+        "inspectedMainCommit",
+        "stage",
+        "consumerRollout",
+        "productionVersion",
+        "releaseNotes",
+        "migrationMatrix"
+      ],
+      "properties": {
+        "releaseTag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contractVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "packageVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "releaseCommit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inspectedMainCommit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage": {
+          "enum": [
+            "released",
+            "candidate",
+            "development"
+          ]
+        },
+        "consumerRollout": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "productionVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "releaseNotes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "migrationMatrix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "milestone",
+          "kind",
+          "commit",
+          "commitDate",
+          "contractVersion",
+          "packageVersion",
+          "releaseTag",
+          "publishedAt",
+          "evidenceUrl",
+          "changes"
+        ],
+        "properties": {
+          "milestone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "repository-initialization",
+              "historical-contract",
+              "tagged-release"
+            ]
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "commitDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contractVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "packageVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "releaseTag": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidenceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "changes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

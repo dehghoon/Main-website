@@ -21,17 +21,20 @@ const steps = [
   ["GPT-1", "مشخصات مهندسی", "آیین‌نامه، فرضیات و معیار پذیرش"],
   ["GPT-2", "موتور و تست", "پیاده‌سازی محاسبات و شواهد عددی"],
   ["GPT-3", "اپ و یکپارچه‌سازی", "رابط، API و پیش‌نمایش"],
+  ["GPT-3 / GPT-4", "ساخت نسخهٔ آزمایشی و تست", "پیش‌نمایش، نمونهٔ مهندسی مرجع و ثبت نتیجه"],
   ["GPT-5", "بازبینی امنیت", "یافته‌ها، اصلاح و تست مجدد"],
-  ["GPT-4", "آمادگی انتشار", "تطبیق Core، شواهد و تصمیم مالک"],
+  ["GPT-4", "آمادگی انتشار", "تطبیق Core و مرور شواهد و بازگشت نسخه"],
+  ["Owner", "تأیید انتشار", "ثبت تصمیم مالک برای نسخهٔ مشخص"],
+  ["GPT-3 / GPT-4", "استقرار و آزمون نهایی", "استقرار مصوب و آزمون نماینده در محیط اصلی"],
 ] as const;
 
 const toolEvidence: Record<string, { stage: number; observation: string; next: string; owner: string; statusPath?: string }> = {
   "3D Model": { stage: 2, observation: "مهاجرت ویرایشگر به Core 0.6 در مخزن ثبت شده است. گزارش پروژه، بررسی اجرایی پس از تغییر ویرایشگر را باز گذاشته است.", next: "تست واردکردن، ویرایش و خروجی گرفتن را روی نسخهٔ فعلی ثبت کن.", owner: "GPT-3 / GPT-4", statusPath: "project-status.json" },
   "SAP2000 Importer": { stage: 2, observation: "تحویل مشخصات GPT-1 به GPT-2 و فایل پیاده‌سازی تحویل به مدل در مخزن ثبت شده‌اند. هم‌ارزی تحلیلی نیاز به شاهد مستقل دارد.", next: "حفظ داده‌های منبع و نگاشت به 3D Model را روی فایل‌های مرجع بررسی کن.", owner: "GPT-2 / GPT-3", statusPath: "handoffs/gpt1-to-gpt2.md" },
-  "Snow Load": { stage: 4, observation: "آزمون نمایندهٔ تولید برای Core 0.5 ثبت شده است. مرز 0.6 در کد دیده شده و به آزمون مجدد نیاز دارد.", next: "بار برف و فشار سطحی را در نسخهٔ 0.6 با مرجع مقایسه کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
+  "Snow Load": { stage: 7, observation: "آزمون نمایندهٔ تولید برای Core 0.5 ثبت شده است. مرز 0.6 در کد دیده شده و به آزمون مجدد نیاز دارد.", next: "بار برف و فشار سطحی را در نسخهٔ 0.6 با مرجع مقایسه کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
   "Wind Load": { stage: 2, observation: "کاتالوگ اقلیمی در کد پین شده است. قرارداد بار خروجی برای Core هنوز در این مرور تأیید نشده است.", next: "سازگاری کاتالوگ و قرارداد خروجی بار را بررسی کن.", owner: "GPT-1 / GPT-2" },
   "Seismic": { stage: 2, observation: "تحویل استاتیکی نسخه‌دار در کد وجود دارد. نگاشت آن به قالب استاندارد Core تأیید نشده است.", next: "نگاشت و آزمون نمونهٔ تحویل استاتیکی به Core را ثبت کن.", owner: "GPT-2 / GPT-4" },
-  "W-Section": { stage: 4, observation: "مخزن آزمون تولید را برای Core 0.5 گزارش می‌کند. سازگاری اجرای فعلی 0.6 جداگانه بررسی می‌شود.", next: "نتایج مقاطع مرجع و برابری خروجی Core 0.6 را دوباره بررسی کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
+  "W-Section": { stage: 7, observation: "مخزن آزمون تولید را برای Core 0.5 گزارش می‌کند. سازگاری اجرای فعلی 0.6 جداگانه بررسی می‌شود.", next: "نتایج مقاطع مرجع و برابری خروجی Core 0.6 را دوباره بررسی کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
   "Wood Design": { stage: 1, observation: "کد ابزار مشاهده شده است. اتصال اجرایی استاندارد به Core در مرور مخزن پیدا نشد.", next: "مرز موتور و وابستگی‌های Core را مستند کن.", owner: "GPT-2 / GPT-4" },
   "Concrete Beam": { stage: -1, observation: "شاهدی از کد یا تست در مرور مخزن در دسترس نبود.", next: "دسترسی خواندن مخزن و شواهد مراحل را بررسی کن.", owner: "GPT-4" },
 };
@@ -87,7 +90,7 @@ export default function OperationsWorkspace({ token }: { token: string }) {
         <div className={styles.title}><Network aria-hidden="true" /><h2>نقشهٔ تحویل کار بین GPTها</h2></div>
         <div className={styles.orchestrator}><b dir="ltr">GPT-4</b><div><strong>هماهنگ‌کننده</strong>
           <p>وابستگی‌ها و نسخهٔ Core را تطبیق می‌دهد، مسئول مرحلهٔ بعد را مشخص می‌کند و شواهد تست، امنیت و استقرار را جداگانه بررسی می‌کند.</p></div></div>
-        <ol className={styles.flow}>{steps.map(([agent, name, output]) => <li key={agent}>
+        <ol className={styles.flow}>{steps.map(([agent, name, output]) => <li key={name}>
           <span className={styles.agent} dir="ltr">{agent}</span><strong>{name}</strong><small>{output}</small>
         </li>)}</ol>
         <div className={styles.aux}>
@@ -110,13 +113,13 @@ export default function OperationsWorkspace({ token }: { token: string }) {
     {view === "tools" && <div className={styles.panel}>
       <div className={styles.title}><Boxes aria-hidden="true" /><h2>مراحل توسعهٔ ابزارها</h2></div>
       {failed ? <p role="alert">سوابق مخزن در دسترس نیست. صفحه را دوباره بارگذاری کنید.</p> : !snapshot ? <p role="status">در حال خواندن سوابق ابزارها…</p> : <>
-        <p className={styles.muted}>نمای شواهد مخزن تا <bdi>{snapshot.inspectedAt}</bdi>. مرحلهٔ برجسته محل شاهد ثبت‌شده را نشان می‌دهد.</p>
+        <p className={styles.muted}>نمای شواهد مخزن تا <bdi>{snapshot.inspectedAt}</bdi>. مرحلهٔ برجسته محل شاهد ثبت‌شده را نشان می‌دهد. نتیجهٔ تست آزمایشی، تأیید مالک و آزمون محیط اصلی جداگانه ثبت می‌شوند.</p>
         <div className={styles.toolPicker} aria-label="انتخاب ابزار">
           {snapshot.tools.map(item => <button key={item.tool} type="button" dir="ltr" aria-pressed={selected === item.tool} onClick={() => setSelected(item.tool)}>{item.tool}</button>)}
         </div>
         {tool && evidence && <article className={styles.record}>
           <div className={styles.recordTop}><h3 dir="ltr">{tool.tool}</h3><a dir="ltr" href={`https://github.com/${tool.repository}`}>GitHub <ArrowUpRight size={15}/></a></div>
-          <ol className={styles.flow}>{steps.map(([agent, name], index) => <li key={agent} data-evidence={evidence.stage === index}>
+          <ol className={styles.flow}>{steps.map(([agent, name], index) => <li key={name} data-evidence={evidence.stage === index}>
             <span className={styles.agent} dir="ltr">{agent}</span><strong>{name}</strong><small>{evidence.stage === index ? "شاهد ثبت‌شده" : "نیازمند بررسی این مرحله"}</small>
           </li>)}</ol>
           <p>{evidence.observation}</p>
