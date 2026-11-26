@@ -30,9 +30,226 @@ const steps = [
   ["GPT-3 / GPT-4", "استقرار و آزمون نهایی", "استقرار مصوب و آزمون نماینده در محیط اصلی"],
 ] as const;
 
+const drawingStages: Record<string, readonly (readonly [string, string, string])[]> = {
+  "Structural Labeling": [
+    [
+      "کارمند",
+      "برچسب‌گذاری دستی ستون، تیر و دیوار در RegionKit",
+      "گردش‌کار ثبت شده"
+    ],
+    [
+      "مالک",
+      "بازبینی بصری، تأیید یا درخواست اصلاح",
+      "گردش‌کار ثبت شده"
+    ],
+    [
+      "وب‌سایت",
+      "اعتبارسنجی بسته و ارسال به صف GPT-7 پس از تأیید مالک",
+      "مسیر تحویل ثبت شده"
+    ],
+    [
+      "GPT-7",
+      "کنترل منشأ، مختصات، کیفیت و تصمیم مستقل دربارهٔ پذیرش داده",
+      "پذیرش جدا از تأیید مالک است"
+    ]
+  ],
+  "PDF to Model": [
+    [
+      "GPT-6",
+      "نرمال‌سازی PDF و تصویر",
+      "پیاده‌سازی ثبت شده"
+    ],
+    [
+      "GPT-6",
+      "ثبت تبدیل مختصات صفحه",
+      "پیاده‌سازی ثبت شده"
+    ],
+    [
+      "GPT-6",
+      "استخراج گرید اولیه",
+      "پیاده‌سازی ثبت شده"
+    ],
+    [
+      "GPT-6",
+      "کالیبراسیون مقیاس",
+      "پیاده‌سازی ثبت شده"
+    ],
+    [
+      "GPT-6",
+      "OCR و بازبینی نام گریدها",
+      "قابل پیشبرد پیش از YOLO"
+    ],
+    [
+      "کارمند / مالک / وب‌سایت",
+      "ثبت دستی برچسب در RegionKit",
+      "گردش‌کار دستی ثبت شده"
+    ],
+    [
+      "کارمند / مالک / وب‌سایت",
+      "بازبینی و تأیید مالک",
+      "گردش‌کار دستی ثبت شده"
+    ],
+    [
+      "کارمند / مالک / وب‌سایت",
+      "بسته‌بندی و تحویل به صف GPT-7",
+      "گردش‌کار دستی ثبت شده"
+    ],
+    [
+      "GPT-7",
+      "اعتبارسنجی بسته و تصمیم پذیرش",
+      "پذیرش و آماده‌سازی داده"
+    ],
+    [
+      "GPT-7",
+      "کنترل کیفیت ستون، تیر و دیوار",
+      "پذیرش و آماده‌سازی داده"
+    ],
+    [
+      "GPT-7",
+      "تقسیم بر اساس پروژه و کنترل نشت",
+      "پذیرش و آماده‌سازی داده"
+    ],
+    [
+      "GPT-7",
+      "ساخت مجموعهٔ آزمون ثابت",
+      "پذیرش و آماده‌سازی داده"
+    ],
+    [
+      "GPT-7",
+      "آماده‌سازی بستهٔ YOLO",
+      "پذیرش و آماده‌سازی داده"
+    ],
+    [
+      "GPT-7",
+      "بنچمارک خط پایه",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "آموزش کاندید YOLO پس از مجوز",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "ارزیابی precision و recall هر کلاس",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "تحلیل تشخیص‌های غلط و موارد ازدست‌رفته",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "ثبت نسخه، شواهد و مسیر بازگشت",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "تأیید کاندید برای اجرا",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "ساخت و آزمون آداپتور inference",
+      "اجرای این مرحله در انتظار"
+    ],
+    [
+      "GPT-7",
+      "تحویل شواهد ستون، تیر و دیوار با اطمینان، منشأ و مختصات صفحه",
+      "قرارداد v0.2 فعال؛ خروجی مدل آموزش‌دیده در انتظار"
+    ],
+    [
+      "GPT-6",
+      "اعتبارسنجی نسخه، شناسهٔ صفحه، منشأ و مختصات شواهد",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "تطبیق تشخیص با خطوط PDF و گرید اولیه",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "دقیق‌سازی محور و تقاطع گریدها",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "بازبینی نام گریدها و ابعاد مقیاس",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "تطبیق مرکز و محور ستون",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "بازسازی محور و دو انتهای تیر",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "کنترل اتصال تیر به ستون و دیوار",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "بازسازی محور، مرز و ضخامت دیوار",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "تعیین تراز و امتداد قائم از مدارک معتبر",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "کنترل گره‌های تکراری، اعضای جدا و توپولوژی",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "ارجاع تعارض‌ها به بازبینی انسانی",
+      "تست یکپارچه با خروجی YOLO در انتظار"
+    ],
+    [
+      "GPT-6",
+      "ثبت آزمایشی Surface دیوار بازبینی‌شده",
+      "شاهد CI با Core 0.5"
+    ],
+    [
+      "GPT-6",
+      "نگاشت گرید، گره، عضو و سطح به Core 0.6",
+      "تأیید اجرایی در انتظار"
+    ],
+    [
+      "GPT-6",
+      "اعتبارسنجی StructuralModel و ثبت خروجی بازبینی‌شده",
+      "تأیید اجرایی در انتظار"
+    ],
+    [
+      "GPT-6 / GPT-3",
+      "تحویل مدل معتبر به 3D Model",
+      "یکپارچه‌سازی و آزمون در انتظار"
+    ],
+    [
+      "GPT-6 / GPT-3",
+      "آزمون سرتاسری از PDF مرجع تا مدل سه‌بعدی",
+      "یکپارچه‌سازی و آزمون در انتظار"
+    ],
+    [
+      "GPT-3 / GPT-4 / Owner",
+      "پیش‌نمایش، تأیید انتشار و آزمون محیط اصلی",
+      "در انتظار"
+    ]
+  ]
+};
+
 const toolEvidence: Record<string, { stage: number; observation: string; next: string; owner: string; statusPath?: string }> = {
   "Structural Labeling": { stage: 2, observation: "مسیر ثبت برچسب، بازبینی مالک و تحویل به GPT-7 در مخزن مستند است. پذیرش داده توسط GPT-7 مرحله‌ای جداگانه است.", next: "یک نمونهٔ مجاز را از بازبینی مالک تا رسیدن بستهٔ معتبر به صف GPT-7 بررسی کن.", owner: "GPT-3 / GPT-7", statusPath: "docs/STRUCTURAL_LABELING_GPT7_HANDOFF.md" },
-  "PDF to Model": { stage: 2, observation: "مخزن بازسازی برای تبدیل نقشهٔ PDF یا تصویر به هندسهٔ قابل بازبینی ثبت شده است. سازگاری نسخهٔ اجرایی با Core 0.6 تأیید نشده است.", next: "مسیر PDF، OCR و مقیاس، بازسازی GPT-6، بازبینی انسانی و تحویل به 3D Model را با نمونهٔ مرجع بررسی کن.", owner: "GPT-6 / GPT-7 / GPT-3", statusPath: "README.md" },
+  "PDF to Model": { stage: 2, observation: "مخزن بازسازی برای تبدیل نقشهٔ PDF یا تصویر به هندسهٔ قابل بازبینی ثبت شده است. سازگاری نسخهٔ اجرایی با Core 0.6 تأیید نشده است.", next: "مسیر PDF، OCR و مقیاس، بازسازی GPT-6، بازبینی انسانی و تحویل به 3D Model را با نمونهٔ مرجع بررسی کن.", owner: "GPT-6 / GPT-7 / GPT-3", statusPath: "project-status.json" },
   "3D Model": { stage: 2, observation: "مهاجرت ویرایشگر به Core 0.6 در مخزن ثبت شده است. گزارش پروژه، بررسی اجرایی پس از تغییر ویرایشگر را باز گذاشته است.", next: "تست واردکردن، ویرایش و خروجی گرفتن را روی نسخهٔ فعلی ثبت کن.", owner: "GPT-3 / GPT-4", statusPath: "project-status.json" },
   "SAP2000 Importer": { stage: 2, observation: "تحویل مشخصات GPT-1 به GPT-2 و فایل پیاده‌سازی تحویل به مدل در مخزن ثبت شده‌اند. هم‌ارزی تحلیلی نیاز به شاهد مستقل دارد.", next: "حفظ داده‌های منبع و نگاشت به 3D Model را روی فایل‌های مرجع بررسی کن.", owner: "GPT-2 / GPT-3", statusPath: "handoffs/gpt1-to-gpt2.md" },
   "Snow Load": { stage: 7, observation: "آزمون نمایندهٔ تولید برای Core 0.5 ثبت شده است. مرز 0.6 در کد دیده شده و به آزمون مجدد نیاز دارد.", next: "بار برف و فشار سطحی را در نسخهٔ 0.6 با مرجع مقایسه کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
@@ -124,9 +341,11 @@ export default function OperationsWorkspace({ token }: { token: string }) {
         </div>
         {tool && evidence && <article className={styles.record}>
           <div className={styles.recordTop}><h3 dir="ltr">{tool.tool}</h3><a dir="ltr" href={`https://github.com/${tool.repository}`}>GitHub <ArrowUpRight size={15}/></a></div>
-          <ol className={styles.flow}>{steps.map(([agent, name], index) => <li key={name} data-evidence={evidence.stage === index}>
+          {drawingStages[selected] ? <ol className={styles.flow}>{drawingStages[selected].map(([agent, name, status]) =>
+            <li key={name}><span className={styles.agent} dir="ltr">{agent}</span><strong>{name}</strong><small>{status}</small></li>
+          )}</ol> : <ol className={styles.flow}>{steps.map(([agent, name], index) => <li key={name} data-evidence={evidence.stage === index}>
             <span className={styles.agent} dir="ltr">{agent}</span><strong>{name}</strong><small>{evidence.stage === index ? "شاهد ثبت‌شده" : "نیازمند بررسی این مرحله"}</small>
-          </li>)}</ol>
+          </li>)}</ol>}
           <p>{evidence.observation}</p>
           <dl className={styles.facts}>
             <div><dt>مرز فعلی Core</dt><dd dir="ltr">{tool.currentCore}</dd></div>
@@ -138,7 +357,7 @@ export default function OperationsWorkspace({ token }: { token: string }) {
             {tool.commit && tool.evidencePath && <a href={`https://github.com/${tool.repository}/blob/${tool.commit}/${tool.evidencePath}`}>شاهد کد · <bdi>{tool.commit.slice(0, 7)}</bdi></a>}
             {evidence.statusPath && <a href={`https://github.com/${tool.repository}/blob/main/${evidence.statusPath}`}>پروندهٔ وضعیت یا تحویل</a>}
           </div>
-          {selected === "Structural Labeling" && <p><a href="/structural-labeling">باز کردن محیط لیبلینگ</a> · <a href="https://github.com/dehghoon/linkoteq-structural-detection">مخزن دریافت GPT-7</a></p>}
+          {selected === "Structural Labeling" && <p><a href="/structural-labeling">باز کردن محیط لیبلینگ</a> · <a href="/structural-labeling/regionkit">RegionKit — لیبلینگ دستی</a> · <a href="https://github.com/dehghoon/linkoteq-structural-detection">مخزن دریافت GPT-7</a></p>}
           <GitHubProgress key={tool.tool} token={token} tool={tool.tool} />
         </article>}
       </>}
