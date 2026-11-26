@@ -11,16 +11,18 @@ type Article = {
   published_at: string | null;
   hasCover: boolean;
 };
-type Reports = { published: Article[]; drafts: Article[] | null };
+type SocialRecord = { id: string; post_id: string; platform: string; status: string; due_at: string | null; external_post_id: string | null };
+type Reports = { published: Article[]; drafts: Article[] | null; social: SocialRecord[] | null };
 
 const torontoTime = new Intl.DateTimeFormat("en-CA", {
   dateStyle: "medium", timeStyle: "short", timeZone: "America/Toronto",
 });
 
-function ArticleList({ articles, published = false }: { articles: Article[]; published?: boolean }) {
+function ArticleList({ articles, published = false, social }: { articles: Article[]; published?: boolean; social?: SocialRecord[] | null }) {
   if (!articles.length) return <p>{published ? "No published articles found." : "No drafts found."}</p>;
   return <ul style={{ listStyle: "none", padding: 0 }}>
     {articles.map(article => {
+      const channels = social?.filter(record => record.post_id === article.id);
       const date = published ? article.published_at : article.created_at;
       return <li key={article.id} style={{ border: "1px solid #dbe5ed", borderRadius: 12, padding: 16, marginBottom: 12, overflowWrap: "anywhere" }}>
         <h5>{article.title}</h5>
@@ -28,6 +30,13 @@ function ArticleList({ articles, published = false }: { articles: Article[]; pub
         {article.excerpt && <p>{article.excerpt}</p>}
         <p>{article.hasCover ? "Cover image recorded" : "No cover image"}</p>
         {published && article.slug && <a href={`/blog/${encodeURIComponent(article.slug)}`}>Read article</a>}
+        {channels && <details><summary>Social publication records</summary>
+          {channels.length ? <ul>{channels.map(record => <li key={record.id}>
+            {record.platform} · {record.status}
+            {record.due_at && <> · Due {torontoTime.format(new Date(record.due_at))}</>}
+            {record.external_post_id && <> · Post ID <bdi>{record.external_post_id}</bdi></>}
+          </li>)}</ul> : <p>No social publication records.</p>}
+        </details>}
       </li>;
     })}
   </ul>;
@@ -74,7 +83,8 @@ export default function BlogReports({ token }: { token: string }) {
         ? <p>Drafts require the internal database connection.</p>
         : <ArticleList articles={reports.drafts} />}
       <h4>Published articles</h4>
-      <ArticleList articles={reports.published} published />
+      {reports.social === null && <p>Private social publication records are unavailable in this environment.</p>}
+      <ArticleList articles={reports.published} published social={reports.social} />
     </>}
   </section>;
 }

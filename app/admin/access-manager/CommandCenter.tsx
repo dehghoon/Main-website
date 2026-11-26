@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import NewsReports from "./NewsReports";
-import BlogReports from "./BlogReports";
+import OperationsWorkspace from "./OperationsWorkspace";
 type Tool = {tool:string;repository:string;commit:string|null;currentCore:string;targetCore:string;compatibility:string;components:string;evidencePath:string|null;requiredAction:string};
 type Release = {id:string;target_version:string;source_sha:string;status:string;evidence:Record<string,unknown>;created_at:string};
 type CoreData = {events:{id:string;release_id:string;actor_id:string;decision:string;reason:string;source_sha:string;created_at:string}[];historyReady:boolean;snapshot:{inspectedAt:string;coreRepository:string;coreCommit:string;sourceVersion:string;migrationReview:string;migrationEvidencePath:string;productionVersion:string|null;latestAvailableVersion:string|null;tools:Tool[]};releases:Release[];storageReady:boolean;storageMessage:string|null};
@@ -10,9 +9,8 @@ export default function CommandCenter({token,section,onAccess}:{token:string;sec
  async function load(){setBusy(true);setError("");try{const r=await fetch("/api/admin/access-manager/core",{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});const b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);}catch(e){setError(e instanceof Error?e.message:"Unable to load Core records");}finally{setBusy(false);}}
  useEffect(()=>{if(section!=="Operations")void load();},[token,section]); // Each request is independently authorized by the server.
  async function review(id:string,decision:string){setBusy(true);setError("");try{const r=await fetch("/api/admin/access-manager/core",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({releaseId:id,decision,reason})});const b=await r.json();if(!r.ok)throw new Error(b.error);setReason("");await load();}catch(e){setError(e instanceof Error?e.message:"Review failed");}finally{setBusy(false);}}
- const workflows=[['Engineering development','Repository issue → branch → reference tests → preview → Owner approval'],['AI agents','GPT-1–GPT-5 and responsible agents receive repository tasks; external invocation is not configured.'],['Social marketing','Existing approved publishing workflows and publication evidence.'],['Muse / Google Flow videos','Brief → storyboard → video → review → approved publication; connector not configured.'],['Educational videos','Reference-backed lesson → script → demonstration → review.'],['Monitoring & reports','Deployment health, incidents and operational evidence; telemetry not connected.']];
+ if(section==="Operations")return <OperationsWorkspace token={token}/>;
  return <section aria-label={section} style={{minWidth:0}}><h2>{section}</h2>{error&&<p role="alert">{error}</p>}
- {section==='Operations'?<><details open><summary>AI news</summary><NewsReports token={token}/></details><details><summary>Blog</summary><BlogReports token={token}/></details><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,260px),1fr))',gap:16}}>{workflows.map(([name,description])=><article key={name} style={{border:'1px solid #dbe5ed',borderRadius:12,padding:16}}><h3>{name}</h3><p>{description}</p><p>Integration pending verification</p></article>)}</div></>:<>
  <button type="button" onClick={()=>void load()} disabled={busy}>Refresh release records</button>
  {section==='Owner Approval Inbox'&&<><p>Access approvals and Core release reviews share this entry point. Existing access review controls remain in Access Manager.</p><div style={{display:'flex',flexWrap:'wrap',gap:10}}>{['Employees','Beta Access','Pro Rewards'].map(s=><button key={s} onClick={()=>onAccess(s)}>{s}</button>)}</div></>}
  {data&&<><p>Repository inspection: {data.snapshot.inspectedAt}. Snapshot evidence is scoped to the linked commits; deployment and live test status are unverified.</p>
@@ -25,7 +23,6 @@ export default function CommandCenter({token,section,onAccess}:{token:string;sec
  <label>Review reason / evidence reference <textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={2000} style={{width:'100%'}}/></label>
  {data.releases.length===0?<p>No release records available. No release readiness is inferred.</p>:data.releases.map(r=><article key={r.id} style={{border:'1px solid #dbe5ed',borderRadius:12,padding:16,marginTop:12}}><h4>Core Release Approval: {r.target_version}</h4><p>{r.status} · {r.source_sha} · {new Date(r.created_at).toLocaleString()}</p><details><summary>Release notes, checks, migration and rollback evidence</summary><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(r.evidence,null,2)}</pre></details><div style={{display:'flex',flexWrap:'wrap',gap:10}}>{[['approve','Approve Release'],['request_changes','Request Changes'],['reject','Reject Release'],['postpone','Postpone Release']].map(([decision,label])=><button key={decision} disabled={busy||!data.storageReady||reason.trim().length<10||!['pending','request_changes','postponed'].includes(r.status)} onClick={()=>void review(r.id,decision)}>{label}</button>)}</div></article>)}
  <h3>Release review history</h3>{!data.historyReady?<p>Audit history unavailable.</p>:data.events.length===0?<p>No review events recorded.</p>:data.events.map(e=><article key={e.id}><p><strong>{e.decision}</strong> · {new Date(e.created_at).toLocaleString()} · {e.actor_id}</p><p>{e.reason}</p><small>Release {e.release_id} · {e.source_sha}</small></article>)}
- </>}
  </>}
  </section>;
 }

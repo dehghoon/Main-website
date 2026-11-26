@@ -33,7 +33,14 @@ export async function GET(request: NextRequest) {
       const { cover_image_url, ...metadata } = post;
       return { ...metadata, hasCover: Boolean(cover_image_url) };
     };
+    const social = privateKey && published.data.length
+      ? await db.from("blog_social_publications")
+        .select("id,post_id,platform,status,due_at,external_post_id")
+        .in("post_id", published.data.map(post => post.id))
+        .order("platform")
+      : null;
     return NextResponse.json({
+      social: privateKey && !social?.error ? social?.data ?? [] : null,
       published: published.data.map(summarize),
       drafts: drafts.data?.map(summarize) ?? null,
     }, { headers });
