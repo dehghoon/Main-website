@@ -262,7 +262,7 @@ export default function ClientWorkspacePage() {
   }
 
   return <main className="authShell"><section className="authCard">
-    <a href="/"><Image src="/linkotech-logo.svg" alt="Linkoteq" width={260} height={64} priority /></a>
+    <a href="/"><Image src="/linkoteq-engineering-technology-20261126.svg" alt="Linkoteq" width={260} height={64} priority /></a>
     <span className="eyebrow">Client Access</span><h1>Client Workspace</h1>
     {!supabaseClient() && <p role="alert">Account service is not configured in this environment. Please contact <a href="mailto:hello@linkoteq.com">hello@linkoteq.com</a>.</p>}
     {userId ? <>

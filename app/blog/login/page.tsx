@@ -192,7 +192,7 @@ export default function EmployeeWorkspacePage() {
     <main className="authShell">
       <section className="authCard">
         <a href="/">
-          <Image src="/linkotech-logo.svg" alt="Linkoteq" width={260} height={64} priority />
+          <Image src="/linkoteq-engineering-technology-20261126.svg" alt="Linkoteq" width={260} height={64} priority />
         </a>
 
         <span className="eyebrow">Employee Access</span>
