@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Boxes, GitPullRequest, Layers3, Megaphone, Network } from "lucide-react";
+import GitHubProgress from "./GitHubProgress";
+import { additionalDevelopmentTools } from "@/lib/command-center/development-tools";
 import BlogReports from "./BlogReports";
 import NewsReports from "./NewsReports";
 import styles from "./operations.module.css";
@@ -29,6 +31,8 @@ const steps = [
 ] as const;
 
 const toolEvidence: Record<string, { stage: number; observation: string; next: string; owner: string; statusPath?: string }> = {
+  "Structural Labeling": { stage: 2, observation: "مسیر ثبت برچسب، بازبینی مالک و تحویل به GPT-7 در مخزن مستند است. پذیرش داده توسط GPT-7 مرحله‌ای جداگانه است.", next: "یک نمونهٔ مجاز را از بازبینی مالک تا رسیدن بستهٔ معتبر به صف GPT-7 بررسی کن.", owner: "GPT-3 / GPT-7", statusPath: "docs/STRUCTURAL_LABELING_GPT7_HANDOFF.md" },
+  "PDF to Model": { stage: 2, observation: "مخزن بازسازی برای تبدیل نقشهٔ PDF یا تصویر به هندسهٔ قابل بازبینی ثبت شده است. سازگاری نسخهٔ اجرایی با Core 0.6 تأیید نشده است.", next: "مسیر PDF، OCR و مقیاس، بازسازی GPT-6، بازبینی انسانی و تحویل به 3D Model را با نمونهٔ مرجع بررسی کن.", owner: "GPT-6 / GPT-7 / GPT-3", statusPath: "README.md" },
   "3D Model": { stage: 2, observation: "مهاجرت ویرایشگر به Core 0.6 در مخزن ثبت شده است. گزارش پروژه، بررسی اجرایی پس از تغییر ویرایشگر را باز گذاشته است.", next: "تست واردکردن، ویرایش و خروجی گرفتن را روی نسخهٔ فعلی ثبت کن.", owner: "GPT-3 / GPT-4", statusPath: "project-status.json" },
   "SAP2000 Importer": { stage: 2, observation: "تحویل مشخصات GPT-1 به GPT-2 و فایل پیاده‌سازی تحویل به مدل در مخزن ثبت شده‌اند. هم‌ارزی تحلیلی نیاز به شاهد مستقل دارد.", next: "حفظ داده‌های منبع و نگاشت به 3D Model را روی فایل‌های مرجع بررسی کن.", owner: "GPT-2 / GPT-3", statusPath: "handoffs/gpt1-to-gpt2.md" },
   "Snow Load": { stage: 7, observation: "آزمون نمایندهٔ تولید برای Core 0.5 ثبت شده است. مرز 0.6 در کد دیده شده و به آزمون مجدد نیاز دارد.", next: "بار برف و فشار سطحی را در نسخهٔ 0.6 با مرجع مقایسه کن.", owner: "GPT-2 / GPT-4", statusPath: "project-status.json" },
@@ -70,7 +74,8 @@ export default function OperationsWorkspace({ token }: { token: string }) {
     return () => controller.abort();
   }, [token]);
 
-  const tool = snapshot?.tools.find(item => item.tool === selected);
+  const tools = [...(snapshot?.tools ?? []), ...additionalDevelopmentTools];
+  const tool = tools.find(item => item.tool === selected);
   const evidence = toolEvidence[selected];
   return <section className={styles.workspace} dir="rtl" lang="fa" aria-label="محیط کاری لینکوتک">
     <header className={styles.hero}>
@@ -115,7 +120,7 @@ export default function OperationsWorkspace({ token }: { token: string }) {
       {failed ? <p role="alert">سوابق مخزن در دسترس نیست. صفحه را دوباره بارگذاری کنید.</p> : !snapshot ? <p role="status">در حال خواندن سوابق ابزارها…</p> : <>
         <p className={styles.muted}>نمای شواهد مخزن تا <bdi>{snapshot.inspectedAt}</bdi>. مرحلهٔ برجسته محل شاهد ثبت‌شده را نشان می‌دهد. نتیجهٔ تست آزمایشی، تأیید مالک و آزمون محیط اصلی جداگانه ثبت می‌شوند.</p>
         <div className={styles.toolPicker} aria-label="انتخاب ابزار">
-          {snapshot.tools.map(item => <button key={item.tool} type="button" dir="ltr" aria-pressed={selected === item.tool} onClick={() => setSelected(item.tool)}>{item.tool}</button>)}
+          {tools.map(item => <button key={item.tool} type="button" dir="ltr" aria-pressed={selected === item.tool} onClick={() => setSelected(item.tool)}>{item.tool}</button>)}
         </div>
         {tool && evidence && <article className={styles.record}>
           <div className={styles.recordTop}><h3 dir="ltr">{tool.tool}</h3><a dir="ltr" href={`https://github.com/${tool.repository}`}>GitHub <ArrowUpRight size={15}/></a></div>
@@ -133,6 +138,8 @@ export default function OperationsWorkspace({ token }: { token: string }) {
             {tool.commit && tool.evidencePath && <a href={`https://github.com/${tool.repository}/blob/${tool.commit}/${tool.evidencePath}`}>شاهد کد · <bdi>{tool.commit.slice(0, 7)}</bdi></a>}
             {evidence.statusPath && <a href={`https://github.com/${tool.repository}/blob/main/${evidence.statusPath}`}>پروندهٔ وضعیت یا تحویل</a>}
           </div>
+          {selected === "Structural Labeling" && <p><a href="/structural-labeling">باز کردن محیط لیبلینگ</a> · <a href="https://github.com/dehghoon/linkoteq-structural-detection">مخزن دریافت GPT-7</a></p>}
+          <GitHubProgress key={tool.tool} token={token} tool={tool.tool} />
         </article>}
       </>}
     </div>}
