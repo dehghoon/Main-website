@@ -1,7 +1,7 @@
 {
   "contract_id": "linkoteq-ai-news-social-automation",
-  "version": "1.4.1",
-  "updated": "2026-11-24",
+  "version": "1.4.2",
+  "updated": "2026-11-27",
   "independent_from": "contracts/marketing/blog-automation-v1.json",
   "purpose": "Independent AI news for official Linkoteq social channels and the News & Updates website feed, separate from the blog workflow",
   "source_policy": {
@@ -226,6 +226,23 @@
       "keep_original_posts": "social_links must preserve verified Instagram five-image carousel permalink, Facebook collage photo post permalink and LinkedIn image post permalink. Never replace those with reel or video URLs. Show both groups separately: original source and social image posts, then Watch the video for all four video platforms.",
       "availability": "If a video is not yet published or permalink not verified, omit only that video key, report pending, and add later to the same card without reposting.",
       "verification": "After updates read back both social_links and video_links; validate each link against its platform domain, check production deployment READY and verify the live /news#<slug> card shows every available link. If not, report incomplete and fix the parser/deployment before claiming success. Reddit video links belong under Watch the video and must not replace any original social post links."
+    },
+    "post_publish_reconciliation": {
+      "mandatory": true,
+      "trigger": "Immediately after any owner-approved social publication, including partial successes; also when owner supplies a previously published video URL.",
+      "sequence": [
+        "Resolve exact story identity from published media and captions; never attach Linkoteq product posts to an unrelated AI news asset.",
+        "Read existing website card and platform publication records first; never re-post just to fill missing links.",
+        "Create or reuse a stable story asset and a single website card after same-story owner approval, with truthful title, summary, source and publicly accessible topic-specific JPEG.",
+        "Merge confirmed image-post permalinks into social_links and confirmed video permalinks into video_links; preserve existing keys, asset_id, slug and first published_at.",
+        "Read back Supabase, check production deployment and verify live /news#slug renders the card and all expected links.",
+        "If a platform is rate-limited, reconcile its real publication status before retrying; do not infer failure means no post.",
+        "Report independently: social publish result, feed database write, deployment status and live website verification."
+      ],
+      "partial_success_policy": "Reconcile successful channels immediately even if other channels fail or user publishes a video manually.",
+      "approval_policy": "Same explicit story publication approval authorizes website card; no second approval. Scheduled drafts never publish.",
+      "mismatch_policy": "Never reuse an unrelated pending asset. Create or match the actual story after checking title, source and media; preserve unrelated drafts.",
+      "duplicate_policy": "Idempotent asset/card upsert and atomic JSONB merges. Never resend social content for reconciliation."
     }
   }
 }
