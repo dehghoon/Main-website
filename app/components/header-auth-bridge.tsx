@@ -20,8 +20,9 @@ export default function HeaderAuthBridge({ children }: { children: ReactNode }) 
     const header = document.querySelector("linkoteq-header");
     if (!header) return;
 
-    const unsubscribe = subscribeHeaderAccount(({ name, internalTools }) => {
+    const unsubscribe = subscribeHeaderAccount(({ name, internalTools, commandCenter }) => {
       setInternalTools(internalTools);
+      header.toggleAttribute("command-center", commandCenter);
       header.toggleAttribute("internal-tools", internalTools);
       if (name) header.setAttribute("account-name", name);
       else header.removeAttribute("account-name");

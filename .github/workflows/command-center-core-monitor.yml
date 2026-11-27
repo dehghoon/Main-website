@@ -1,0 +1,22 @@
+name: Core Release & Compatibility Management
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: command-center-core-monitor
+  cancel-in-progress: false
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { openReviewTasks } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/command-center-core-monitor.mjs`);
+            const changes = await openReviewTasks(github, context);
+            await core.summary.addHeading('Core discovery').addRaw(`${changes.length} release, tag, source and interface candidates reviewed. Tasks require independent compatibility analysis; nothing is published or deployed.`).write();

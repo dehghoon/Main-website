@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "snapshotDate": "2026-11-25",
+  "repository": "https://github.com/dehghoon/linkoteq-structural-core",
+  "current": {
+    "releaseTag": "v0.6.0",
+    "contractVersion": "0.6",
+    "packageVersion": "0.6.0",
+    "releaseCommit": "83f30b505997c77fed3d3984267027a1bae5c7ad",
+    "inspectedMainCommit": "c628d25982760936ff0e652047d0c1440d5a004b",
+    "stage": "released",
+    "consumerRollout": "tracked-separately",
+    "productionVersion": null,
+    "releaseNotes": "https://github.com/dehghoon/linkoteq-structural-core/blob/c628d25982760936ff0e652047d0c1440d5a004b/releases/v0.6.0.md",
+    "migrationMatrix": "https://github.com/dehghoon/linkoteq-structural-core/blob/c628d25982760936ff0e652047d0c1440d5a004b/orchestration/core-v06-migration/matrix-2026-11-13.md"
+  },
+  "versions": [
+    {
+      "milestone": "0 / foundation",
+      "kind": "repository-initialization",
+      "commit": "928f9dfc24dc79202d9ea270bfcc74fee2c652f9",
+      "commitDate": "2026-08-18",
+      "contractVersion": null,
+      "packageVersion": null,
+      "releaseTag": null,
+      "publishedAt": null,
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/commit/928f9dfc24dc79202d9ea270bfcc74fee2c652f9",
+      "changes": [
+        "Initial repository foundation. No numbered version or release tag was recorded here."
+      ]
+    },
+    {
+      "milestone": "0.1",
+      "kind": "historical-contract",
+      "commit": "941f982201f4490f0d05c1ecb9c0ce638f24a256",
+      "commitDate": "2026-08-18",
+      "contractVersion": "0.1",
+      "packageVersion": null,
+      "releaseTag": null,
+      "publishedAt": null,
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/commit/941f982201f4490f0d05c1ecb9c0ce638f24a256",
+      "changes": [
+        "Introduced the first TypeScript structural contract."
+      ]
+    },
+    {
+      "milestone": "0.2",
+      "kind": "historical-contract",
+      "commit": "c198d57a1b68cbf615398dbd35b16631a91a1c7b",
+      "commitDate": "2026-08-18",
+      "contractVersion": "0.2",
+      "packageVersion": "0.2.0",
+      "releaseTag": null,
+      "publishedAt": null,
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/commit/c198d57a1b68cbf615398dbd35b16631a91a1c7b",
+      "changes": [
+        "Defined geometry, loads, analysis and calculator integration boundaries.",
+        "Package version 0.2.0 is recorded in Git; no current GitHub release tag was found."
+      ]
+    },
+    {
+      "milestone": "0.3",
+      "kind": "historical-contract",
+      "commit": "cdf62f29cfd461ea923782f5a89a230c1cecd17e",
+      "commitDate": "2026-08-26",
+      "contractVersion": "0.3",
+      "packageVersion": "0.2.0",
+      "releaseTag": null,
+      "publishedAt": null,
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/commit/cdf62f29cfd461ea923782f5a89a230c1cecd17e",
+      "changes": [
+        "Expanded calculator integration, load transfer, design results and reporting.",
+        "Contract version advanced while package metadata remained 0.2.0."
+      ]
+    },
+    {
+      "milestone": "0.4",
+      "kind": "historical-contract",
+      "commit": "917f68fb041b9f46ef95b34bbd016a21cf7e089a",
+      "commitDate": "2026-08-26",
+      "contractVersion": "0.4",
+      "packageVersion": "0.2.0",
+      "releaseTag": null,
+      "publishedAt": null,
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/commit/917f68fb041b9f46ef95b34bbd016a21cf7e089a",
+      "changes": [
+        "Defined coordinate systems, member-local axes and member-force results."
+      ]
+    },
+    {
+      "milestone": "0.5",
+      "kind": "tagged-release",
+      "commit": "a12a76c3fca5dfd1718c295ee9c77f698befdd49",
+      "commitDate": "2026-10-29",
+      "contractVersion": "0.5",
+      "packageVersion": "0.5.0",
+      "releaseTag": "v0.5.0",
+      "publishedAt": "2026-10-30T03:27:43Z",
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/releases/tag/v0.5.0",
+      "changes": [
+        "Canonical analysis contracts, explicit units, typed materials and sections, six degrees of freedom, and load primitives."
+      ]
+    },
+    {
+      "milestone": "0.6",
+      "kind": "tagged-release",
+      "commit": "83f30b505997c77fed3d3984267027a1bae5c7ad",
+      "commitDate": "2026-11-04",
+      "contractVersion": "0.6",
+      "packageVersion": "0.6.0",
+      "releaseTag": "v0.6.0",
+      "publishedAt": "2026-11-04T14:13:14Z",
+      "evidenceUrl": "https://github.com/dehghoon/linkoteq-structural-core/releases/tag/v0.6.0",
+      "changes": [
+        "Added joist specifications, member-end connections, nodal links and multi-point constraints.",
+        "Added surface local axes and extended shell analysis results.",
+        "Retains compatibility with existing 0.5 model fields."
+      ]
+    }
+  ]
+}

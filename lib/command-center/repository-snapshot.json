@@ -1,0 +1,101 @@
+{
+  "inspectedAt": "2026-11-25",
+  "coreRepository": "dehghoon/linkoteq-structural-core",
+  "coreCommit": "c628d25982760936ff0e652047d0c1440d5a004b",
+  "sourceVersion": "0.6.0",
+  "productionVersion": null,
+  "latestAvailableVersion": "v0.6.0",
+  "tools": [
+    {
+      "tool": "3D Model",
+      "repository": "dehghoon/3D-Model",
+      "commit": "4d24c22e6412722b01c91dcb93368da3e7dad3d2",
+      "currentCore": "0.6.0 package / schema 0.6",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "geometry, materials, sections, loads",
+      "evidencePath": "package.json",
+      "requiredAction": "Pinned Core package; runtime compatibility requires fresh regression evidence."
+    },
+    {
+      "tool": "SAP2000 Importer",
+      "repository": "dehghoon/linkoteq-structural-importer",
+      "commit": "6654d7c24d4207071d39ff70374a04f58ec60ede",
+      "currentCore": "handoff v1 \u2192 target schema 0.6",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "source-preserving import handoff",
+      "evidencePath": "src/linkoteq_importer/sap2000_gpt3_package.py",
+      "requiredAction": "Transport is not a canonical StructuralModel; validate downstream mapping."
+    },
+    {
+      "tool": "Snow Load",
+      "repository": "dehghoon/Snow-Calculator",
+      "commit": "7fa9316615192c2369ef504485066dfb4f1d6713",
+      "currentCore": "schema 0.5 and 0.6",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "surface-pressure loads",
+      "evidencePath": "backend/app/core_contract_v05.py",
+      "requiredAction": "Re-run reference snow calculations and canonical pressure parity."
+    },
+    {
+      "tool": "Wind Load",
+      "repository": "dehghoon/wind-calculator",
+      "commit": "142cc13e91d1b2096b24898e8471f81284224c42",
+      "currentCore": "catalog pinned at e642c8aa; schema not declared",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "climate catalogs",
+      "evidencePath": "backend/app/wind_climate.py",
+      "requiredAction": "Verify pinned catalog compatibility and define canonical load boundary."
+    },
+    {
+      "tool": "Seismic",
+      "repository": "dehghoon/seismic-calculator",
+      "commit": "865127a34690d444bef23ffb1dbc23f9aaffa51f",
+      "currentCore": "custom handoff: linkoteq.seismic.static.v1",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "static seismic result handoff; canonical mapping unverified",
+      "evidencePath": "backend/app/core_handoff.py",
+      "requiredAction": "Verify custom static handoff mapping to Core; no canonical schema version is declared."
+    },
+    {
+      "tool": "W-Section",
+      "repository": "dehghoon/steel-verification",
+      "commit": "0f519f62e01aaeb73430686b0e1ce260ac5f6bdf",
+      "currentCore": "schema 0.5 and 0.6",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "design results",
+      "evidencePath": "backend/app/models/core_contract_v05.py",
+      "requiredAction": "Re-run reference design checks and canonical writeback parity."
+    },
+    {
+      "tool": "Wood Design",
+      "repository": "dehghoon/WoodDessign",
+      "commit": "c149f82f087fbdea09292bc275fa50d731a80b3c",
+      "currentCore": "not established",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "unverified",
+      "evidencePath": "app.py",
+      "requiredAction": "No canonical runtime dependency found in inspected Python/package sources; audit required."
+    },
+    {
+      "tool": "Concrete Beam",
+      "repository": "dehghoon/linkoteq-concrete-beam",
+      "commit": null,
+      "currentCore": "unknown \u2014 source unavailable",
+      "targetCore": "0.6.0 / schema 0.6",
+      "compatibility": "Not validated in this review",
+      "components": "unverified",
+      "evidencePath": null,
+      "requiredAction": "Private repository source access failed; dependency audit blocked."
+    }
+  ],
+  "latestReleaseEvidence": "https://github.com/dehghoon/linkoteq-structural-core/releases/tag/v0.6.0",
+  "migrationEvidencePath": "orchestration/core-v06-migration/matrix-2026-11-13.md",
+  "migrationReview": "Existing Core matrix records historical approved rollout for 3D Model, importer, Snow and W-Section. Analytical fidelity and physical-device follow-ups remain open. Current production revisions were not revalidated in this review."
+}
