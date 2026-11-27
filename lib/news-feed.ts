@@ -4,7 +4,7 @@ const platformHosts = {
   linkedin: ["linkedin.com", "www.linkedin.com"],
   instagram: ["instagram.com", "www.instagram.com"],
   facebook: ["facebook.com", "www.facebook.com", "m.facebook.com"],
-  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
   reddit: ["reddit.com", "www.reddit.com", "old.reddit.com"],
 } as const;
 
@@ -35,7 +35,10 @@ export function parseNewsCard(data: unknown) {
   if (!source || !image || !/\.jpe?g$/i.test(image.pathname)) return null;
   const websiteImage = sourceHosts.has(image.hostname) && image.pathname.startsWith("/marketing/");
   const storageImage = image.hostname === storageHost && image.pathname.startsWith("/storage/v1/object/public/blog-media/");
-  if (!websiteImage && !storageImage) return null;
+  // Public, repo-scoped editorial assets are also valid News cover images.
+  const githubImage = image.hostname === "raw.githubusercontent.com" &&
+    image.pathname.startsWith("/dehghoon/Main-website/main/public/marketing/");
+  if (!websiteImage && !storageImage && !githubImage) return null;
 
   const social = row.social_links;
   const urls = social && typeof social === "object" && !Array.isArray(social)
