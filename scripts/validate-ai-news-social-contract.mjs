@@ -25,6 +25,13 @@ check(website?.video_links?.separate_from_social_links === true, "Video links mu
 check(["youtube","instagram","facebook","linkedin","reddit"].every(p => website?.video_links?.platforms?.includes(p)), "All five video platforms required");
 check(website?.video_links?.keep_original_posts?.includes("carousel"), "Must preserve original image posts");
 check(website?.video_links?.permalink_policy?.includes("lnkd.in"), "Must support LinkedIn short video links");
+
+const reconciliation=website?.post_publish_reconciliation;
+check(reconciliation?.mandatory===true,"Post-publish News reconciliation must be mandatory");
+check(reconciliation?.partial_success_policy?.includes("immediately"),"Partial success must reconcile immediately");
+check(reconciliation?.approval_policy?.includes("no second approval"),"Same-story approval must cover website card");
+check(reconciliation?.mismatch_policy?.includes("unrelated"),"Unrelated story assets must not be reused");
+check(reconciliation?.duplicate_policy?.includes("Never resend"),"Reconciliation must never duplicate social posts");
 validateEditorialImagePolicy(c,"news");
 console.log("AI NEWS CONTRACT OK",c.contract_id,c.version);
 
