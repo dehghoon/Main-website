@@ -19,6 +19,7 @@ const tools=[
  ["3D Structural Model","https://3dmodel.linkoteq.com/","Beta","/tools/3d-model"],
 ];
 const hostedCalculators = [
+ ["2D Analysis",accountOrigin + "/tools/2d-analysis","Beta","/tools/2d-analysis"],
  ["Concrete Beam",accountOrigin + "/tools/concrete-beam","In development","/tools/concrete-beam"],
  ["Wood Design",accountOrigin + "/tools/wood-design","Beta","/tools/wood-design"],
  ["Wind Load","https://wind.linkoteq.com/","Beta","/tools/wind-load"],
@@ -269,3 +270,4 @@ renderAccount(){if(!this.accountArea)return;const name=this.getAttribute("accoun
 }
 customElements.define("linkoteq-header",LinkoteqHeader);
 })();
+
