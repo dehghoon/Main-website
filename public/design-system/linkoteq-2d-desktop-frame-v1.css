@@ -8,7 +8,8 @@
     left: 8px;
     right: 8px;
     bottom: 8px;
-    box-shadow: 0 0 0 1px var(--home-line);
+    outline: 1px solid #91a59c;
+    box-shadow: 0 2px 8px rgb(20 53 46 / 14%);
   }
   html[data-linkoteq-surface="analysis-2d"] .v-app-bar {
     left: 8px !important;
