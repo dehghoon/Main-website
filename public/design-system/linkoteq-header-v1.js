@@ -164,7 +164,7 @@ const addToolLinks=(parent)=>{
   badge.dataset.status=status==="Beta"?"beta":"trial";
   badge.textContent=status;
   anchor.append(" ",badge);
-  if(usePreview)this.toolLinks.push({anchor,url,preview:siteHref(accountOrigin+preview)});
+  if(usePreview)this.toolLinks.push({anchor,url:preview === "/tools/2d-analysis" ? "https://linkoteq-2d-analysis.vercel.app/" : url,preview:siteHref(accountOrigin+preview)});
  });
  link("All engineering tools",accountOrigin + "/tools",parent);
 };
