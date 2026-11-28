@@ -15,5 +15,6 @@
     right: 8px !important;
     width: calc(100% - 16px) !important;
   }
-  html[data-linkoteq-surface="analysis-2d"] .v-navigation-drawer { left: 8px !important; }
+  html[data-linkoteq-surface="analysis-2d"] .v-navigation-drawer--left.v-navigation-drawer--active { left: 8px !important; }
+  html[data-linkoteq-surface="analysis-2d"] .v-navigation-drawer--right.v-navigation-drawer--active { right: 8px !important; }
 }
