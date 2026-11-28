@@ -1,0 +1,19 @@
+/* Site-owned desktop framing for the 2D Analysis workspace. Mobile remains edge-to-edge. */
+@media (min-width: 901px) {
+  html[data-linkoteq-surface="analysis-2d"] {
+    --lq-workspace-height: calc(100dvh - var(--lq-header-height) - 8px);
+  }
+  html[data-linkoteq-surface="analysis-2d"] body { background: var(--home-paper); }
+  html[data-linkoteq-surface="analysis-2d"] #app {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    box-shadow: 0 0 0 1px var(--home-line);
+  }
+  html[data-linkoteq-surface="analysis-2d"] .v-app-bar {
+    left: 8px !important;
+    right: 8px !important;
+    width: calc(100% - 16px) !important;
+  }
+  html[data-linkoteq-surface="analysis-2d"] .v-navigation-drawer { left: 8px !important; }
+}
