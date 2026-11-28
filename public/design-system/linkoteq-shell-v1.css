@@ -147,3 +147,30 @@ html:is([data-linkoteq-surface="wind"], [data-linkoteq-surface="seismic"]) main 
   background: var(--home-dark-step);
   color: var(--home-dark-detail);
 }
+
+
+/* 2D Analysis: site-owned presentation adapter; no solver or model changes. */
+html[data-linkoteq-surface="analysis-2d"] {
+  --lq-header-height: 118px;
+  --lq-workspace-height: calc(100dvh - var(--lq-header-height));
+  font-family: var(--lq-body-font);
+}
+@media(max-width:900px) { html[data-linkoteq-surface="analysis-2d"] { --lq-header-height: 72px; } }
+html[data-linkoteq-surface="analysis-2d"] body > linkoteq-header { position: fixed; inset: 0 0 auto; z-index: 2200; }
+html[data-linkoteq-surface="analysis-2d"] #app { position: fixed; inset: var(--lq-header-height) 0 0; }
+html[data-linkoteq-surface="analysis-2d"] :is(#app,.v-application,.v-application__wrap) {
+  height: var(--lq-workspace-height) !important; min-height: 0 !important;
+}
+html[data-linkoteq-surface="analysis-2d"] .v-application { font-family: var(--lq-body-font); }
+html[data-linkoteq-surface="analysis-2d"] .v-app-bar { top: var(--lq-header-height) !important; }
+html[data-linkoteq-surface="analysis-2d"] .v-navigation-drawer { top: calc(var(--lq-header-height) + 48px) !important; height: calc(var(--lq-workspace-height) - 48px) !important; min-height: 0 !important; }
+html[data-linkoteq-surface="analysis-2d"] .v-main { height: var(--lq-workspace-height) !important; min-height: 0 !important; }
+html[data-linkoteq-surface="analysis-2d"] :is(.app-title,.edubeam,h1,h2,h3) { font-family: var(--lq-heading-font); }
+html[data-linkoteq-surface="analysis-2d"] .v-theme--light {
+  --v-theme-primary: 21,101,192; --v-theme-on-primary: 255,255,255;
+  --v-theme-appbar: 20,53,46; --v-theme-on-appbar: 255,255,255;
+  --v-theme-secondary: 247,244,238; --v-theme-background: 247,244,238;
+  --v-theme-panel: 255,255,255; --v-theme-panel-variant: 247,244,238;
+}
+html[data-linkoteq-surface="analysis-2d"] .v-overlay-container { font-family: var(--lq-body-font); }
+@media(max-width:600px) { html[data-linkoteq-surface="analysis-2d"] .app-title { font-size: 14px; margin-left: 0 !important; white-space: nowrap; } }

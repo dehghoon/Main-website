@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {url:origin+"/blog",changeFrequency:"daily",priority:0.9},
     {url:origin+"/news",changeFrequency:"weekly",priority:0.7},
     {url:origin+"/pricing",changeFrequency:"monthly",priority:0.5},
+    {url:origin+"/tools/2d-analysis",changeFrequency:"monthly",priority:0.7},
     {url:origin+"/tools",changeFrequency:"monthly",priority:0.8},
     {url:origin+"/tools/wind-load",changeFrequency:"monthly",priority:0.7},
     {url:origin+"/tools/concrete-beam",changeFrequency:"monthly",priority:0.5},
@@ -49,3 +50,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch { /* Keep static routes available when CMS is unreachable. */ }
   return entries;
 }
+
